@@ -1,0 +1,48 @@
+# Successful Patterns
+# Schema: patterns/schema.yml
+# Last Updated: 2026-02-11
+
+patterns:
+  - pattern: superpowers-7-phase-workflow
+    context: "Any feature development or bug fix requiring tests"
+    steps:
+      - "Phase 1: Use /using-superpowers to invoke skill"
+      - "Phase 2: Create git worktree for isolated development"
+      - "Phase 3: Write failing tests first (TDD)"
+      - "Phase 4: Implement feature to pass tests"
+      - "Phase 5: Verify all tests pass"
+      - "Phase 6: Request code review before merging"
+      - "Phase 7: Merge and clean up worktree"
+    outcome: "High-quality, tested code with clear verification"
+    success_rate: high
+    last_used: 2026-02-11
+    related_patterns:
+      - verification-before-completion
+
+  - pattern: file-native-memory-system
+    context: "Building persistent context for agentic systems"
+    steps:
+      - "Use YAML for 28-60% token efficiency (research-proven)"
+      - "Domain-partition schemas for scalability"
+      - "Create NAVIGATOR.md for grep-based discovery"
+      - "Use snake_case field names for predictable grepping"
+      - "Keep files under 1000 lines"
+    outcome: "Efficient, scalable memory that Claude can navigate"
+    success_rate: high
+    last_used: 2026-02-11
+    related_patterns:
+      - domain-partitioning
+
+  - pattern: work-items-as-files
+    context: "Project management without external tools (no Linear, no APIs)"
+    steps:
+      - "Create Markdown files with YAML frontmatter"
+      - "Use ID ranges (001-099 PRD, 101-199 bugs, 201-299 tasks)"
+      - "Store in .claude/work/ with type folders"
+      - "Move to done/ folder when complete"
+      - "Use grep to filter and search"
+    outcome: "100% file-based project management, version controlled, works offline"
+    success_rate: experimental
+    last_used: 2026-02-11
+    related_patterns:
+      - file-native-memory-system

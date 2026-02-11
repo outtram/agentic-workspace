@@ -1,0 +1,37 @@
+# Patterns Domain Schema
+# Grep patterns: "pattern:", "context:", "outcome:"
+
+schema_version: "1.0"
+domain: "patterns"
+description: "Successful workflows and repeatable patterns"
+
+table_structure:
+  pattern:
+    primary_key: pattern
+    columns:
+      - name: pattern
+        type: string
+        description: "Name of the pattern (e.g., TDD-with-superpowers)"
+      - name: context
+        type: string
+        description: "When to use this pattern"
+      - name: steps
+        type: list
+        description: "Ordered steps to follow"
+      - name: outcome
+        type: string
+        description: "Expected result of applying pattern"
+      - name: success_rate
+        type: enum
+        values: [high, medium, experimental]
+      - name: last_used
+        type: date
+        description: "Last time this pattern was applied"
+      - name: related_patterns
+        type: list
+        description: "Other patterns that complement this one"
+
+grep_patterns:
+  find_high_success_patterns: "success_rate: high"
+  find_by_context: "context:"
+  find_recent: "last_used: 2026"

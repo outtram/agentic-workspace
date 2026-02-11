@@ -1,0 +1,84 @@
+# Architectural Decisions
+# Schema: decisions/schema.yml
+# Last Updated: 2026-02-11
+
+decisions:
+  - decision: use-yaml-for-memory
+    title: "Use YAML format for all memory files"
+    project: OUT-AAGLOBAL
+    date: 2026-02-11
+    status: accepted
+    context: "Need token-efficient format for Claude Code memory system"
+    decision_made: "Use YAML for all .claude/memory/ files"
+    rationale: |
+      Research by Damon McMillan (2026) shows YAML is 28-60% more token-efficient
+      than JSON or Markdown for structured data. Claude performs +2.7% better
+      with file-native retrieval. YAML is also grep-friendly with predictable patterns.
+    alternatives_considered:
+      - JSON (verbose, more tokens)
+      - Markdown tables (hard to parse, inconsistent)
+      - TOON (experimental, less tooling support)
+    consequences: "Requires YAML validation, but gains significant token efficiency"
+
+  - decision: domain-partitioned-schemas
+    title: "Use domain-partitioned memory structure"
+    project: OUT-AAGLOBAL
+    date: 2026-02-11
+    status: accepted
+    context: "Need scalable memory system that doesn't overwhelm context"
+    decision_made: "Partition memory into domains: projects, skills, patterns, decisions"
+    rationale: |
+      Research shows domain partitioning scales to 10,000 tables while maintaining
+      90%+ navigation accuracy. Each domain has its own schema.yml and data files.
+      This prevents context overflow and enables targeted grep searches.
+    alternatives_considered:
+      - Single monolithic file (doesn't scale)
+      - Flat file structure (hard to navigate)
+      - Database (adds complexity, not file-native)
+    consequences: "More files to manage, but scales indefinitely"
+
+  - decision: file-based-work-tracking
+    title: "Use files instead of GitHub Issues or Linear"
+    project: OUT-AAGLOBAL
+    date: 2026-02-11
+    status: accepted
+    context: "Need project management without external dependencies"
+    decision_made: "Store PRDs, bugs, tasks as Markdown files in .claude/work/"
+    rationale: |
+      Eliminates API calls, works offline, version controlled via git,
+      grep-searchable, no sync issues, simpler than Linear integration.
+      100% file-native aligns with research principles.
+    alternatives_considered:
+      - GitHub Issues (requires API, network dependency)
+      - Linear (external service, sync complexity)
+      - Jira (enterprise bloat)
+    consequences: "No fancy UI, but gains simplicity and reliability"
+
+  - decision: cli-over-mcp
+    title: "Prefer CLI tools over MCP servers"
+    project: global
+    date: 2026-02-11
+    status: accepted
+    context: "Choose between native CLI tools and MCP server wrappers"
+    decision_made: "Use gh CLI, git CLI directly instead of MCP equivalents"
+    rationale: |
+      CLI tools are faster, more reliable, better error messages,
+      widely documented, and don't require MCP server overhead.
+      Only use MCP when no CLI alternative exists.
+    alternatives_considered:
+      - GitHub MCP server (slower, adds complexity)
+      - Always use MCP (unnecessary overhead)
+    consequences: "Better performance, but need to know CLI commands"
+
+  - decision: australian-english-spelling
+    title: "Use Australian English for all documentation"
+    project: global
+    date: 2026-02-11
+    status: accepted
+    context: "Troy is Australian, prefers Australian spelling"
+    decision_made: "Use colour, organise, behaviour, etc."
+    rationale: "User preference, consistency across all output"
+    alternatives_considered:
+      - US English (not user's preference)
+      - Mix of both (inconsistent)
+    consequences: "None, purely stylistic"

@@ -1,0 +1,65 @@
+# Learned Skills
+# Schema: skills/schema.yml
+# Last Updated: 2026-02-11
+
+skills:
+  - skill_name: superpowers-tdd-workflow
+    category: testing
+    description: "Test-driven development using Superpowers plugin (7 phases)"
+    learned_date: 2026-02-11
+    usage_frequency: always
+    examples:
+      - "Use /using-superpowers to start session"
+      - "Write failing test first, then implementation"
+      - "Verify tests pass before committing"
+    related_skills:
+      - git-worktrees
+      - verification-before-completion
+
+  - skill_name: git-worktrees
+    category: workflow
+    description: "Use git worktrees for isolated feature development"
+    learned_date: 2026-02-11
+    usage_frequency: often
+    examples:
+      - "Create worktree: git worktree add ../feature-branch feature-name"
+      - "Keeps main workspace clean while developing features"
+      - "Can run tests in parallel across worktrees"
+    related_skills:
+      - superpowers-tdd-workflow
+
+  - skill_name: cli-first-principle
+    category: tooling
+    description: "Prefer CLI tools (gh, git) over MCP servers where possible"
+    learned_date: 2026-02-11
+    usage_frequency: always
+    examples:
+      - "Use gh CLI for GitHub operations instead of GitHub MCP"
+      - "Faster, more reliable, better error handling"
+      - "Only use MCP when CLI doesn't exist"
+    related_skills:
+      - bash-over-mcp
+
+  - skill_name: adhd-friendly-communication
+    category: communication
+    description: "Keep responses short, structured, actionable for ADHD users"
+    learned_date: 2026-02-11
+    usage_frequency: always
+    examples:
+      - "Use bullet points and tables"
+      - "Confirm before executing changes"
+      - "Break large tasks into phases"
+    related_skills:
+      - phases-deliverables-outcomes
+
+  - skill_name: australian-english
+    category: communication
+    description: "Use Australian English spelling in all output"
+    learned_date: 2026-02-11
+    usage_frequency: always
+    examples:
+      - "colour not color"
+      - "organise not organize"
+      - "behaviour not behavior"
+    related_skills:
+      - adhd-friendly-communication

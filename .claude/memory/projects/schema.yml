@@ -1,0 +1,52 @@
+# Projects Domain Schema
+# Grep patterns: "project_id:", "repo:", "stack:", "status:"
+
+schema_version: "1.0"
+domain: "projects"
+description: "Active projects and repository configurations"
+
+table_structure:
+  project:
+    primary_key: project_id
+    columns:
+      - name: project_id
+        type: string
+        description: "Unique identifier (e.g., OUT-WEBSITE)"
+      - name: name
+        type: string
+        description: "Human-readable project name"
+      - name: repo
+        type: string
+        description: "GitHub repository (org/repo)"
+      - name: status
+        type: enum
+        values: [active, archived, planning]
+      - name: stack
+        type: list
+        description: "Tech stack (e.g., Next.js, TypeScript)"
+      - name: hosting
+        type: string
+        description: "Deployment platform"
+      - name: url_prod
+        type: string
+        description: "Production URL"
+      - name: url_staging
+        type: string
+        description: "Staging URL"
+      - name: branch_main
+        type: string
+        description: "Production branch name"
+      - name: branch_dev
+        type: string
+        description: "Development branch name"
+
+relationships:
+  - from: project
+    to: work_items
+    type: one_to_many
+    description: "Projects have multiple work items (PRDs, bugs, tasks)"
+
+grep_patterns:
+  find_active_projects: "status: active"
+  find_by_stack: "stack:"
+  find_by_repo: "repo:"

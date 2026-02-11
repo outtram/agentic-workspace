@@ -1,0 +1,54 @@
+# Active Projects
+# Schema: projects/schema.yml
+# Last Updated: 2026-02-11
+
+projects:
+  - project_id: OUT-WEBSITE
+    name: Outtram Website
+    repo: Outtram/OuttramWebsite
+    status: active
+    stack:
+      - Next.js 14
+      - TypeScript
+      - Tailwind CSS
+    hosting: Vercel
+    url_prod: https://outtram.com
+    url_staging: https://dev.outtram.com
+    branch_main: main
+    branch_dev: dev
+    notes: |
+      Personal website with blog, portfolio, contact.
+      Auto-deploys: feature branches = preview, dev = staging, main = production.
+      Linear project management: team Outtram, project OuttramWebsite.
+
+  - project_id: OUT-HEVY
+    name: Hevy MCP Server
+    repo: Outtram/Hevy
+    status: active
+    stack:
+      - Node.js
+      - Express
+      - MCP SDK
+    hosting: Cloudflare Workers
+    branch_main: main
+    branch_dev: develop
+    notes: |
+      MCP server for gym workout data from Hevy app.
+      Free tier hosting on Cloudflare Workers.
+
+  - project_id: OUT-AAGLOBAL
+    name: AAGLOBAL (Agentic Development Environment)
+    repo: Outtram/AAGLOBAL
+    status: active
+    stack:
+      - File-native memory system
+      - YAML-based schemas
+      - Claude Code agents
+    hosting: Local + GitHub
+    branch_main: main
+    branch_dev: dev
+    notes: |
+      Research-based file-native agentic system.
+      Memory: domain-partitioned YAML files.
+      Work tracking: file-based PRDs/bugs/tasks.
+      Zero external dependencies (no APIs, no databases).

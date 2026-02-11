@@ -1,0 +1,37 @@
+# Skills Domain Schema
+# Grep patterns: "skill_name:", "category:", "learned_date:"
+
+schema_version: "1.0"
+domain: "skills"
+description: "Learned patterns and techniques Troy wants to remember"
+
+table_structure:
+  skill:
+    primary_key: skill_name
+    columns:
+      - name: skill_name
+        type: string
+        description: "Unique identifier for the skill"
+      - name: category
+        type: enum
+        values: [workflow, testing, debugging, tooling, architecture, communication]
+      - name: description
+        type: string
+        description: "What this skill is and when to use it"
+      - name: learned_date
+        type: date
+        description: "When this skill was learned/documented"
+      - name: usage_frequency
+        type: enum
+        values: [always, often, sometimes, rarely]
+      - name: examples
+        type: list
+        description: "Specific examples of applying this skill"
+      - name: related_skills
+        type: list
+        description: "Related skill names"
+
+grep_patterns:
+  find_workflow_skills: "category: workflow"
+  find_testing_skills: "category: testing"
+  find_frequent_skills: "usage_frequency: always"

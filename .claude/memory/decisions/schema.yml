@@ -1,0 +1,49 @@
+# Decisions Domain Schema
+# Grep patterns: "decision:", "project:", "rationale:"
+
+schema_version: "1.0"
+domain: "decisions"
+description: "Architectural and technical decisions with rationale"
+
+table_structure:
+  decision:
+    primary_key: decision
+    columns:
+      - name: decision
+        type: string
+        description: "Unique identifier (e.g., use-yaml-for-memory)"
+      - name: title
+        type: string
+        description: "Human-readable decision statement"
+      - name: project
+        type: string
+        description: "Project ID this decision applies to (or 'global')"
+      - name: date
+        type: date
+        description: "When this decision was made"
+      - name: status
+        type: enum
+        values: [accepted, rejected, deprecated, superseded]
+      - name: context
+        type: string
+        description: "What situation led to this decision?"
+      - name: decision_made
+        type: string
+        description: "What we decided to do"
+      - name: rationale
+        type: string
+        description: "Why we made this decision"
+      - name: alternatives_considered
+        type: list
+        description: "Other options that were evaluated"
+      - name: consequences
+        type: string
+        description: "Impact of this decision"
+      - name: superseded_by
+        type: string
+        description: "Decision ID that replaced this one (if applicable)"
+
+grep_patterns:
+  find_active_decisions: "status: accepted"
+  find_by_project: "project:"
+  find_global_decisions: "project: global"
