@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Orchestration Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            background: #0a0e27;
+            color: #fff;
+        }
+
+        .section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section h1 {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            z-index: 10;
+            text-align: center;
+            background: linear-gradient(45deg, #00f2fe, #4facfe, #00c6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s infinite;
+        }
+
+        .section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .section p {
+            font-size: 1.4rem;
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.8;
+            z-index: 10;
+            opacity: 0.9;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(45deg); }
+        }
+
+        /* Navigation */
+        .nav-dots {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-dot.active {
+            background: #00f2fe;
+            transform: scale(1.5);
+        }
+
+        .nav-dot:hover {
+            background: #4facfe;
+            transform: scale(1.3);
+        }
+
+        /* Context Section - Animated Network */
+        #context {
+            background: radial-gradient(ellipse at center, #1a1f3a 0%, #0a0e27 100%);
+        }
+
+        .network-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .agent-node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+            animation: float 6s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-20px) scale(1.05); }
+        }
+
+        .connection-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #4facfe, transparent);
+            transform-origin: left center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Challenge Section - Chaos to Order */
+        #challenge {
+            background: radial-gradient(ellipse at center, #2a1a3a 0%, #0a0e27 100%);
+        }
+
+        .chaos-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .chaos-particle {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: chaotic-movement 4s ease-in-out infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes chaotic-movement {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+                box-shadow: 0 0 20px rgba(245, 87, 108, 0.6);
+            }
+            25% {
+                transform: translate(100px, -100px) rotate(90deg);
+                box-shadow: 0 0 40px rgba(245, 87, 108, 0.8);
+            }
+            50% {
+                transform: translate(-50px, 100px) rotate(180deg);
+                box-shadow: 0 0 20px rgba(245, 87, 108, 0.6);
+            }
+            75% {
+                transform: translate(150px, 50px) rotate(270deg);
+                box-shadow: 0 0 40px rgba(245, 87, 108, 0.8);
+            }
+        }
+
+        .challenge-labels {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 4rem;
+        }
+
+        .challenge-label {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            font-size: 1.2rem;
+            font-weight: bold;
+            animation: fade-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes fade-pulse {
+            0%, 100% { opacity: 0.6; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* Solution Section - Orchestrated System */
+        #solution {
+            background: radial-gradient(ellipse at center, #1a3a2a 0%, #0a0e27 100%);
+        }
+
+        .orchestration-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin-top: 2rem;
+        }
+
+        .central-orchestrator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            box-shadow: 0 0 60px rgba(67, 233, 123, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            animation: glow-pulse 3s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% {
+                box-shadow: 0 0 60px rgba(67, 233, 123, 0.8);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                box-shadow: 0 0 100px rgba(67, 233, 123, 1);
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+
+        .orbit-agent {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            box-shadow: 0 0 30px rgba(79, 172, 254, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .orbit-agent:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 50px rgba(79, 172, 254, 1);
+        }
+
+        .orbit-path {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: rotate-orbit 20s linear infinite;
+        }
+
+        @keyframes rotate-orbit {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .feature-cards {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem;
+            z-index: 10;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid rgba(67, 233, 123, 0.3);
+            max-width: 250px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(67, 233, 123, 0.8);
+            box-shadow: 0 10px 30px rgba(67, 233, 123, 0.3);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #43e97b;
+        }
+
+        .feature-card p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Particles Background */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: particle-float 15s linear infinite;
+        }
+
+        @keyframes particle-float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+
+        /* Control Panel */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 1000px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #4facfe;
+            margin-bottom: 3rem;
+            font-weight: 500;
+        }
+
+        ul {
+            list-style: none;
+            font-size: 1.2rem;
+            line-height: 2.5;
+            max-width: 600px;
+        }
+
+        ul li:before {
+            content: "→ ";
+            color: #43e97b;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Dots -->
+    <div class="nav-dots">
+        <div class="nav-dot active" onclick="scrollToSection(0)"></div>
+        <div class="nav-dot" onclick="scrollToSection(1)"></div>
+        <div class="nav-dot" onclick="scrollToSection(2)"></div>
+    </div>
+
+    <!-- Context Section -->
+    <section id="context" class="section">
+        <div class="network-container" id="networkContainer"></div>
+        <div class="particles" id="particles1"></div>
+
+        <div class="content-wrapper">
+            <h1>Agent Orchestration Architecture</h1>
+            <p class="subtitle">The New Glue Between Services, Agents & Organizations</p>
+            <p>Multi-agent systems are transforming how organizations operate. As AI agents proliferate across enterprises, they're becoming the connective tissue that binds services, processes, and people together in unprecedented ways.</p>
+            <ul style="margin-top: 2rem; text-align: left;">
+                <li>Autonomous agents handling complex workflows</li>
+                <li>Cross-functional collaboration at scale</li>
+                <li>Real-time adaptation to changing conditions</li>
+                <li>Seamless integration across organizational boundaries</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Challenge Section -->
+    <section id="challenge" class="section">
+        <div class="chaos-container" id="chaosContainer"></div>
+        <div class="particles" id="particles2"></div>
+
+        <div class="content-wrapper">
+            <h1>The Challenge</h1>
+            <p class="subtitle">Without Orchestration, Complexity Spirals Out of Control</p>
+            <p style="margin-bottom: 3rem;">As organizations deploy multiple AI agents, three critical challenges emerge:</p>
+
+            <div class="challenge-labels">
+                <div class="challenge-label" style="animation-delay: 0s;">
+                    🔐 TRUST<br>
+                    <span style="font-size: 0.9rem; opacity: 0.8;">Can we rely on agent decisions?</span>
+                </div>
+                <div class="challenge-label" style="animation-delay: 1s;">
+                    ⚖️ GOVERNANCE<br>
+                    <span style="font-size: 0.9rem; opacity: 0.8;">Who controls what and when?</span>
+                </div>
+                <div class="challenge-label" style="animation-delay: 2s;">
+                    👁️ OBSERVABILITY<br>
+                    <span style="font-size: 0.9rem; opacity: 0.8;">What are agents actually doing?</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section id="solution" class="section">
+        <div class="particles" id="particles3"></div>
+
+        <div class="content-wrapper">
+            <h1>The Solution</h1>
+            <p class="subtitle">Orchestrated Intelligence with Built-in Trust, Governance & Observability</p>
+
+            <div class="orchestration-container">
+                <div class="orbit-path" style="width: 400px; height: 400px;"></div>
+                <div class="orbit-path" style="width: 500px; height: 500px; animation-duration: 25s;"></div>
+
+                <div class="central-orchestrator">
+                    ORCHESTRATOR<br>
+                    <span style="font-size: 0.7rem;">Central Control</span>
+                </div>
+
+                <div class="orbit-agent" style="top: 20%; left: 50%; transform: translateX(-50%);"
+                     data-info="Trust Layer: Verification & validation of all agent actions">
+                    Agent 1<br><span style="font-size: 0.6rem;">Trust</span>
+                </div>
+                <div class="orbit-agent" style="top: 50%; right: 15%;"
+                     data-info="Governance: Policy enforcement & access control">
+                    Agent 2<br><span style="font-size: 0.6rem;">Govern</span>
+                </div>
+                <div class="orbit-agent" style="bottom: 20%; left: 50%; transform: translateX(-50%);"
+                     data-info="Observability: Real-time monitoring & auditing">
+                    Agent 3<br><span style="font-size: 0.6rem;">Observe</span>
+                </div>
+                <div class="orbit-agent" style="top: 50%; left: 15%;"
+                     data-info="Integration: Seamless cross-service coordination">
+                    Agent 4<br><span style="font-size: 0.6rem;">Integrate</span>
+                </div>
+            </div>
+
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <h3>🔐 Trust</h3>
+                    <p>Cryptographic verification, decision trails, and automated validation ensure every action is trustworthy.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚖️ Governance</h3>
+                    <p>Policy-driven controls, role-based access, and automated compliance keep agents aligned with organizational goals.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>👁️ Observability</h3>
+                    <p>Real-time dashboards, audit logs, and performance metrics provide complete visibility into agent behavior.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="control-btn" onclick="previousSection()">← Previous</button>
+        <button class="control-btn" onclick="nextSection()">Next →</button>
+        <button class="control-btn" onclick="toggleAnimations()">⏸ Pause</button>
+    </div>
+
+    <script>
+        let currentSection = 0;
+        const sections = document.querySelectorAll('.section');
+        const navDots = document.querySelectorAll('.nav-dot');
+        let animationsPaused = false;
+
+        // Create animated network for Context section
+        function createNetwork() {
+            const container = document.getElementById('networkContainer');
+            const nodes = [];
+            const numNodes = 8;
+
+            for (let i = 0; i < numNodes; i++) {
+                const node = document.createElement('div');
+                node.className = 'agent-node';
+                node.textContent = `A${i + 1}`;
+                node.style.left = `${Math.random() * 80 + 10}%`;
+                node.style.top = `${Math.random() * 80 + 10}%`;
+                node.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(node);
+                nodes.push(node);
+            }
+
+            // Create connections
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    if (Math.random() > 0.6) {
+                        const line = document.createElement('div');
+                        line.className = 'connection-line';
+
+                        const rect1 = nodes[i].getBoundingClientRect();
+                        const rect2 = nodes[j].getBoundingClientRect();
+
+                        const x1 = rect1.left + rect1.width / 2;
+                        const y1 = rect1.top + rect1.height / 2;
+                        const x2 = rect2.left + rect2.width / 2;
+                        const y2 = rect2.top + rect2.height / 2;
+
+                        const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+                        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+                        line.style.width = `${length}px`;
+                        line.style.left = `${nodes[i].offsetLeft + 30}px`;
+                        line.style.top = `${nodes[i].offsetTop + 30}px`;
+                        line.style.transform = `rotate(${angle}deg)`;
+                        line.style.animationDelay = `${Math.random() * 2}s`;
+
+                        container.appendChild(line);
+                    }
+                }
+            }
+        }
+
+        // Create chaos particles for Challenge section
+        function createChaos() {
+            const container = document.getElementById('chaosContainer');
+            const numParticles = 12;
+
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'chaos-particle';
+                particle.style.left = `${Math.random() * 80 + 10}%`;
+                particle.style.top = `${Math.random() * 80 + 10}%`;
+                particle.style.animationDelay = `${Math.random() * 4}s`;
+                particle.style.animationDuration = `${3 + Math.random() * 3}s`;
+                container.appendChild(particle);
+            }
+        }
+
+        // Create floating particles
+        function createParticles(containerId, count) {
+            const container = document.getElementById(containerId);
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+                particle.style.animationDuration = `${10 + Math.random() * 10}s`;
+                container.appendChild(particle);
+            }
+        }
+
+        // Navigation functions
+        function scrollToSection(index) {
+            currentSection = index;
+            sections[currentSection].scrollIntoView({ behavior: 'smooth' });
+            updateNavDots();
+        }
+
+        function nextSection() {
+            if (currentSection < sections.length - 1) {
+                currentSection++;
+                scrollToSection(currentSection);
+            }
+        }
+
+        function previousSection() {
+            if (currentSection > 0) {
+                currentSection--;
+                scrollToSection(currentSection);
+            }
+        }
+
+        function updateNavDots() {
+            navDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSection);
+            });
+        }
+
+        function toggleAnimations() {
+            animationsPaused = !animationsPaused;
+            document.body.style.animationPlayState = animationsPaused ? 'paused' : 'running';
+            document.querySelectorAll('*').forEach(el => {
+                el.style.animationPlayState = animationsPaused ? 'paused' : 'running';
+            });
+            event.target.textContent = animationsPaused ? '▶ Play' : '⏸ Pause';
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextSection();
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') previousSection();
+            if (e.key === ' ') {
+                e.preventDefault();
+                toggleAnimations();
+            }
+        });
+
+        // Track scroll position
+        window.addEventListener('scroll', () => {
+            const scrollPosition = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const newSection = Math.round(scrollPosition / windowHeight);
+
+            if (newSection !== currentSection && newSection < sections.length) {
+                currentSection = newSection;
+                updateNavDots();
+            }
+        });
+
+        // Orbit agents hover effect
+        document.querySelectorAll('.orbit-agent').forEach(agent => {
+            agent.addEventListener('mouseenter', function(e) {
+                const info = this.getAttribute('data-info');
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                tooltip.textContent = info;
+                tooltip.style.cssText = `
+                    position: absolute;
+                    background: rgba(0, 0, 0, 0.9);
+                    color: white;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    font-size: 0.9rem;
+                    max-width: 200px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    border: 1px solid #43e97b;
+                `;
+                tooltip.style.left = `${e.pageX + 10}px`;
+                tooltip.style.top = `${e.pageY + 10}px`;
+                document.body.appendChild(tooltip);
+
+                this.addEventListener('mouseleave', () => {
+                    tooltip.remove();
+                });
+            });
+        });
+
+        // Initialize
+        createNetwork();
+        createChaos();
+        createParticles('particles1', 30);
+        createParticles('particles2', 30);
+        createParticles('particles3', 30);
+
+        // Auto-advance (optional - can be enabled for demo mode)
+        // setInterval(() => {
+        //     nextSection();
+        //     if (currentSection === sections.length - 1) currentSection = -1;
+        // }, 10000);
+    </script>
+</body>
+</html>

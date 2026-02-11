@@ -1,0 +1,6 @@
+{
+  "name": "pptx-arch-diagrams",
+  "description": "Create professional enterprise system architecture and technology diagrams in PowerPoint. Use when users request architectural diagrams, system diagrams, technology stack visualizations, microservices architecture diagrams, multi-tier architecture, data flow diagrams, deployment diagrams, or any technical system visualization in PowerPoint format.",
+  "version": "1.2.0",
+  "entrypoint": "SKILL.md"
+}
