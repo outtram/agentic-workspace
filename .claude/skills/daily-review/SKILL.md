@@ -1,0 +1,91 @@
+# Daily Review Skill
+
+> Import reminders, generate Eisenhower dashboard, and show Q1 priorities
+
+## Invocation
+```
+/daily-review
+```
+
+## What This Does
+
+1. **Import from macOS Reminders** - Pull active reminders from all lists
+2. **Generate Eisenhower Matrix** - Classify into Q1-Q4 quadrants
+3. **Update mobile dashboard** - Push to permanent gist URL
+4. **Show Q1 priorities** - Display urgent & important tasks
+5. **Open dashboard** - Launch in browser for review
+
+## Prompt
+
+You are performing Troy's daily task review. Execute these steps in order:
+
+### Step 1: Import Reminders
+Run the reminders import script:
+```bash
+python3 /Users/touttram/CODE/AAGLOBAL/.claude/scripts/import-reminders.py
+```
+
+Parse the output to report:
+- How many reminders imported
+- Breakdown by quadrant (Q1/Q2/Q3/Q4)
+- Any duplicates skipped
+
+### Step 2: Generate Dashboard
+Run the dashboard generator:
+```bash
+python3 /Users/touttram/CODE/AAGLOBAL/.claude/scripts/generate-dashboard.py
+```
+
+Confirm:
+- Dashboard generated successfully
+- Mobile gist updated
+- File paths for local and mobile viewing
+
+### Step 3: Analyze Q1 Tasks
+Read the Q1 tasks from the generated dashboard data and display:
+- **Total Q1 tasks** (urgent & important)
+- **Top 3 Q1 tasks** with due dates
+- **Overdue tasks** highlighted in red
+
+### Step 4: Daily Summary
+Provide a concise summary:
+
+```
+📊 Daily Review Complete
+
+Imported: X new reminders
+Current workload:
+- 🔥 Q1 (Do First): X tasks
+- 📅 Q2 (Schedule): X tasks
+- 🔀 Q3 (Delegate): X tasks
+- 🗑️ Q4 (Eliminate): X tasks
+
+🎯 Top 3 Priorities Today:
+1. [Task name] - Due: [date]
+2. [Task name] - Due: [date]
+3. [Task name] - Due: [date]
+
+📱 Mobile: https://gist.githack.com/outtram/20f5befb1e2f8cef427b784e6860ddf8/raw/eisenhower-dashboard.html
+💻 Local: open .claude/dashboards/eisenhower-latest.html
+```
+
+### Step 5: Optional Actions
+Ask Troy if he wants to:
+- [ ] Start working on a specific Q1 task
+- [ ] Move any Q3/Q4 tasks to backlog
+- [ ] Archive completed tasks
+- [ ] Done for now
+
+## Best Practices
+
+- **Run in the morning** - Start your day with clear priorities
+- **Quick check** - Takes ~10 seconds to see your Q1
+- **Mobile ready** - Dashboard auto-updates for on-the-go viewing
+- **ADHD-friendly** - Visual, colour-coded, minimal cognitive load
+
+## Notes
+
+- Only imports ACTIVE reminders (completed ones are skipped)
+- Duplicate detection prevents re-importing same reminders
+- Mobile URL stays permanent, content refreshes automatically
+- Dashboard opens automatically in browser for review

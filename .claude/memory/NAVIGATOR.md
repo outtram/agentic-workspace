@@ -34,9 +34,11 @@
 ## Reminders Integration
 
 ### Quick Commands
-- Import reminders: Ask reminders-importer agent
-- Generate dashboard: Ask dashboard-generator agent
+- Import reminders: Ask reminders-importer agent or run `.claude/scripts/import-reminders.py`
+- Generate dashboard: Ask dashboard-generator agent or run `.claude/scripts/generate-dashboard.py`
 - View latest dashboard: `open .claude/dashboards/eisenhower-latest.html`
+- **Mobile dashboard:** https://gist.githack.com/outtram/20f5befb1e2f8cef427b784e6860ddf8/raw/eisenhower-dashboard.html
+- Mobile config: `cat .claude/config/mobile-dashboard.yml`
 
 ### Search Patterns
 - All reminder tasks: `grep "source: reminder" .claude/work/tasks/*.md`

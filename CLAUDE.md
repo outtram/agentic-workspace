@@ -38,6 +38,9 @@ grep "decision:" .claude/memory/decisions/*.yml
 - Create work item: Ask work-tracker agent
 - Update memory: Ask memory-writer agent
 - Find information: Check NAVIGATOR.md for grep patterns
+- **Daily review:** `/daily-review` or say "do my daily review"
+- **Import reminders:** Say "import my reminders" or "sync reminders"
+- **View priorities:** Say "show me my Q1 tasks" or "what should I work on?"
 
 ## Troy's Preferences
 - **ADHD + Dyslexia:** Keep responses short, structured, actionable
@@ -46,6 +49,20 @@ grep "decision:" .claude/memory/decisions/*.yml
 - **CLI tools preferred** (gh, git) over MCP where possible
 - **YAGNI principle:** Build simplest thing that works
 - **Evidence over claims:** Verify before declaring success
+
+## Daily Routine Automation
+When Troy says any of these phrases, automatically run the daily review workflow:
+- "do my daily review"
+- "import my reminders" / "sync reminders"
+- "what should I work on?" / "show me my Q1"
+- "start my day" / "daily priorities"
+
+**Workflow:**
+1. Import reminders from macOS Reminders
+2. Generate Eisenhower Matrix dashboard
+3. Update mobile gist (https://gist.githack.com/outtram/20f5befb1e2f8cef427b784e6860ddf8/raw/eisenhower-dashboard.html)
+4. Show Q1 priorities (urgent & important)
+5. Offer to start a task or update status
 
 ## Code Style
 - TypeScript strict mode

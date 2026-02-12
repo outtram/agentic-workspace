@@ -1,0 +1,24 @@
+# Mobile Dashboard Configuration
+
+# Permanent Gist for mobile viewing
+gist_id: "20f5befb1e2f8cef427b784e6860ddf8"
+gist_filename: "eisenhower-dashboard.html"
+
+# Permanent URL (save this to iPhone home screen!)
+mobile_url: "https://gist.githack.com/outtram/20f5befb1e2f8cef427b784e6860ddf8/raw/eisenhower-dashboard.html"
+
+# Backup URLs
+github_gist_view: "https://gist.github.com/outtram/20f5befb1e2f8cef427b784e6860ddf8"
+
+# How it works:
+# - Dashboard generator automatically updates this gist
+# - URL stays the same forever
+# - Mobile always shows latest dashboard
+# - Add to iPhone home screen for quick access
+
+# Setup instructions:
+# 1. Open mobile_url in Safari on iPhone
+# 2. Tap Share button
+# 3. Tap "Add to Home Screen"
+# 4. Name it "Eisenhower Matrix"
+# 5. Tap "Add"
