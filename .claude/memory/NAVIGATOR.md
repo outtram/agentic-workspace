@@ -31,6 +31,30 @@
 | Bug | .claude/work/bugs/ | open, investigating, fixing, testing, closed | OUT-101 to OUT-199 |
 | Task | .claude/work/tasks/ | todo, doing, done | OUT-201 to OUT-299 |
 
+## Reminders Integration
+
+### Quick Commands
+- Import reminders: Ask reminders-importer agent
+- Generate dashboard: Ask dashboard-generator agent
+- View latest dashboard: `open .claude/dashboards/eisenhower-latest.html`
+
+### Search Patterns
+- All reminder tasks: `grep "source: reminder" .claude/work/tasks/*.md`
+- Urgent & Important (Q1): `grep "eisenhower_quadrant: q1" .claude/work/tasks/*.md .claude/work/bugs/*.md`
+- Important but not urgent (Q2): `grep "eisenhower_quadrant: q2" .claude/work/tasks/*.md .claude/work/bugs/*.md`
+- Urgent but not important (Q3): `grep "eisenhower_quadrant: q3" .claude/work/tasks/*.md .claude/work/bugs/*.md`
+- Not urgent & not important (Q4): `grep "eisenhower_quadrant: q4" .claude/work/tasks/*.md .claude/work/bugs/*.md`
+- Tasks with due dates: `grep -l "due_date: [0-9]" .claude/work/tasks/*.md`
+- Overdue tasks: `grep "due_date: 2026-0[12]-" .claude/work/tasks/*.md` (adjust date pattern)
+- Import history: `grep -c "Imported from Reminders" .claude/work/tasks/*.md`
+- By reminder list: `grep "reminder_list: Shopping" .claude/work/tasks/*.md`
+
+### Configuration
+- Import settings: `cat .claude/config/reminders-import.yml`
+- Dashboard templates: `ls .claude/templates/`
+- Generated dashboards: `ls -lt .claude/dashboards/ | head -10`
+- Dashboard archive: `find .claude/dashboards -name "eisenhower-*.html" -mtime +30` (older than 30 days)
+
 ## Domain Descriptions
 - **projects**: Repository details, tech stacks, deployment configs
 - **skills**: Reusable techniques Troy wants to remember

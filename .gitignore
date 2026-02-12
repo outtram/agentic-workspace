@@ -32,4 +32,13 @@ logs/
 tmp/
 temp/
 *.tmp
+workspace/
 .claude/superpowers-repo
+
+# Eisenhower Test Data
+# Test reminders imported from EISENHOWER_TEST list (OUT-220 to OUT-236)
+.claude/work/tasks/OUT-22*.md
+.claude/work/tasks/OUT-23*.md
+
+# Keep dashboards for mobile viewing (manually clean up old ones)
+# Keep agents, config, templates - these are the implementation

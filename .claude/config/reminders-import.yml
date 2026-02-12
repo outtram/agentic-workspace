@@ -1,0 +1,16 @@
+# Reminders Import Configuration
+import_lists: []  # Empty = import ALL lists
+skip_completed: true
+urgent_threshold_days: 3
+important_lists: []  # Empty = classify by priority/due date only
+
+# Priority mapping (Reminders priority → file priority)
+priority_map:
+  1: "high"    # Reminders P1
+  5: "medium"  # Reminders P5
+  9: "low"     # Reminders P9
+  0: "low"     # No priority
+
+# Filename generation
+max_filename_length: 50
+remove_emojis: true
