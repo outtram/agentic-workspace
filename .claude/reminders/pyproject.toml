@@ -1,0 +1,55 @@
+[project]
+name = "reminders-manager"
+version = "0.1.0"
+description = "Bi-directional sync between macOS Reminders and file-native tasks"
+authors = [{name = "Troy Outtram"}]
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.1.0",
+    "pyyaml>=6.0",
+    "python-dateutil>=2.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.0",
+]
+
+[project.scripts]
+reminder = "reminders.plugins.cli:main"
+
+[tool.setuptools]
+packages = [
+    "reminders",
+    "reminders.core",
+    "reminders.adapters",
+    "reminders.sync",
+    "reminders.enrichment",
+    "reminders.plugins",
+    "reminders.hooks",
+    "reminders.tests",
+    "reminders.tests.unit",
+    "reminders.tests.integration",
+    "reminders.tests.e2e",
+    "reminders.tests.fixtures",
+]
+
+[tool.setuptools.package-dir]
+"reminders" = "."
+"reminders.core" = "core"
+"reminders.adapters" = "adapters"
+"reminders.sync" = "sync"
+"reminders.enrichment" = "enrichment"
+"reminders.plugins" = "plugins"
+"reminders.hooks" = "hooks"
+"reminders.tests" = "tests"
+"reminders.tests.unit" = "tests/unit"
+"reminders.tests.integration" = "tests/integration"
+"reminders.tests.e2e" = "tests/e2e"
+"reminders.tests.fixtures" = "tests/fixtures"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

@@ -102,20 +102,7 @@ tell application "Reminders"
                     set rDueDate to ""
                 end try
                 set rPriority to priority of aReminder
-                try
-                    set rTags to tags of aReminder
-                    set tagStr to ""
-                    repeat with aTag in rTags
-                        if tagStr is "" then
-                            set tagStr to aTag
-                        else
-                            set tagStr to tagStr & "," & aTag
-                        end if
-                    end repeat
-                on error
-                    set tagStr to ""
-                end try
-                set output to output & listName & "|" & rId & "|" & rName & "|" & rBody & "|" & rDueDate & "|" & rPriority & "|" & tagStr & linefeed
+                set output to output & listName & "|" & rId & "|" & rName & "|" & rBody & "|" & rDueDate & "|" & rPriority & linefeed
             end if
         end repeat
     end repeat
@@ -156,16 +143,20 @@ end tell
                 continue
 
             parts = line.split('|')
-            if len(parts) != 7:
+            if len(parts) != 6:
                 continue
 
-            list_name, rid, name, body, due_date, priority, tags = parts
+            list_name, rid, name, body, due_date, priority = parts
+
+            # Extract hashtags from body as tags
+            import re
+            tags = re.findall(r'#(\w+)', body)
 
             reminders.append({
                 "id": rid,
                 "name": name,
                 "body": body,
-                "tags": tags.split(',') if tags else [],
+                "tags": tags,
                 "due_date": self._parse_date(due_date),
                 "priority": int(priority),
                 "list": list_name,

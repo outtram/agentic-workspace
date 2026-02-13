@@ -1,0 +1,2 @@
+[console_scripts]
+reminder = reminders.plugins.cli:main

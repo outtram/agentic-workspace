@@ -192,3 +192,13 @@ class RemindersManager:
             "none": 0
         }
         return mapping.get(priority.lower(), 0)
+
+    def _map_apple_priority_to_string(self, apple_priority: int) -> str:
+        """Map Apple priority int to priority string"""
+        mapping = {
+            1: "high",
+            5: "medium",
+            9: "low",
+            0: "low"
+        }
+        return mapping.get(apple_priority, "low")

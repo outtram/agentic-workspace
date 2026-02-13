@@ -171,5 +171,67 @@ def show(ctx, work_item_id):
     click.echo(f"{'='*60}\n")
 
 
+@main.command()
+@click.option('--dry-run', is_flag=True, help='Show what would be imported without creating files')
+@click.pass_context
+def sync(ctx, dry_run):
+    """Pull reminders from Reminders.app and create work items"""
+    manager = ctx.obj['manager']
+
+    # Fetch all reminders from Reminders.app
+    click.echo("Fetching reminders from Reminders.app...")
+    reminders = manager.applescript.fetch_all_reminders()
+
+    if not reminders:
+        click.echo("No active reminders found.")
+        return
+
+    # Get existing work items to check for duplicates
+    existing_items = manager.list_reminders()
+    existing_reminder_ids = {item.reminder_id for item in existing_items if item.reminder_id}
+
+    new_count = 0
+    skipped_count = 0
+    quadrant_counts = {"q1": 0, "q2": 0, "q3": 0, "q4": 0}
+
+    for reminder in reminders:
+        # Skip if already imported
+        if reminder["id"] in existing_reminder_ids:
+            skipped_count += 1
+            continue
+
+        if dry_run:
+            click.echo(f"Would import: {reminder['name']}")
+            new_count += 1
+            continue
+
+        # Create work item from reminder
+        work_item = manager.create_reminder(
+            title=reminder["name"],
+            due_date=reminder["due_date"],
+            tags=reminder["tags"],
+            priority=manager._map_apple_priority_to_string(reminder["priority"]),
+            description=reminder["body"],
+            list_name=reminder["list"]
+        )
+
+        quadrant_counts[work_item.eisenhower_quadrant] += 1
+        new_count += 1
+
+    # Report stats
+    click.echo(f"\n{'='*60}")
+    click.echo(f"Sync complete!")
+    click.echo(f"{'='*60}")
+    click.echo(f"New reminders imported: {new_count}")
+    click.echo(f"Duplicates skipped: {skipped_count}")
+    if new_count > 0:
+        click.echo(f"\nBy quadrant:")
+        click.echo(f"  🔥 Q1 (Do First): {quadrant_counts['q1']}")
+        click.echo(f"  📅 Q2 (Schedule): {quadrant_counts['q2']}")
+        click.echo(f"  🔀 Q3 (Delegate): {quadrant_counts['q3']}")
+        click.echo(f"  🗑️  Q4 (Eliminate): {quadrant_counts['q4']}")
+    click.echo(f"{'='*60}\n")
+
+
 if __name__ == '__main__':
     main()
