@@ -103,10 +103,13 @@ class RemindersManager:
         self.workitems.update(work_item)
 
         if work_item.reminder_id:
-            self.applescript.update_reminder(
-                work_item.reminder_id,
-                completed=True
-            )
+            try:
+                self.applescript.update_reminder(
+                    work_item.reminder_id,
+                    completed=True
+                )
+            except (ValueError, RuntimeError):
+                pass  # Reminder may have been deleted outside our system
 
         self.event_bus.publish(WorkItemCompleted(work_item_id=work_item_id))
 
@@ -117,7 +120,10 @@ class RemindersManager:
             raise ValueError(f"Work item {work_item_id} not found")
 
         if work_item.reminder_id:
-            self.applescript.delete_reminder(work_item.reminder_id)
+            try:
+                self.applescript.delete_reminder(work_item.reminder_id)
+            except (ValueError, RuntimeError):
+                pass  # Reminder may have been deleted outside our system
 
         self.workitems.delete(work_item_id)
 
