@@ -39,22 +39,32 @@ cd AAGLOBAL
 ls docs/MAJOR-UPGRADE.md docs/FRESH-LAPTOP-SETUP.md
 ```
 
-### **Step 3: Clone OpenClaw (Separate, Not in AAGLOBAL)**
+### **Step 3: Clone NanoClaw AND OpenClaw (Separate, Not in AAGLOBAL)**
 
 ```bash
 # Go back to CODE directory
 cd ~/CODE
 
-# Clone OpenClaw (MIT licensed, open source)
-git clone https://github.com/OpenClaw/openclaw.git
+# Clone NanoClaw FIRST (primary analysis target, ~500 lines, much easier)
+git clone https://github.com/qwibitai/nanoclaw.git
+
+# Clone OpenClaw SECOND (reference for deep dives into specific subsystems)
+git clone https://github.com/openclaw/openclaw.git
 
 # Your directory structure should now be:
 # ~/CODE/
 #   ├── AAGLOBAL/       # Your project (on GitHub)
-#   └── openclaw/       # OpenClaw repo (NOT committed to your GitHub)
+#   ├── nanoclaw/        # NanoClaw (primary target, ~500 lines)
+#   └── openclaw/        # OpenClaw (reference, 430k+ lines)
 ```
 
-**Important:** OpenClaw stays OUTSIDE of AAGLOBAL directory! This prevents it from being committed to your GitHub.
+**Important:** Both repos stay OUTSIDE of AAGLOBAL directory! They will never be committed to your GitHub.
+
+**Why NanoClaw first?**
+- 500 lines vs 430,000 lines
+- Already has WhatsApp, memory, scheduled jobs
+- Built specifically as a "safer OpenClaw alternative"
+- You'll get 80% of the patterns in 20% of the time
 
 ### **Step 4: Create Research Folder in AAGLOBAL**
 
@@ -67,25 +77,34 @@ mkdir -p docs/openclaw-research
 # This folder WILL be committed to GitHub (your analysis, not OpenClaw code)
 ```
 
-### **Step 5: Open AAGLOBAL in Cursor**
+### **Step 5: Open the PARENT CODE Folder in Cursor**
+
+**IMPORTANT:** Open the `~/CODE/` folder, NOT just AAGLOBAL! Cursor can only access files within its workspace, so it needs to see both AAGLOBAL and the cloned repos.
 
 ```bash
-# Open AAGLOBAL in Cursor
-cd ~/CODE/AAGLOBAL
+# Open the parent CODE directory in Cursor
+cd ~/CODE
 cursor .
 ```
 
-**Cursor should open with your AAGLOBAL project.**
+**Cursor should now have access to:**
+- `AAGLOBAL/` (your project)
+- `nanoclaw/` (primary analysis target)
+- `openclaw/` (reference)
 
-### **Step 6: Review .cursorrules**
+### **Step 6: Verify .cursorrules**
 
-Cursor will automatically read `.cursorrules` file in AAGLOBAL root. This tells Cursor:
-- Where to find OpenClaw (../openclaw/)
-- What to analyze
-- Where to save analysis docs (docs/openclaw-research/)
+Cursor will read the `.cursorrules` file from `AAGLOBAL/.cursorrules`. This tells Cursor:
+- Where to find NanoClaw (`nanoclaw/`) and OpenClaw (`openclaw/`)
+- What to analyse
+- Where to save analysis docs (`AAGLOBAL/docs/openclaw-research/`)
 - What format to use
 
-**You don't need to do anything - Cursor will follow these rules automatically.**
+If Cursor doesn't pick it up automatically, tell it:
+
+```
+Please read the .cursorrules file in AAGLOBAL/ for context on what I need you to do.
+```
 
 ---
 
@@ -96,50 +115,62 @@ Cursor will automatically read `.cursorrules` file in AAGLOBAL root. This tells 
 In Cursor, open Composer (Cmd+I or click chat icon) and paste:
 
 ```
-I need you to analyze the OpenClaw codebase at ../openclaw/ and help me understand how to build a safer alternative.
+I need you to analyse two AI agent codebases and document how to build a safer alternative.
 
-Follow these research questions from docs/MAJOR-UPGRADE.md:
+PRIMARY TARGET: nanoclaw/ (~500 lines, lightweight alternative)
+SECONDARY REFERENCE: openclaw/ (430k+ lines, the original)
 
-1. MEMORY SYSTEM:
-   - How does hybrid search combine SQL + vector embeddings?
-   - How does it decide what to remember vs forget?
-   - How does SOUL.md personality get stored and recalled?
+Read the .cursorrules file in AAGLOBAL/ for full context.
 
-2. HEARTBEAT:
+Start by reading nanoclaw/ completely. Then for each topic below, create a detailed markdown file in AAGLOBAL/docs/openclaw-research/:
+
+1. MEMORY SYSTEM (save as 01-memory-system.md):
+   - How does NanoClaw store and retrieve memories?
+   - How does hybrid search work (if present)?
+   - How does personality/identity get stored?
+   - Cross-reference: How does OpenClaw do this differently?
+
+2. HEARTBEAT / SCHEDULED JOBS (save as 02-heartbeat-logic.md):
+   - How does NanoClaw check for new events proactively?
    - What triggers a notification vs silent check?
-   - How does it judge "importance"?
-   - How does it avoid alert fatigue?
+   - How does it judge "importance" and avoid alert fatigue?
 
-3. PERSONALITY:
-   - How does SOUL.md influence response style?
-   - How does it maintain consistent "voice"?
-   - How does it make responses feel natural/human?
+3. PERSONALITY / HUMAN FEEL (save as 03-personality-injection.md):
+   - What makes these systems feel "almost human"?
+   - Where does personality get injected in the pipeline?
+   - How does it maintain consistent voice across conversations?
 
-4. ADAPTERS:
-   - How does the gateway pattern work?
-   - How does it maintain conversation state across channels?
-   - How does it handle async/real-time communication?
+4. WHATSAPP ADAPTER (save as 04-whatsapp-adapter.md):
+   - How does NanoClaw integrate with WhatsApp?
+   - What's the webhook/hosting architecture?
+   - How does it handle conversation state?
+   - Security: How does container isolation work?
 
-5. SESSION CONTINUITY:
+5. SESSION CONTINUITY (save as 05-session-continuity.md):
    - How does it recall previous conversations?
-   - How does it maintain context window efficiently?
+   - How does it manage context window efficiently?
    - How does it know when to "forget" old context?
 
-For each topic, create a detailed markdown file in docs/openclaw-research/:
-- 01-memory-system.md
-- 02-heartbeat-logic.md
-- 03-personality-injection.md
-- 04-adapter-patterns.md
-- 05-session-continuity.md
-- 06-human-feel-secrets.md
+6. HUMAN FEEL SECRETS (save as 06-human-feel-secrets.md):
+   - What are the TOP 3 patterns that make it feel human?
+   - What design decisions matter most?
+   - What can we copy into our system?
 
-Include:
-- Code examples from OpenClaw
-- Architecture diagrams (in markdown/mermaid)
-- Key insights about WHY it feels human
-- Recommendations for building it safer in AAGLOBAL
+7. IMPLEMENTATION PLAN (save as IMPLEMENTATION-PLAN.md):
+   - Priority order (what to build first)
+   - Dependencies between components
+   - Estimated complexity per component
+   - Security considerations
+   - Recommended weekly sprint breakdown (3-4 weeks)
 
-Start with the memory system.
+For each file include:
+- Actual code snippets from the repos (with file paths)
+- Architecture diagrams (mermaid)
+- Key insights about WHY not just WHAT
+- Security considerations
+- How to implement this in AAGLOBAL (our project)
+
+Start with reading nanoclaw/ completely, then create 01-memory-system.md.
 ```
 
 ### **Step 8: Let Cursor Work**

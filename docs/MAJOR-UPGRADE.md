@@ -1,18 +1,32 @@
 # AAGLOBAL Major Upgrade: Building the Brain
 
-> **Goal:** Build a safer OpenClaw alternative with proactive intelligence, integrated into AAGLOBAL
+> **Goal:** Build a safer alternative to OpenClaw with proactive intelligence, integrated into AAGLOBAL
 
-**Timeline:** 2-3 days
-**Approach:** Analyze OpenClaw → Extract patterns → Rebuild securely
+**Timeline:** 3-4 weeks (broken into weekly sprints)
+**Approach:** Analyse NanoClaw + OpenClaw → Extract patterns → Rebuild securely
 
 ---
 
-## 🎯 What We're Building
+## Important Context
 
-**"AAGLOBAL-Brain"** - An ultra-personalized AI agent that:
+**OpenClaw** (github.com/openclaw/openclaw) is 430,000+ lines of TypeScript. Analysing the full thing would take weeks.
 
-- ✅ **Remembers everything** - Hybrid SQL + vector search memory
-- ✅ **Acts proactively** - 30-minute heartbeat checks email/calendar/tasks
+**NanoClaw** (github.com/qwibitai/nanoclaw) is ~500 lines and was specifically built as a safer, lighter alternative. It already has:
+- WhatsApp integration
+- Memory system
+- Scheduled jobs (heartbeat)
+- Container isolation for security
+
+**Our approach:** Analyse NanoClaw first (primary target, 80% of what we need), then dip into OpenClaw for specific subsystems (memory search, personality injection) if needed.
+
+---
+
+## What We're Building
+
+**"AAGLOBAL-Brain"** - An ultra-personalised AI agent that:
+
+- Remembers everything - Hybrid SQL + vector search memory
+- Acts proactively - 30-minute heartbeat checks email/calendar/tasks
 - ✅ **Feels human** - Personality-driven responses from SOUL.md
 - ✅ **Stays secure** - No public registries, all local files, direct API calls
 - ✅ **Multi-channel** - WhatsApp + Terminal + macOS Reminders
@@ -71,35 +85,42 @@
 
 ```
 AAGLOBAL/
-├── .claude/
-│   ├── memory/                  # 🆕 Enhanced memory system
+├── .claude/                     # Claude Code context (config, memory, skills)
+│   ├── memory/                  # Enhanced memory context files
 │   │   ├── SOUL.md              # Your identity, personality, values
 │   │   ├── USER.md              # Who Troy is, preferences
 │   │   ├── MEMORY.md            # Long-term storage
-│   │   ├── AGENTS.md            # Agent behaviors
-│   │   ├── HEARTBEAT.md         # What to check daily
-│   │   ├── memory.db            # SQLite database
-│   │   └── search.py            # Hybrid search (SQL + vector)
+│   │   ├── AGENTS.md            # Agent behaviours
+│   │   └── HEARTBEAT.md         # What to check daily
 │   │
-│   ├── heartbeat/               # 🆕 Proactive intelligence
+│   ├── skills/                  # Local skills (already have, add more)
+│   │   ├── daily-review/        # Existing
+│   │   ├── content-engine/      # New: Content generation
+│   │   └── exec-summary/        # New: Executive summaries
+│   │
+│   └── reminders/               # Already built!
+│
+├── brain/                       # Runtime application code (NEW)
+│   ├── memory/                  # Hybrid search engine
+│   │   ├── memory.db            # SQLite database
+│   │   ├── search.py            # Hybrid SQL + vector search
+│   │   └── embeddings.py        # FastEmbed integration
+│   │
+│   ├── heartbeat/               # Proactive intelligence
 │   │   ├── beat.py              # Main heartbeat (30-min cron)
 │   │   ├── gmail.py             # Gmail API integration
 │   │   ├── calendar.py          # Calendar API integration
-│   │   ├── reminders.py         # macOS Reminders (already have!)
+│   │   ├── reminders.py         # macOS Reminders bridge
 │   │   └── judge.py             # Claude judges importance
 │   │
-│   ├── adapters/                # 🆕 Multi-channel communication
-│   │   ├── whatsapp/            # WhatsApp Business API
+│   ├── adapters/                # Multi-channel communication
+│   │   ├── whatsapp/            # WhatsApp (see security notes below)
 │   │   │   ├── client.py
 │   │   │   └── webhook.py
 │   │   └── terminal/            # Claude Code (already have!)
 │   │
-│   ├── skills/                  # ✅ Already have, add more
-│   │   ├── daily-review/        # Existing
-│   │   ├── content-engine/      # 🆕 Content generation
-│   │   └── exec-summary/        # 🆕 Executive summaries
-│   │
-│   └── reminders/               # ✅ Already built!
+│   ├── requirements.txt         # Python dependencies (vetted)
+│   └── pyproject.toml           # Project config
 │
 └── docs/
     ├── MAJOR-UPGRADE.md         # This file
@@ -112,6 +133,11 @@ AAGLOBAL/
         ├── 05-human-feel-secrets.md
         └── IMPLEMENTATION-PLAN.md
 ```
+
+**Why `brain/` is separate from `.claude/`:**
+- `.claude/` = Claude Code context files (memory, skills, config)
+- `brain/` = Runtime application code (services, APIs, databases)
+- Keeps concerns separated and avoids polluting Claude Code's config directory
 
 ---
 
@@ -129,19 +155,58 @@ AAGLOBAL/
 
 ---
 
-## 🚀 Integration Preferences
+## Integration Preferences
 
 **What Troy Wants:**
-- ✅ WhatsApp - Proactive notifications, conversational interface
-- ✅ macOS Reminders - Already integrated!
-- ✅ Gmail - Check important emails (direct API)
-- ✅ Calendar - Meeting prep notifications (direct API)
+- WhatsApp - Proactive notifications, conversational interface
+- macOS Reminders - Already integrated!
+- Gmail - Check important emails (direct API)
+- Calendar - Meeting prep notifications (direct API)
 
 **What Troy DOESN'T Need:**
-- ❌ Asana
-- ❌ Slack
-- ❌ Discord
-- ❌ Telegram
+- Asana, Slack, Discord, Telegram
+
+---
+
+## Honest Security Notes
+
+### WhatsApp is NOT "local only"
+
+WhatsApp Business API requires:
+1. **Meta Business account** (verified)
+2. **Public webhook URL** (to receive messages)
+3. **Hosted server** (Cloudflare Tunnel, Railway, or similar)
+4. **Costs money** per conversation
+
+This contradicts "no middleware" but it's the reality. Options:
+- **Option A:** WhatsApp Business API (official, requires hosting)
+- **Option B:** WhatsApp Web automation (unofficial, fragile, could break)
+- **Option C:** NanoClaw's approach (container-isolated agents with WhatsApp)
+
+NanoClaw's container approach is worth studying here.
+
+### API Credentials Required
+
+| Service | What You Need | Where to Get It |
+|---------|---------------|-----------------|
+| Gmail | OAuth 2.0 credentials | Google Cloud Console |
+| Calendar | Same OAuth (bundled with Gmail) | Google Cloud Console |
+| WhatsApp | Business API token + webhook | Meta Business Suite |
+
+**Store credentials in:**
+- `.env` file (already in .gitignore)
+- NEVER commit to Git
+
+### Dependency Management
+
+```bash
+# Create virtual environment
+python3 -m venv brain/.venv
+source brain/.venv/bin/activate
+
+# Install from requirements.txt (vetted deps only)
+pip install -r brain/requirements.txt
+```
 
 ---
 

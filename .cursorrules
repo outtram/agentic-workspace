@@ -8,28 +8,39 @@ This is Troy Outtram's agentic development environment (AAGLOBAL).
 
 ---
 
-## OpenClaw Analysis Instructions
+## Codebase Analysis Instructions
 
-### Where to Find OpenClaw
+### Where to Find the Repos
 
-The OpenClaw repository is located at: `../openclaw/` (sibling directory, NOT in this repo)
+When opened from ~/CODE/:
+- **NanoClaw (PRIMARY):** `nanoclaw/` (~500 lines, analyse this FIRST)
+- **OpenClaw (REFERENCE):** `openclaw/` (430k+ lines, dip in for specific subsystems)
+- **AAGLOBAL (OUR PROJECT):** `AAGLOBAL/` (where analysis docs go)
 
-**DO NOT commit OpenClaw code to this repository!**
+If opened from AAGLOBAL/:
+- **NanoClaw:** `../nanoclaw/`
+- **OpenClaw:** `../openclaw/`
+
+**DO NOT commit NanoClaw or OpenClaw code to AAGLOBAL!**
 
 Only analysis/documentation should be committed to AAGLOBAL.
 
 ### Analysis Output Location
 
-Save ALL analysis to: `docs/openclaw-research/`
+Save ALL analysis to: `AAGLOBAL/docs/openclaw-research/` (or `docs/openclaw-research/` if opened from AAGLOBAL)
 
 **Required files to create:**
-1. `01-memory-system.md` - Hybrid search, SOUL.md, personality storage
-2. `02-heartbeat-logic.md` - Proactive decision-making, importance judging
-3. `03-personality-injection.md` - How SOUL.md influences responses
-4. `04-adapter-patterns.md` - Multi-channel gateway architecture
+1. `01-memory-system.md` - How NanoClaw/OpenClaw store and retrieve memories
+2. `02-heartbeat-logic.md` - Proactive scheduling, importance judging
+3. `03-personality-injection.md` - What makes responses feel human
+4. `04-whatsapp-adapter.md` - WhatsApp integration, webhook hosting, security
 5. `05-session-continuity.md` - Context management, conversation recall
-6. `06-human-feel-secrets.md` - What makes it feel "almost human"
-7. `IMPLEMENTATION-PLAN.md` - Priority order, dependencies, security notes
+6. `06-human-feel-secrets.md` - The TOP 3 patterns that make it feel "almost human"
+7. `IMPLEMENTATION-PLAN.md` - Priority order, weekly sprints, security notes
+
+**Approach: NanoClaw first, then OpenClaw for gaps.**
+For each topic, analyse NanoClaw completely first (~500 lines, you can read it all).
+Then cross-reference OpenClaw for anything NanoClaw doesn't cover.
 
 ### Analysis Format
 
