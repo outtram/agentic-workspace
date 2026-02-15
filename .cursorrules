@@ -1,0 +1,275 @@
+# Cursor Rules for AAGLOBAL Project
+
+## Project Context
+
+This is Troy Outtram's agentic development environment (AAGLOBAL).
+
+**Current Goal:** Analyze OpenClaw codebase to build a safer alternative called "AAGLOBAL-Brain"
+
+---
+
+## OpenClaw Analysis Instructions
+
+### Where to Find OpenClaw
+
+The OpenClaw repository is located at: `../openclaw/` (sibling directory, NOT in this repo)
+
+**DO NOT commit OpenClaw code to this repository!**
+
+Only analysis/documentation should be committed to AAGLOBAL.
+
+### Analysis Output Location
+
+Save ALL analysis to: `docs/openclaw-research/`
+
+**Required files to create:**
+1. `01-memory-system.md` - Hybrid search, SOUL.md, personality storage
+2. `02-heartbeat-logic.md` - Proactive decision-making, importance judging
+3. `03-personality-injection.md` - How SOUL.md influences responses
+4. `04-adapter-patterns.md` - Multi-channel gateway architecture
+5. `05-session-continuity.md` - Context management, conversation recall
+6. `06-human-feel-secrets.md` - What makes it feel "almost human"
+7. `IMPLEMENTATION-PLAN.md` - Priority order, dependencies, security notes
+
+### Analysis Format
+
+For each markdown file, include:
+
+#### 1. Overview
+- What this component does
+- Why it's critical to the "human feel"
+
+#### 2. Architecture
+```mermaid
+# Use mermaid diagrams where helpful
+```
+
+#### 3. Code Examples
+```typescript
+// Include relevant code snippets from OpenClaw
+// With explanatory comments
+```
+
+#### 4. Key Insights
+- Bullet points of important patterns
+- Design decisions that matter
+- Why they chose this approach
+
+#### 5. Security Considerations
+- What could go wrong?
+- Attack vectors to avoid
+- How to make it safer
+
+#### 6. AAGLOBAL Implementation
+- How to rebuild this in AAGLOBAL
+- What to keep, what to change
+- Simpler/safer alternatives
+
+---
+
+## Research Questions to Answer
+
+### Memory System
+- How does hybrid search combine SQL + vector embeddings?
+- How does it decide what to remember vs forget?
+- How does SOUL.md personality get stored and recalled?
+- How does it optimize for fast retrieval?
+
+### Heartbeat Logic
+- What triggers a notification vs silent check?
+- How does it judge "importance"?
+- How does it avoid alert fatigue?
+- How does cron scheduling work?
+
+### Personality Injection
+- How does SOUL.md influence response style?
+- How does it maintain consistent "voice"?
+- How does it make responses feel natural/human?
+- Where does personality get injected in the pipeline?
+
+### Adapter Patterns
+- How does the gateway pattern work?
+- How does it maintain conversation state across channels?
+- How does it handle async/real-time communication?
+- How does it route messages to correct adapters?
+
+### Session Continuity
+- How does it recall previous conversations?
+- How does it maintain context window efficiently?
+- How does it know when to "forget" old context?
+- How does it link messages across time?
+
+---
+
+## Code Navigation Tips
+
+When exploring OpenClaw:
+
+1. **Start with the README** - Understand overall architecture
+2. **Find the entry point** - Main file that starts everything
+3. **Trace the flow** - Follow a message from input to response
+4. **Identify patterns** - Look for repeated design patterns
+5. **Note dependencies** - What libraries are critical?
+
+---
+
+## Troy's Preferences
+
+**Writing Style:**
+- Australian English (colour, organise, behaviour)
+- Short, structured, actionable responses
+- ADHD-friendly (clear headings, bullet points, no walls of text)
+
+**Integration Priorities:**
+- ✅ WhatsApp (most important!)
+- ✅ Gmail (direct API)
+- ✅ Calendar (direct API)
+- ✅ macOS Reminders (already built)
+- ❌ NO: Asana, Slack, Discord, Telegram
+
+**Security Principles:**
+- Local files only (no public registries)
+- Direct API calls (no middleware/gateways)
+- Minimal dependencies
+- Manual, reviewed updates only
+- No supply chain attacks
+
+---
+
+## When Analyzing Code
+
+### DO:
+- ✅ Create detailed, well-structured markdown docs
+- ✅ Include code examples with explanations
+- ✅ Use mermaid diagrams for architecture
+- ✅ Explain WHY not just WHAT
+- ✅ Note security implications
+- ✅ Suggest safer alternatives for AAGLOBAL
+
+### DON'T:
+- ❌ Copy OpenClaw code into AAGLOBAL repo
+- ❌ Commit OpenClaw to Git
+- ❌ Make assumptions without checking code
+- ❌ Skip security analysis
+- ❌ Write walls of text (keep it ADHD-friendly)
+
+---
+
+## Implementation Notes
+
+### What AAGLOBAL Already Has
+- File-native memory system (`.claude/memory/`)
+- Skills system (`.claude/skills/`)
+- Work tracking (`.claude/work/tasks/`)
+- Hooks (session start, file change)
+- Reminders sync (macOS Reminders.app)
+- AI enrichment (vague task detection)
+- Eisenhower Matrix dashboard
+
+### What Needs to Be Built
+- Enhanced memory with hybrid search (SQL + vector)
+- Proactive heartbeat (30-minute cron)
+- WhatsApp adapter
+- Gmail/Calendar integration
+- Personality-driven responses
+- Session continuity
+
+---
+
+## Expected Workflow
+
+1. User asks you to analyze OpenClaw
+2. You read `../openclaw/` directory
+3. You create analysis docs in `docs/openclaw-research/`
+4. You explain findings in chat
+5. User commits docs to GitHub
+6. User switches to work laptop
+7. User pulls analysis
+8. User asks Claude Code to implement based on your analysis
+
+**Your job:** Create amazing analysis docs that Claude Code can use to build AAGLOBAL-Brain!
+
+---
+
+## Quality Standards
+
+Each analysis document should be:
+- **Comprehensive** - Cover all important aspects
+- **Clear** - Easy to understand, well-organized
+- **Actionable** - Provide implementation guidance
+- **Secure** - Highlight security considerations
+- **Australian English** - Use colour, organise, behaviour
+
+---
+
+## Example Analysis Structure
+
+```markdown
+# 01: Memory System Architecture
+
+## Overview
+[What it does, why it matters]
+
+## Architecture
+[Mermaid diagram]
+
+## Key Components
+### Hybrid Search
+[How SQL + vector embeddings work together]
+
+### SOUL.md Storage
+[How personality is stored and recalled]
+
+## Code Deep Dive
+```typescript
+// Example code with explanations
+```
+
+## Key Insights
+- Insight 1
+- Insight 2
+- Insight 3
+
+## Security Analysis
+- Risk 1: [description]
+- Risk 2: [description]
+- Mitigation: [how to make it safer]
+
+## AAGLOBAL Implementation
+### Recommended Approach
+[How to build this in AAGLOBAL]
+
+### Simplified Alternative
+[Easier/safer way if full version too complex]
+
+### Dependencies
+- Dependency 1
+- Dependency 2
+
+### Estimated Complexity
+[Simple/Medium/Complex]
+```
+
+---
+
+## Auto-Save Behavior
+
+When creating analysis files:
+1. Save to `docs/openclaw-research/` automatically
+2. Use numbered prefixes (01-, 02-, etc.) for ordering
+3. Use descriptive filenames (memory-system, heartbeat-logic, etc.)
+4. Create IMPLEMENTATION-PLAN.md last (after all analysis is complete)
+
+---
+
+## Help Troy Succeed
+
+Your analysis will determine how well AAGLOBAL-Brain turns out.
+
+**Focus on:**
+- Understanding the "human feel" - what makes it special?
+- Identifying patterns Troy can implement in Claude Code
+- Highlighting security issues to avoid
+- Providing clear, actionable guidance
+
+**Troy is counting on you to make this amazing! 🚀**

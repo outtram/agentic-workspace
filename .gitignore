@@ -42,3 +42,8 @@ workspace/
 
 # Keep dashboards for mobile viewing (manually clean up old ones)
 # Keep agents, config, templates - these are the implementation
+
+# OpenClaw Analysis
+# DO NOT commit OpenClaw codebase - only our analysis docs!
+openclaw/
+**/openclaw/
