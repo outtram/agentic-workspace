@@ -1,0 +1,15 @@
+[project]
+name = "outbot-brain"
+version = "0.1.0"
+description = "OutBot: Troy's proactive AI assistant"
+requires-python = ">=3.11"
+dependencies = [
+    "croniter>=2.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]

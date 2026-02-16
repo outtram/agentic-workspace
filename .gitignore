@@ -49,3 +49,11 @@ openclaw/
 **/openclaw/
 nanoclaw/
 **/nanoclaw/
+
+# OutBot runtime data
+brain/store/
+brain/whatsapp/auth/
+brain/whatsapp/node_modules/
+brain/whatsapp/dist/
+brain/.env
+**/__pycache__/

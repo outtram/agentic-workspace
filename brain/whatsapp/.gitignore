@@ -1,0 +1,6 @@
+node_modules/
+dist/
+auth/
+store/
+*.js
+!vitest.config.js
