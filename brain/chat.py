@@ -29,6 +29,8 @@ from brain.memory.remember import (
     write_memory,
     forget_memory,
 )
+from brain.email.inbox import Inbox, InboundEmail
+from brain.email.outbox import Outbox
 from brain.personality.formatter import format_outbound
 from brain.personality.loader import PersonalityLoader
 from brain.session.archiver import SessionArchiver
@@ -37,6 +39,10 @@ from brain.session.manager import SessionManager
 
 CLI_JID = "cli@local"
 MAX_CONTEXT_MESSAGES = 20
+
+# Email command patterns
+_EMAIL_SEND_PREFIXES = ("send email", "email ", "send an email", "email to ")
+_EMAIL_CHECK_WORDS = ("check email", "check my email", "any emails", "new emails", "inbox")
 
 
 class OutBotCLI:
@@ -53,6 +59,13 @@ class OutBotCLI:
         self.claude.set_usage_tracker(self.usage)
         self.voice = voice
         self._message_count = 0
+
+        # Email (lazy — only init if credentials configured)
+        self._outbox: Outbox | None = None
+        self._inbox: Inbox | None = None
+        if self.config.email_address and self.config.email_app_password:
+            self._outbox = Outbox.from_config(self.config, event_bus=self.event_bus)
+            self._inbox = Inbox.from_config(self.config)
 
         # Voice components (lazy loaded)
         self._voice_record = None
@@ -102,11 +115,101 @@ class OutBotCLI:
         # Skip the very last one (it's the message we just stored)
         return format_catchup_summary(recent)
 
+    def _is_email_check(self, text: str) -> bool:
+        """Check if the user wants to check their email."""
+        lower = text.lower().strip()
+        return any(w in lower for w in _EMAIL_CHECK_WORDS)
+
+    def _is_email_send(self, text: str) -> bool:
+        """Check if the user wants to send an email."""
+        lower = text.lower().strip()
+        return any(lower.startswith(p) for p in _EMAIL_SEND_PREFIXES)
+
+    async def _handle_email_check(self) -> str:
+        """Check inbox and return a summary."""
+        if not self._inbox:
+            return "Email not configured. Set OUTBOT_EMAIL_ADDRESS and OUTBOT_EMAIL_APP_PASSWORD in brain/.env"
+
+        try:
+            emails = await self._inbox.check(limit=5)
+        except Exception as e:
+            return f"Couldn't check email: {e}"
+
+        if not emails:
+            return "No new emails."
+
+        lines = [f"{len(emails)} unread email(s):"]
+        for e in emails:
+            name = e.sender_name or e.sender
+            lines.append(f"  - From: {name} | Subject: {e.subject}")
+        return "\n".join(lines)
+
+    async def _handle_email_send(self, text: str) -> str:
+        """Use Claude to extract email details and send."""
+        if not self._outbox:
+            return "Email not configured. Set OUTBOT_EMAIL_ADDRESS and OUTBOT_EMAIL_APP_PASSWORD in brain/.env"
+
+        # Ask Claude to extract email fields from the user's message
+        extraction = await self.claude.judge(
+            prompt=text,
+            system_prompt=(
+                "Extract email details from the user's message. "
+                "Reply in EXACTLY this format (one field per line):\n"
+                "TO: <email address>\n"
+                "SUBJECT: <subject line>\n"
+                "BODY: <email body>\n\n"
+                "If no recipient is specified, use TO: default\n"
+                "If details are vague, make reasonable assumptions."
+            ),
+        )
+
+        # Parse the extraction
+        to_addr = ""
+        subject = ""
+        body = ""
+        for line in extraction.strip().splitlines():
+            line = line.strip()
+            if line.upper().startswith("TO:"):
+                to_addr = line[3:].strip()
+            elif line.upper().startswith("SUBJECT:"):
+                subject = line[8:].strip()
+            elif line.upper().startswith("BODY:"):
+                body = line[5:].strip()
+
+        if to_addr.lower() == "default" or not to_addr:
+            to_addr = self.config.email_default_to
+            if not to_addr:
+                return "No recipient specified and OUTBOT_EMAIL_DEFAULT_TO not set."
+
+        if not subject:
+            subject = "(no subject)"
+        if not body:
+            body = text  # Fall back to the full user message
+
+        try:
+            msg_id = await self._outbox.send(to=to_addr, subject=subject, body=body)
+            return f"Email sent to {to_addr}: \"{subject}\""
+        except Exception as e:
+            return f"Failed to send email: {e}"
+
     async def send(self, text: str) -> str:
         """Send a message to OutBot and get a response."""
         # Store user message
         self._store_message(text, sender="troy", is_from_me=False)
         self._message_count += 1
+
+        # Handle email commands directly (before Claude)
+        if self._is_email_check(text):
+            reply = await self._handle_email_check()
+            self._store_message(reply, sender="outbot", is_from_me=True)
+            self._message_count += 1
+            return reply
+
+        if self._is_email_send(text):
+            reply = await self._handle_email_send(text)
+            self._store_message(reply, sender="outbot", is_from_me=True)
+            self._message_count += 1
+            return reply
 
         # Handle memory triggers before calling Claude
         memory_note = ""

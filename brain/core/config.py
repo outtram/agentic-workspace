@@ -23,6 +23,10 @@ class Config:
     max_concurrent_tasks: int = 3
     memory_dir: str = ".claude/memory"
     phone_number: str = ""
+    email_backend: str = "console"
+    email_address: str = ""
+    email_app_password: str = ""
+    email_default_to: str = ""
 
     @classmethod
     def load(cls, env_path: str | None = None) -> Config:
@@ -45,6 +49,10 @@ class Config:
             max_concurrent_tasks=int(os.getenv("OUTBOT_MAX_CONCURRENT_TASKS", "3")),
             memory_dir=os.getenv("OUTBOT_MEMORY_DIR", ".claude/memory"),
             phone_number=os.getenv("OUTBOT_PHONE_NUMBER", ""),
+            email_backend=os.getenv("OUTBOT_EMAIL_BACKEND", "console"),
+            email_address=os.getenv("OUTBOT_EMAIL_ADDRESS", ""),
+            email_app_password=os.getenv("OUTBOT_EMAIL_APP_PASSWORD", ""),
+            email_default_to=os.getenv("OUTBOT_EMAIL_DEFAULT_TO", ""),
         )
 
     def is_quiet_hours(self, hour: int | None = None) -> bool:

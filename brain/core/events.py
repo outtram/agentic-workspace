@@ -91,3 +91,21 @@ class ConnectionChanged(Event):
     """WhatsApp connection status changed."""
 
     connected: bool = False
+
+
+@dataclass
+class EmailSent(Event):
+    """An email was sent via the outbox."""
+
+    to: str = ""
+    subject: str = ""
+    msg_id: str = ""
+
+
+@dataclass
+class EmailReceived(Event):
+    """A new email was received via inbox check."""
+
+    sender: str = ""
+    subject: str = ""
+    msg_id: str = ""
