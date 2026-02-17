@@ -45,7 +45,8 @@ _EMAIL_SEND_WORDS = ("send email", "send an email", "send me an email", "send a 
                      "email to ", "send him an email", "send her an email", "send them an email",
                      "send me a test email", "send a email")
 _EMAIL_CHECK_WORDS = ("check email", "check my email", "any emails", "new emails", "inbox",
-                      "check my inbox", "any new mail", "check mail")
+                      "check my inbox", "any new mail", "check mail", "check emails",
+                      "read email", "read my email", "read emails")
 
 
 class OutBotCLI:
@@ -136,7 +137,10 @@ class OutBotCLI:
         try:
             emails = await self._inbox.check(limit=5)
         except Exception as e:
-            return f"Couldn't check email: {e}"
+            hint = ""
+            if "EOF" in str(e) or "AUTHENTICATIONFAILED" in str(e):
+                hint = "\nHint: Enable IMAP in Gmail Settings > Forwarding and POP/IMAP"
+            return f"Couldn't check email: {e}{hint}"
 
         if not emails:
             return "No new emails."
@@ -318,15 +322,22 @@ class OutBotCLI:
         if self.voice:
             self._init_voice()
 
-        print("\n  ╔═══════════════════════════════════╗")
+        W = 35  # Interior width between ║ and ║
+        def _row(text: str) -> str:
+            return f"  ║ {text:<{W-2}} ║"
+
+        print(f"\n  ╔{'═' * W}╗")
         if self.voice:
-            print("  ║     OutBot Voice Chat             ║")
-            print("  ║  ENTER = record, ENTER = stop     ║")
+            print(_row("OutBot Voice Chat"))
+            print(_row("ENTER = record, ENTER = stop"))
         else:
-            print("  ║     OutBot Terminal Chat           ║")
-        print(f"  ║  Model: {CHAT_MODEL:<27}║")
-        print("  ║  Type 'quit' to exit              ║")
-        print("  ╚═══════════════════════════════════╝\n")
+            print(_row("OutBot Terminal Chat"))
+        print(_row(f"Model: {CHAT_MODEL}"))
+        email_addr = self._outbox.from_address if self._outbox else None
+        if email_addr:
+            print(_row(f"Email: {email_addr}"))
+        print(_row("Type 'quit' to exit"))
+        print(f"  ╚{'═' * W}╝\n")
 
         while True:
             try:
