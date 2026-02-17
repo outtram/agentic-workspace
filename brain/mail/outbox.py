@@ -1,7 +1,7 @@
 """Outbox - the public API for sending emails from OutBot.
 
 Usage:
-    from brain.email.outbox import Outbox
+    from brain.mail.outbox import Outbox
     from brain.core.config import Config
 
     config = Config.load()

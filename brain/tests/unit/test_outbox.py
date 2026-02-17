@@ -8,10 +8,10 @@ import pytest
 
 from brain.core.config import Config
 from brain.core.events import EmailSent, EventBus
-from brain.email.backends.base import EmailMessage
-from brain.email.backends.console import ConsoleBackend
-from brain.email.backends.gmail import GmailBackend
-from brain.email.outbox import Outbox
+from brain.mail.backends.base import EmailMessage
+from brain.mail.backends.console import ConsoleBackend
+from brain.mail.backends.gmail import GmailBackend
+from brain.mail.outbox import Outbox
 
 
 class TestEmailMessage:

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from brain.email.inbox import Inbox, InboundEmail, GMAIL_IMAP_HOST
+from brain.mail.inbox import Inbox, InboundEmail, GMAIL_IMAP_HOST
 
 
 class TestInboundEmail:
@@ -57,7 +57,7 @@ class TestImapFetch:
         msg.set_content(body)
         return msg.as_bytes()
 
-    @patch("brain.email.inbox.imaplib.IMAP4_SSL")
+    @patch("brain.mail.inbox.imaplib.IMAP4_SSL")
     def test_fetch_unread(self, mock_imap_cls):
         """Should parse unread emails from IMAP."""
         mock_conn = MagicMock()
@@ -79,7 +79,7 @@ class TestImapFetch:
         assert results[0].sender_name == "Troy"
         assert "How's it going?" in results[0].body
 
-    @patch("brain.email.inbox.imaplib.IMAP4_SSL")
+    @patch("brain.mail.inbox.imaplib.IMAP4_SSL")
     def test_fetch_empty_inbox(self, mock_imap_cls):
         """Should return empty list when no unread emails."""
         mock_conn = MagicMock()
@@ -94,7 +94,7 @@ class TestImapFetch:
 
         assert results == []
 
-    @patch("brain.email.inbox.imaplib.IMAP4_SSL")
+    @patch("brain.mail.inbox.imaplib.IMAP4_SSL")
     def test_fetch_respects_limit(self, mock_imap_cls):
         """Should only return up to `limit` most recent emails."""
         mock_conn = MagicMock()
@@ -112,7 +112,7 @@ class TestImapFetch:
         # Should only fetch 3 messages (IDs 8, 9, 10)
         assert mock_conn.fetch.call_count == 3
 
-    @patch("brain.email.inbox.imaplib.IMAP4_SSL")
+    @patch("brain.mail.inbox.imaplib.IMAP4_SSL")
     def test_body_truncated_at_2000_chars(self, mock_imap_cls):
         """Long email bodies should be capped."""
         mock_conn = MagicMock()
@@ -130,7 +130,7 @@ class TestImapFetch:
         assert len(results[0].body) <= 2000
 
     @pytest.mark.asyncio
-    @patch("brain.email.inbox.imaplib.IMAP4_SSL")
+    @patch("brain.mail.inbox.imaplib.IMAP4_SSL")
     async def test_check_async(self, mock_imap_cls):
         """The async check() method should work."""
         mock_conn = MagicMock()

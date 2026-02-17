@@ -1,7 +1,7 @@
 """Inbox - checks for new emails via IMAP.
 
 Usage:
-    from brain.email.inbox import Inbox
+    from brain.mail.inbox import Inbox
     from brain.core.config import Config
 
     config = Config.load()

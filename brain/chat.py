@@ -29,8 +29,8 @@ from brain.memory.remember import (
     write_memory,
     forget_memory,
 )
-from brain.email.inbox import Inbox, InboundEmail
-from brain.email.outbox import Outbox
+from brain.mail.inbox import Inbox, InboundEmail
+from brain.mail.outbox import Outbox
 from brain.personality.formatter import format_outbound
 from brain.personality.loader import PersonalityLoader
 from brain.session.archiver import SessionArchiver
