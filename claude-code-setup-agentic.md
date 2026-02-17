@@ -64,8 +64,8 @@ Superpowers is an agentic skills framework by Jesse Vincent (obra). It's in the 
 ### Install in Claude Code
 ```bash
 # In Claude Code CLI:
-/plugin marketplace add obra/superpowers
-/plugin install superpowers@superpowers
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
 ```
 
 ### Verify Installation

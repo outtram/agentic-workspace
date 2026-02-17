@@ -47,11 +47,11 @@ class Config:
             phone_number=os.getenv("OUTBOT_PHONE_NUMBER", ""),
         )
 
-    def is_quiet_hours(self) -> bool:
+    def is_quiet_hours(self, hour: int | None = None) -> bool:
         """Check if current time is within quiet hours."""
-        from datetime import datetime
-
-        hour = datetime.now().hour
+        if hour is None:
+            from datetime import datetime
+            hour = datetime.now().hour
         if self.quiet_start > self.quiet_end:
             # Wraps midnight: e.g. 22-7 means 22,23,0,1,2,3,4,5,6
             return hour >= self.quiet_start or hour < self.quiet_end

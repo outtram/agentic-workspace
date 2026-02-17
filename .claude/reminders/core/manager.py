@@ -92,6 +92,63 @@ class RemindersManager:
 
         return work_item
 
+    def import_reminder(
+        self,
+        title: str,
+        reminder_id: str,
+        due_date: Optional[str] = None,
+        tags: Optional[list[str]] = None,
+        priority: str = "low",
+        description: str = "",
+        list_name: str = "Reminders"
+    ) -> WorkItem:
+        """Import an existing reminder from Reminders.app (creates work item only, no sync back)"""
+        work_item_id = f"OUT-{self._next_id}"
+        self._next_id += 1
+
+        # Classify into Eisenhower quadrant
+        urgent = due_date is not None and priority in ["high", "urgent"]
+        important = priority in ["high", "medium"] or bool(description)
+
+        if urgent and important:
+            quadrant = "q1"
+        elif not urgent and important:
+            quadrant = "q2"
+        elif urgent and not important:
+            quadrant = "q3"
+        else:
+            quadrant = "q4"
+
+        now = datetime.now()
+        work_item = WorkItem(
+            id=work_item_id,
+            title=title,
+            status="todo",
+            priority=priority,
+            due_date=due_date,
+            tags=tags or [],
+            eisenhower_quadrant=quadrant,
+            eisenhower_urgent=urgent,
+            eisenhower_important=important,
+            source="reminders_import",
+            description=description,
+            created=now,
+            updated=now,
+            reminder_id=reminder_id,
+            reminder_list=list_name
+        )
+
+        # Save work item file only (no push to Reminders.app)
+        self.workitems.create(work_item)
+
+        # Emit event
+        self.event_bus.publish(WorkItemCreated(
+            work_item_id=work_item_id,
+            reminder_id=reminder_id
+        ))
+
+        return work_item
+
     def complete_reminder(self, work_item_id: str):
         """Mark reminder as completed"""
         work_item = self.workitems.read(work_item_id)

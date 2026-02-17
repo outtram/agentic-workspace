@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eisenhower Matrix - Feb 12, 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Quadrant boxes */
+        .quadrant {
+            min-height: 350px;
+            border: 3px solid;
+            border-radius: 12px;
+            padding: 24px;
+            background: white;
+        }
+
+        /* Dark mode quadrant backgrounds */
+        body.dark .quadrant {
+            background: #1f2937;
+        }
+
+        /* Quadrant border colours */
+        .q1-border { border-color: #dc2626; }
+        .q2-border { border-color: #2563eb; }
+        .q3-border { border-color: #eab308; }
+        .q4-border { border-color: #6b7280; }
+
+        /* Task cards */
+        .task-card {
+            margin: 12px 0;
+            padding: 16px;
+            background: #f9fafb;
+            border-left: 5px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(4px);
+        }
+
+        /* Dark mode task cards */
+        body.dark .task-card {
+            background: #374151;
+            color: #f3f4f6;
+        }
+
+        /* Task card border colours */
+        .task-card.q1-card { border-left-color: #dc2626; }
+        .task-card.q2-card { border-left-color: #2563eb; }
+        .task-card.q3-card { border-left-color: #eab308; }
+        .task-card.q4-card { border-left-color: #6b7280; }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-count {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        body.dark .badge-count {
+            background: #4b5563;
+            color: #f3f4f6;
+        }
+
+        .badge-high { background: #fecaca; color: #991b1b; }
+        .badge-medium { background: #fef3c7; color: #92400e; }
+        .badge-low { background: #d1fae5; color: #065f46; }
+
+        .badge-reminder { background: #dbeafe; color: #1e40af; }
+        .badge-auto { background: #fde68a; color: #78350f; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+
+        body.dark .empty-state {
+            color: #6b7280;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        body.dark .btn-secondary {
+            background: #4b5563;
+            color: #f3f4f6;
+        }
+
+        .btn-active {
+            border-color: #2563eb;
+        }
+
+        /* Details/Summary */
+        details {
+            margin-top: 12px;
+        }
+
+        summary {
+            font-weight: 600;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        summary:hover {
+            color: #2563eb;
+        }
+
+        details[open] summary {
+            margin-bottom: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            .quadrant {
+                min-height: 250px;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .task-card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-6 md:p-8">
+    <!-- Header -->
+    <header class="mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
+                    📊 Eisenhower Matrix
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">
+                    Generated: 2026-02-12 10:47 PM
+                </p>
+            </div>
+
+            <div class="mt-4 md:mt-0">
+                <span class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    Total: <span id="total-count">44</span> tasks
+                </span>
+            </div>
+        </div>
+
+        <!-- Filter buttons -->
+        <div class="mt-6 flex flex-wrap gap-3 no-print">
+            <button onclick="filterAll()" class="btn btn-secondary" id="btn-all">
+                Show All
+            </button>
+            <button onclick="filterReminders()" class="btn btn-secondary" id="btn-reminders">
+                📲 Reminders Only
+            </button>
+            <button onclick="filterManual()" class="btn btn-secondary" id="btn-manual">
+                ✍️ Manual Only
+            </button>
+            <button onclick="toggleDarkMode()" class="btn btn-secondary">
+                🌓 Dark Mode
+            </button>
+        </div>
+    </header>
+
+    <!-- Eisenhower Matrix Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Q1: Do First -->
+        <div class="quadrant q1-border">
+            <h2 class="text-2xl font-bold text-red-600 mb-4">
+                🔥 Do First
+                <span class="badge badge-count">29</span>
+            </h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Urgent & Important
+            </p>
+            <div id="q1-tasks"></div>
+        </div>
+
+        <!-- Q2: Schedule -->
+        <div class="quadrant q2-border">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">
+                📅 Schedule
+                <span class="badge badge-count">1</span>
+            </h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Not Urgent but Important
+            </p>
+            <div id="q2-tasks"></div>
+        </div>
+
+        <!-- Q3: Delegate -->
+        <div class="quadrant q3-border">
+            <h2 class="text-2xl font-bold text-yellow-600 mb-4">
+                🔀 Delegate
+                <span class="badge badge-count">0</span>
+            </h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Urgent but Not Important
+            </p>
+            <div id="q3-tasks"></div>
+        </div>
+
+        <!-- Q4: Eliminate -->
+        <div class="quadrant q4-border">
+            <h2 class="text-2xl font-bold text-gray-600 mb-4">
+                🗑️ Eliminate
+                <span class="badge badge-count">14</span>
+            </h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Not Urgent & Not Important
+            </p>
+            <div id="q4-tasks"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 text-center text-gray-500 text-sm no-print">
+        <p>Generated from <code>.claude/work/tasks/</code> and <code>.claude/work/bugs/</code></p>
+        <p class="mt-2">To regenerate: Ask dashboard-generator agent</p>
+    </footer>
+
+    <script>
+        // Injected data from generator agent
+        const dashboardData = {
+  "metadata": {
+    "generated_at": "2026-02-12T22:47:25.865528",
+    "total_tasks": 44,
+    "q1_count": 29,
+    "q2_count": 1,
+    "q3_count": 0,
+    "q4_count": 14
+  },
+  "q1": [
+    {
+      "id": "OUT-263",
+      "title": "M8, piano app new voice,4pm today",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-02-07",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-263-m8-piano-app-new-voice4pm-today.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-259",
+      "title": "loan info to simon",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-259-loan-info-to-simon.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-254",
+      "title": "veronica meeting next week",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-254-veronica-meeting-next-week.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-232",
+      "title": "ross peachy meeting setup",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-14",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-232-ross-peachy-meeting-setup.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-237",
+      "title": "Speak to Karthik - Contract work",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-19",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-237-speak-to-karthik-contract-work.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-238",
+      "title": "phil chase survey (DEP ID: 351509) - ACTION REQUIRED BY 27-Jan-2026",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-26",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-238-phil-chase-survey-dep-id-351509-action-required-by.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-233",
+      "title": "ross ackland - prep for lab",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-14",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-233-ross-ackland-prep-for-lab.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-235",
+      "title": "check expenses and make sure i get paid. mel stuffed up dec/jan",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-15",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-235-check-expenses-and-make-sure-i-get-paid-mel-stuffe.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-258",
+      "title": "login to beam",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-258-login-to-beam.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-262",
+      "title": "Indie dog steps to get on the bed",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-262-indie-dog-steps-to-get-on-the-bed.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-256",
+      "title": "morgain linked in post copy morgans and tweak its already in claude as a discussion maybe get tom to help",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-256-morgain-linked-in-post-copy-morgans-and-tweak-its.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-253",
+      "title": "ross peachy meeting next week one on one coffee",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-253-ross-peachy-meeting-next-week-one-on-one-coffee.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-242",
+      "title": "Kate - Continuous Delivery Meeting",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-242-kate-continuous-delivery-meeting.md",
+      "description": "Copilot prompt: Find my next meeting with Kate and summarise the agenda, attendees, and any attached documents or previous meeting notes.",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-234",
+      "title": "bowel screen test order",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-14",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-234-bowel-screen-test-order.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-236",
+      "title": "report mel to the pa boss",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-19",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-236-report-mel-to-the-pa-boss.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-255",
+      "title": "guidance work with phil on high level plan next week",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-02-02",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-255-guidance-work-with-phil-on-high-level-plan-next-we.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-261",
+      "title": "Book in another meeting with Brad Milken around numbers and expecations EP",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-261-book-in-another-meeting-with-brad-milken-around-nu.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-231",
+      "title": "tech roadmap",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-14",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-231-tech-roadmap.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-221",
+      "title": "Golden plains password",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-06",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-221-golden-plains-password.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-222",
+      "title": "Check out FamilyWall: Family Organizer app - look at download",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-13",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-222-check-out-familywall-family-organizer-app-look-at.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-250",
+      "title": "due diligency partner interviews need to book in.",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-250-due-diligency-partner-interviews-need-to-book-in.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-251",
+      "title": "call leon doyle back",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-251-call-leon-doyle-back.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-240",
+      "title": "find and send miti the ppt deck for aus super member pillar call",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-23",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-240-find-and-send-miti-the-ppt-deck-for-aus-super-memb.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-257",
+      "title": "purchase cursor",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-257-purchase-cursor.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-252",
+      "title": "ross peachy regular once a month meeting",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-252-ross-peachy-regular-once-a-month-meeting.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-230",
+      "title": "outtram.com hosting options railway and vercel",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-14",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-230-outtramcom-hosting-options-railway-and-vercel.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-239",
+      "title": "forward deployed enginers ai",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-23",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-239-forward-deployed-enginers-ai.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-220",
+      "title": "Tesalatities tiles",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-06",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-220-tesalatities-tiles.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-260",
+      "title": "mel hosting check into lok at whats possiblel",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-260-mel-hosting-check-into-lok-at-whats-possiblel.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    }
+  ],
+  "q2": [
+    {
+      "id": "OUT-241",
+      "title": "equity partner nomiation form is due 20th feb.",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-02-20",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-241-equity-partner-nomiation-form-is-due-20th-feb.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    }
+  ],
+  "q3": [],
+  "q4": [
+    {
+      "id": "OUT-226",
+      "title": "Tech Roadmap",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-226-tech-roadmap.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-249",
+      "title": "Review one pass passwords like bastion",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-249-review-one-pass-passwords-like-bastion.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-224",
+      "title": "Contract - AI, SCA",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-224-contract-ai-sca.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-228",
+      "title": "AusSuper marketing team one pager - current Deloitte work + future opportunities",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-228-aussuper-marketing-team-one-pager-current-deloitte.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-229",
+      "title": "Oleg electric",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-229-oleg-electric.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-244",
+      "title": "Hendry meeting",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-244-hendry-meeting.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-245",
+      "title": "Ai ppt",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-245-ai-ppt.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-248",
+      "title": "Aus super team models supply and demand diagram",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-248-aus-super-team-models-supply-and-demand-diagram.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-225",
+      "title": "Contact Centre",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-225-contact-centre.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-227",
+      "title": "Ananth MD plan",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-227-ananth-md-plan.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-223",
+      "title": "Fire place fix",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-223-fire-place-fix.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-246",
+      "title": "Kate labs",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-246-kate-labs.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-243",
+      "title": "Meet with hook online",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-243-meet-with-hook-online.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-247",
+      "title": "Aus super store front",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-247-aus-super-store-front.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    }
+  ]
+};
+
+        let currentFilter = 'all';
+
+        // Render tasks on page load
+        function renderTasks() {
+            ['q1', 'q2', 'q3', 'q4'].forEach(quadrant => {
+                const container = document.getElementById(`${quadrant}-tasks`);
+                const tasks = dashboardData[quadrant] || [];
+
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No tasks in this quadrant</div>';
+                    return;
+                }
+
+                container.innerHTML = tasks.map(task => {
+                    const priorityBadge = task.priority ?
+                        `<span class="badge badge-${task.priority}">${task.priority.toUpperCase()}</span>` : '';
+
+                    const reminderBadge = task.source === 'reminder' ?
+                        '<span class="badge badge-reminder">📲 Reminder</span>' : '';
+
+                    const autoBadge = task.auto_classified ?
+                        '<span class="badge badge-auto">auto</span>' : '';
+
+                    const dueDateText = task.due_date ?
+                        `📅 ${formatDate(task.due_date)}` : 'No due date';
+
+                    const description = task.description || 'No description available';
+
+                    const reminderInfo = task.source === 'reminder' && task.reminder_list ?
+                        `<p class="text-xs text-gray-500 mt-2">From list: ${task.reminder_list}</p>` : '';
+
+                    return `
+                        <div class="task-card ${quadrant}-card"
+                             data-source="${task.source}"
+                             data-id="${task.id}">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-semibold text-lg text-gray-900 dark:text-gray-100">
+                                    ${task.title}
+                                </h3>
+                                <span class="text-sm text-gray-500 ml-2">${task.status}</span>
+                            </div>
+
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                <code>${task.id}</code> | ${dueDateText}
+                            </p>
+
+                            <div class="mt-2">
+                                ${priorityBadge}
+                                ${reminderBadge}
+                                ${autoBadge}
+                            </div>
+
+                            ${reminderInfo}
+
+                            <details class="mt-3">
+                                <summary>View details</summary>
+                                <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                                    <p><strong>Description:</strong> ${description}</p>
+                                    <p class="mt-2"><strong>File:</strong> <code>${task.file_path}</code></p>
+                                    ${task.eisenhower_urgent !== undefined ?
+                                        `<p class="mt-1"><strong>Urgent:</strong> ${task.eisenhower_urgent ? 'Yes' : 'No'}</p>` : ''}
+                                    ${task.eisenhower_important !== undefined ?
+                                        `<p class="mt-1"><strong>Important:</strong> ${task.eisenhower_important ? 'Yes' : 'No'}</p>` : ''}
+                                </div>
+                            </details>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        // Format date string
+        function formatDate(dateStr) {
+            if (!dateStr) return 'No due date';
+            try {
+                const date = new Date(dateStr);
+                const today = new Date();
+                const diffTime = date - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays < 0) return `${dateStr} (overdue)`;
+                if (diffDays === 0) return `${dateStr} (today!)`;
+                if (diffDays === 1) return `${dateStr} (tomorrow)`;
+                if (diffDays <= 7) return `${dateStr} (in ${diffDays} days)`;
+
+                return dateStr;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        // Filter: Show all tasks
+        function filterAll() {
+            currentFilter = 'all';
+            document.querySelectorAll('.task-card').forEach(card => {
+                card.style.display = 'block';
+            });
+            updateActiveButton('btn-all');
+            updateCounts();
+        }
+
+        // Filter: Show only reminders
+        function filterReminders() {
+            currentFilter = 'reminder';
+            document.querySelectorAll('.task-card').forEach(card => {
+                card.style.display = card.dataset.source === 'reminder' ? 'block' : 'none';
+            });
+            updateActiveButton('btn-reminders');
+            updateCounts();
+        }
+
+        // Filter: Show only manual tasks
+        function filterManual() {
+            currentFilter = 'manual';
+            document.querySelectorAll('.task-card').forEach(card => {
+                card.style.display = card.dataset.source === 'manual' ? 'block' : 'none';
+            });
+            updateActiveButton('btn-manual');
+            updateCounts();
+        }
+
+        // Update active button styling
+        function updateActiveButton(btnId) {
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.remove('btn-active');
+            });
+            document.getElementById(btnId).classList.add('btn-active');
+        }
+
+        // Update task counts based on visible cards
+        function updateCounts() {
+            ['q1', 'q2', 'q3', 'q4'].forEach(quadrant => {
+                const container = document.getElementById(`${quadrant}-tasks`);
+                const visibleCards = container.querySelectorAll('.task-card[style*="display: block"], .task-card:not([style*="display: none"])');
+                const count = visibleCards.length;
+
+                // Update count in header badge
+                const badge = container.closest('.quadrant').querySelector('.badge-count');
+                if (badge) {
+                    badge.textContent = count;
+                }
+            });
+
+            // Update total count
+            const totalVisible = document.querySelectorAll('.task-card[style*="display: block"], .task-card:not([style*="display: none"])').length;
+            document.getElementById('total-count').textContent = totalVisible;
+        }
+
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        }
+
+        // Initialize dark mode from localStorage
+        function initDarkMode() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initDarkMode();
+            renderTasks();
+            updateActiveButton('btn-all');
+
+            console.log('📊 Dashboard loaded successfully');
+            console.log('Tasks by quadrant:', {
+                q1: (dashboardData.q1 || []).length,
+                q2: (dashboardData.q2 || []).length,
+                q3: (dashboardData.q3 || []).length,
+                q4: (dashboardData.q4 || []).length
+            });
+        });
+    </script>
+</body>
+</html>

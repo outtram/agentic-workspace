@@ -3,6 +3,7 @@
 
 import os
 import re
+import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -20,29 +21,61 @@ PRIORITY_MAP = {
     9: "low"
 }
 
-# Reminder data (pipe-delimited from AppleScript)
-reminders_data = """EISENHOWER_TEST|x-apple-reminder://0B00350D-D515-4F76-A4E3-9300FB89F0E4|Fix critical production bug|Users unable to login after latest deployment. Rollback may be needed.|Thursday, 12 February 2026 at 12:00:00 am|1
-EISENHOWER_TEST|x-apple-reminder://B57D00ED-8EAB-482E-9963-6327A27AFCAC|Complete security audit report|Board meeting requires security compliance documentation.|Friday, 13 February 2026 at 12:00:00 am|1
-EISENHOWER_TEST|x-apple-reminder://A887EB53-B39F-4DA2-B837-AF4294D6CE5D|Submit client proposal|Proposal for Project X includes: budget breakdown, timeline, team allocation, risk assessment. Client deadline is firm.|Saturday, 14 February 2026 at 12:00:00 am|5
-EISENHOWER_TEST|x-apple-reminder://5DC3C429-3959-45ED-9C7B-860C06028A80|Review and merge pending PR|PR #247 has been waiting for 3 days. Blocks other team members.|Wednesday, 11 February 2026 at 12:00:00 am|1
-EISENHOWER_TEST|x-apple-reminder://7E236B59-89DC-45D2-979C-C26DDA7B65DC|Prepare Q1 performance reviews|Review all team members, prepare feedback docs, schedule 1-on-1s.|Thursday, 19 February 2026 at 12:00:00 am|1
-EISENHOWER_TEST|x-apple-reminder://6393356D-2B52-4048-B1FD-159F6338ED87|Refactor authentication module|Tech debt cleanup. Current code is hard to maintain. No urgent issues but should be addressed.|Thursday, 26 February 2026 at 12:00:00 am|5
-EISENHOWER_TEST|x-apple-reminder://F4E5A001-59BB-4DCD-83FC-03FE67E255C9|Update team documentation|API docs, onboarding guide, and architecture diagrams need refresh.|Sunday, 22 February 2026 at 12:00:00 am|5
-EISENHOWER_TEST|x-apple-reminder://B839E9A1-3934-40A0-ACBC-0AA14F550837|Renew SSL certificates|Certificates expire March 14. Renewal process takes 2-3 days.|Saturday, 14 March 2026 at 12:00:00 am|9
-EISENHOWER_TEST|x-apple-reminder://FC379A43-E6F0-4956-89CA-472D4C4331A4|Respond to newsletter survey|missing value|Friday, 13 February 2026 at 12:00:00 am|0
-EISENHOWER_TEST|x-apple-reminder://72BED27C-EF78-41CF-B468-CE0D3A03F0C6|RSVP to company social event|missing value|Saturday, 14 February 2026 at 12:00:00 am|9
-EISENHOWER_TEST|x-apple-reminder://14718252-C3DB-40FC-8F0C-94A871F74D05|Water office plants|missing value|Thursday, 12 February 2026 at 12:00:00 am|0
-EISENHOWER_TEST|x-apple-reminder://BA1BF736-06B4-435F-81F7-479726EAC40D|Organize digital files|missing value|missing value|0
-EISENHOWER_TEST|x-apple-reminder://EF39D014-217A-4CF6-A758-1C7E105AD3B2|Read interesting article about AI|missing value|Sunday, 29 March 2026 at 12:00:00 am|0
-EISENHOWER_TEST|x-apple-reminder://1CA08267-D62E-4A95-96C5-2A69E436591E|Clean out old browser bookmarks|Maybe someday...|missing value|0
-EISENHOWER_TEST|x-apple-reminder://98CAD893-CCDF-44C0-8DFD-81C28A7160CC|🚀 Deploy new feature to staging|Feature branch: feat/user-dashboard|Friday, 13 February 2026 at 12:00:00 am|5
-EISENHOWER_TEST|x-apple-reminder://40F630C5-662A-4A55-B648-B0F686388FD7|Investigate performance degradation in database queries affecting the user profile retrieval endpoint|Started noticing slowdowns around midnight|Friday, 13 February 2026 at 12:00:00 am|1
-EISENHOWER_TEST|x-apple-reminder://56553BFD-2726-47C7-B4D8-EBCE1374885A|Fix: "Can't save" error (Windows/macOS)|Issue #123 - affects 15% of users|Thursday, 12 February 2026 at 12:00:00 am|1"""
+
+def fetch_reminders_from_applescript():
+    """Fetch reminders from macOS Reminders app using AppleScript"""
+    applescript = '''
+tell application "Reminders"
+    set output to ""
+    repeat with aList in lists
+        set listName to name of aList
+        repeat with aReminder in reminders of aList
+            if completed of aReminder is false then
+                set rId to id of aReminder
+                set rName to name of aReminder
+                try
+                    set rBody to body of aReminder
+                on error
+                    set rBody to ""
+                end try
+                try
+                    set rDueDate to due date of aReminder as string
+                on error
+                    set rDueDate to ""
+                end try
+                set rPriority to priority of aReminder
+                set output to output & listName & "|" & rId & "|" & rName & "|" & rBody & "|" & rDueDate & "|" & rPriority & linefeed
+            end if
+        end repeat
+    end repeat
+    return output
+end tell
+'''
+
+    try:
+        result = subprocess.run(
+            ['osascript', '-e', applescript],
+            capture_output=True,
+            text=True,
+            timeout=120  # Increased for large reminder lists
+        )
+
+        if result.returncode == 0:
+            return result.stdout.strip()
+        else:
+            print(f"❌ AppleScript error: {result.stderr}")
+            return ""
+    except subprocess.TimeoutExpired:
+        print("❌ AppleScript timed out")
+        return ""
+    except Exception as e:
+        print(f"❌ Error running AppleScript: {e}")
+        return ""
 
 
 def parse_due_date(date_str):
     """Parse AppleScript date string to YYYY-MM-DD"""
-    if date_str == "missing value" or not date_str:
+    if date_str == "missing value" or not date_str or date_str == "":
         return None
 
     # Parse "Thursday, 12 February 2026 at 12:00:00 am"
@@ -103,16 +136,56 @@ def classify_reminder(priority, due_date, has_body):
         return "q4", urgent, important
 
 
+def check_duplicate(reminder_id):
+    """Check if reminder was already imported"""
+    try:
+        result = subprocess.run(
+            ['grep', '-l', f'reminder_id: "{reminder_id}"', *TASK_DIR.glob('OUT-*.md')],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0  # Found = duplicate
+    except:
+        return False
+
+
+def get_next_task_id():
+    """Find the highest OUT-2XX and increment"""
+    existing = list(TASK_DIR.glob('OUT-2*.md'))
+    if not existing:
+        return START_ID
+
+    highest = START_ID - 1
+    for f in existing:
+        match = re.match(r'OUT-(\d+)', f.name)
+        if match:
+            num = int(match.group(1))
+            if 200 <= num < 300:
+                highest = max(highest, num)
+
+    return highest + 1
+
+
 def create_task_file(task_id, reminder):
     """Create task file from reminder data"""
-    list_name, reminder_id, name, body, due_date_str, priority_str = reminder.split('|')
+    parts = reminder.split('|')
+    if len(parts) != 6:
+        print(f"⚠️  Skipping malformed reminder: {reminder[:50]}...")
+        return None
+
+    list_name, reminder_id, name, body, due_date_str, priority_str = parts
 
     priority_num = int(priority_str)
     priority = PRIORITY_MAP.get(priority_num, "low")
     due_date = parse_due_date(due_date_str)
     due_date_formatted = due_date.isoformat() if due_date else ""
-    has_body = body != "missing value" and body != ""
+    has_body = body != "missing value" and body != "" and body
     description = body if has_body else "No description provided"
+
+    # Check for duplicate
+    if check_duplicate(reminder_id):
+        print(f"⏭️  Skipping duplicate: {name}")
+        return None
 
     # Classify
     quadrant, is_urgent, is_important = classify_reminder(priority_num, due_date, has_body)
@@ -172,19 +245,40 @@ Imported from macOS Reminders
     return filepath, content, quadrant
 
 
-# Process reminders
-print("🔄 Processing reminders...")
+# Main execution
+print("🔄 Fetching reminders from macOS Reminders app...")
 print()
 
-task_id = START_ID
+reminders_data = fetch_reminders_from_applescript()
+
+if not reminders_data:
+    print("❌ No reminders found or error fetching reminders")
+    print()
+    print("Troubleshooting:")
+    print("1. Check System Preferences → Security & Privacy → Automation")
+    print("2. Ensure Terminal/Claude Code has access to Reminders")
+    print("3. Try opening Reminders app manually")
+    exit(1)
+
+print("📊 Processing reminders...")
+print()
+
+task_id = get_next_task_id()
 quadrant_counts = {"q1": 0, "q2": 0, "q3": 0, "q4": 0}
 created_tasks = []
+skipped = 0
 
 for line in reminders_data.strip().split('\n'):
     if not line:
         continue
 
-    filepath, content, quadrant = create_task_file(task_id, line)
+    result = create_task_file(task_id, line)
+
+    if result is None:
+        skipped += 1
+        continue
+
+    filepath, content, quadrant = result
 
     # Write file
     with open(filepath, 'w') as f:
@@ -203,6 +297,14 @@ print(f"- Q2 (Schedule): {quadrant_counts['q2']} tasks")
 print(f"- Q3 (Delegate): {quadrant_counts['q3']} tasks")
 print(f"- Q4 (Eliminate): {quadrant_counts['q4']} tasks")
 print()
-print("Files created:")
-for task in created_tasks:
-    print(f"  - {task}")
+
+if skipped > 0:
+    print(f"Skipped: {skipped} tasks (already imported)")
+    print()
+
+if created_tasks:
+    print("Files created:")
+    for task in created_tasks[:10]:  # Show first 10
+        print(f"  - {task}")
+    if len(created_tasks) > 10:
+        print(f"  ... and {len(created_tasks) - 10} more")

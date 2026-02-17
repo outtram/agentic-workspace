@@ -7,9 +7,12 @@ Anthropic Max subscription via the `claude` CLI in non-interactive mode.
 from __future__ import annotations
 
 import asyncio
+import functools
 import json
 import logging
 import os
+import shutil
+import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +22,45 @@ CHAT_MODEL = "sonnet"
 JUDGE_MODEL = "haiku"
 
 
+def _find_claude() -> str:
+    """Find the claude CLI binary."""
+    path = shutil.which("claude")
+    if path:
+        return path
+    # Common install locations
+    for candidate in [
+        os.path.expanduser("~/.local/bin/claude"),
+        "/usr/local/bin/claude",
+    ]:
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    return "claude"  # Fall back, let subprocess raise the error
+
+
+def _run_claude(cmd: list[str], env: dict) -> tuple[str, str, int]:
+    """Run claude CLI synchronously. Called from a thread."""
+    result = subprocess.run(
+        cmd,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        timeout=180,
+    )
+    return (
+        result.stdout.decode("utf-8", errors="replace").strip(),
+        result.stderr.decode("utf-8", errors="replace").strip(),
+        result.returncode,
+    )
+
+
 class ClaudeClient:
-    """Async wrapper around `claude --print` CLI for LLM calls."""
+    """Wrapper around `claude --print` CLI for LLM calls."""
 
     def __init__(self, model: str = CHAT_MODEL) -> None:
         self.model = model
+        self._claude_path = _find_claude()
+        logger.debug("Claude CLI path: %s", self._claude_path)
 
     async def ask(
         self,
@@ -33,20 +70,9 @@ class ClaudeClient:
         max_tokens: int | None = None,
         output_json: bool = False,
     ) -> str:
-        """Send a prompt to Claude via CLI and return the response text.
-
-        Args:
-            prompt: The user message to send.
-            system_prompt: Optional system prompt.
-            model: Override the default model (e.g. "haiku", "opus").
-            max_tokens: Not directly supported by CLI, ignored.
-            output_json: If True, request JSON output format.
-
-        Returns:
-            The response text from Claude.
-        """
+        """Send a prompt to Claude via CLI and return the response text."""
         cmd = [
-            "claude",
+            self._claude_path,
             "--print",
             "--model", model or self.model,
             "--no-session-persistence",
@@ -59,46 +85,50 @@ class ClaudeClient:
         if output_json:
             cmd.extend(["--output-format", "json"])
 
-        # Prompt goes last
+        # Prompt as positional argument
         cmd.append(prompt)
 
-        # Unset CLAUDECODE env var to allow nested invocation
+        # Clean environment for nested invocation
         env = {**os.environ}
         env.pop("CLAUDECODE", None)
+        env.pop("CLAUDE_CODE_ENTRYPOINT", None)
 
-        logger.debug("Claude CLI call: model=%s, prompt=%d chars", model or self.model, len(prompt))
+        logger.debug(
+            "Claude CLI call: model=%s, prompt=%d chars, system=%d chars",
+            model or self.model, len(prompt), len(system_prompt),
+        )
 
+        loop = asyncio.get_running_loop()
         try:
-            proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                env=env,
+            stdout_text, stderr_text, rc = await asyncio.wait_for(
+                loop.run_in_executor(
+                    None,
+                    functools.partial(_run_claude, cmd, env),
+                ),
+                timeout=190,  # Slightly above subprocess.run's 180s
             )
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=120
+        except (asyncio.TimeoutError, subprocess.TimeoutExpired):
+            logger.error("Claude CLI timed out after 180s")
+            raise RuntimeError(
+                "Claude CLI timed out — is `claude` authenticated in your terminal?"
             )
 
-            if proc.returncode != 0:
-                err_msg = stderr.decode("utf-8", errors="replace").strip()
-                logger.error("Claude CLI failed (rc=%d): %s", proc.returncode, err_msg)
-                raise RuntimeError(f"Claude CLI error: {err_msg}")
+        if stderr_text:
+            for line in stderr_text.splitlines():
+                logger.debug("Claude CLI stderr: %s", line)
 
-            result = stdout.decode("utf-8", errors="replace").strip()
+        if rc != 0:
+            logger.error("Claude CLI failed (rc=%d): %s", rc, stderr_text)
+            raise RuntimeError(f"Claude CLI error (rc={rc}): {stderr_text}")
 
-            if output_json:
-                # Parse the JSON output to extract the result text
-                try:
-                    data = json.loads(result)
-                    return data.get("result", result)
-                except json.JSONDecodeError:
-                    return result
+        if output_json:
+            try:
+                data = json.loads(stdout_text)
+                return data.get("result", stdout_text)
+            except json.JSONDecodeError:
+                return stdout_text
 
-            return result
-
-        except asyncio.TimeoutError:
-            logger.error("Claude CLI timed out after 120s")
-            raise RuntimeError("Claude CLI timed out")
+        return stdout_text
 
     async def judge(
         self,

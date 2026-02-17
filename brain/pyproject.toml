@@ -13,3 +13,13 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
 ]
+voice = [
+    "sounddevice>=0.5.0",
+    "numpy>=1.26.0",
+    "faster-whisper>=1.0.0",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: tests that call Claude CLI (slow, require Max plan)",
+]

@@ -43,13 +43,24 @@ Confirm:
 - Mobile gist updated
 - File paths for local and mobile viewing
 
-### Step 3: Analyze Q1 Tasks
+### Step 3: Check for Urgent/Overdue Tasks
+Run the nudge command to check for overdue and urgent tasks:
+```bash
+python3 /Users/touttram/CODE/AAGLOBAL/.claude/reminders/plugins/cli.py nudge
+```
+
+This will show:
+- Overdue tasks (past due date)
+- Due today tasks
+- Due soon tasks (within 3 days)
+
+### Step 4: Analyze Q1 Tasks
 Read the Q1 tasks from the generated dashboard data and display:
 - **Total Q1 tasks** (urgent & important)
 - **Top 3 Q1 tasks** with due dates
 - **Overdue tasks** highlighted in red
 
-### Step 4: Daily Summary
+### Step 5: Daily Summary
 Provide a concise summary:
 
 ```
@@ -71,9 +82,10 @@ Current workload:
 💻 Local: open .claude/dashboards/eisenhower-latest.html
 ```
 
-### Step 5: Optional Actions
+### Step 6: Optional Actions
 Ask Troy if he wants to:
-- [ ] Start working on a specific Q1 task
+- [ ] Start working on a specific Q1 task (use `reminders progress --q1`)
+- [ ] Enrich a vague task (use `reminders enrich <id>`)
 - [ ] Move any Q3/Q4 tasks to backlog
 - [ ] Archive completed tasks
 - [ ] Done for now
