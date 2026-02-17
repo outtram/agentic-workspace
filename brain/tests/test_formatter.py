@@ -4,10 +4,17 @@ import sys
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
 from brain.personality.formatter import (
+    format_for_terminal,
+    format_for_voice,
     format_for_whatsapp,
     format_outbound,
     prefix_name,
     strip_internal_tags,
+    BOLD,
+    RESET,
+    CYAN,
+    GREEN,
+    DIM,
 )
 
 
@@ -76,8 +83,76 @@ class TestPrefixName:
         assert prefix_name("") == ""
 
 
+class TestFormatForTerminal:
+    def test_bold_to_ansi(self):
+        result = format_for_terminal("**hello**")
+        assert BOLD in result
+        assert RESET in result
+        assert "hello" in result
+        assert "**" not in result
+
+    def test_headers_to_bold_cyan(self):
+        result = format_for_terminal("## My Header")
+        assert BOLD in result
+        assert CYAN in result
+        assert "My Header" in result
+        assert "##" not in result
+
+    def test_bullets_get_colour(self):
+        result = format_for_terminal("- Item A\n- Item B")
+        assert GREEN in result
+        assert "Item A" in result
+
+    def test_empty_string(self):
+        assert format_for_terminal("") == ""
+
+    def test_plain_text_unchanged(self):
+        result = format_for_terminal("just some text")
+        assert "just some text" in result
+
+    def test_links_formatted(self):
+        result = format_for_terminal("[Click](https://example.com)")
+        assert "Click" in result
+        assert "https://example.com" in result
+        # Markdown link syntax should be gone (but ANSI codes contain [)
+        assert "](https" not in result
+
+
+class TestFormatForVoice:
+    def test_strips_bold(self):
+        assert "**" not in format_for_voice("**hello** mate")
+        assert "hello" in format_for_voice("**hello** mate")
+
+    def test_strips_headers(self):
+        result = format_for_voice("## Header\nSome text")
+        assert "##" not in result
+        assert "Header" in result
+
+    def test_strips_bullets(self):
+        result = format_for_voice("- First\n- Second")
+        assert "- " not in result
+        assert "First" in result
+
+    def test_strips_code_blocks(self):
+        result = format_for_voice("```python\nprint('hi')\n```")
+        assert "```" not in result
+
+    def test_strips_inline_code(self):
+        result = format_for_voice("Use `pip install`")
+        assert "`" not in result
+        assert "pip install" in result
+
+    def test_strips_links(self):
+        result = format_for_voice("[Click](https://example.com)")
+        assert "Click" in result
+        assert "https" not in result
+
+    def test_empty_string(self):
+        assert format_for_voice("") == ""
+
+
 class TestFormatOutbound:
-    def test_full_pipeline(self):
+    def test_full_pipeline_whatsapp(self):
         text = "<internal>reasoning</internal>**Hey** Troy! Check [this](https://x.com)"
         result = format_outbound(text)
         assert "<internal>" not in result
@@ -85,6 +160,25 @@ class TestFormatOutbound:
         assert "*Hey*" in result
         assert "this: https://x.com" in result
 
+    def test_full_pipeline_cli(self):
+        text = "**Hey** Troy!"
+        result = format_outbound(text, channel="cli")
+        assert BOLD in result
+        assert "Hey" in result
+
+    def test_full_pipeline_voice(self):
+        text = "**Hey** Troy! Check [this](https://x.com)"
+        result = format_outbound(text, channel="voice")
+        assert "**" not in result
+        assert "https" not in result
+        assert "Hey" in result
+
     def test_group_message(self):
         result = format_outbound("Hello mate", in_group=True)
         assert result.startswith("OutBot: ")
+
+    def test_default_channel_is_whatsapp(self):
+        """Default channel should be whatsapp for backward compat."""
+        result = format_outbound("**bold**")
+        assert "*bold*" in result
+        assert BOLD not in result

@@ -28,7 +28,7 @@ class PersonalityLoader:
 
     def load_personality(self) -> str:
         """Load all personality files within token budget."""
-        files = ["SOUL.md", "USER.md", "AGENTS.md"]
+        files = ["SOUL.md", "USER.md", "LEARNED.md", "AGENTS.md"]
         sections: list[str] = []
         total_chars = 0
 

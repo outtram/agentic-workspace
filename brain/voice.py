@@ -154,7 +154,7 @@ def transcribe(audio: np.ndarray) -> str | None:
 async def main():
     loader = PersonalityLoader(".claude/memory")
     personality = loader.load_personality()
-    client = ClaudeClient(model="sonnet")
+    client = ClaudeClient()  # Uses OUTBOT_CHAT_MODEL env var (default: opus)
 
     system_prompt = (
         f"{personality}\n\n"

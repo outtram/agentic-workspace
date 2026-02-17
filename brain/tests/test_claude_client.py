@@ -20,8 +20,9 @@ class TestClaudeClient:
         assert client.model == "haiku"
 
     def test_model_constants(self):
-        assert CHAT_MODEL == "sonnet"
-        assert JUDGE_MODEL == "haiku"
+        # Both configurable via env vars, defaults: opus (chat), sonnet (judge)
+        assert CHAT_MODEL in ("opus", "sonnet", "haiku")
+        assert JUDGE_MODEL in ("opus", "sonnet", "haiku")
 
 
 class TestClaudeClientLive:

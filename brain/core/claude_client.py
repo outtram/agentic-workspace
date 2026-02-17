@@ -13,13 +13,19 @@ import logging
 import os
 import shutil
 import subprocess
+import tempfile
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Default model for chat responses
-CHAT_MODEL = "sonnet"
-# Cheaper/faster model for importance judging
-JUDGE_MODEL = "haiku"
+# Default model for chat responses — override with OUTBOT_CHAT_MODEL env var
+# Options: "opus" (smartest), "sonnet" (balanced), "haiku" (fastest/cheapest)
+CHAT_MODEL = os.environ.get("OUTBOT_CHAT_MODEL", "opus")
+# Model for background tasks (memory, judging, summaries) — override with OUTBOT_JUDGE_MODEL
+JUDGE_MODEL = os.environ.get("OUTBOT_JUDGE_MODEL", "sonnet")
+
+# Cached path to combined CA certs (for corporate proxies)
+_ca_certs_path: str | None = None
 
 
 def _find_claude() -> str:
@@ -35,6 +41,48 @@ def _find_claude() -> str:
         if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
             return candidate
     return "claude"  # Fall back, let subprocess raise the error
+
+
+def _get_ca_certs() -> str:
+    """Get path to CA cert bundle that includes macOS system + corporate certs.
+
+    The claude CLI (Node.js) doesn't trust corporate proxy CAs by default.
+    This exports them from the macOS keychain and combines with the system roots.
+    """
+    global _ca_certs_path
+    if _ca_certs_path and os.path.exists(_ca_certs_path):
+        return _ca_certs_path
+
+    combined = Path(tempfile.gettempdir()) / "outbot_node_certs.pem"
+    if combined.exists() and combined.stat().st_size > 1000:
+        _ca_certs_path = str(combined)
+        return _ca_certs_path
+
+    logger.debug("Building CA cert bundle for Node.js...")
+    certs = []
+    for keychain in [
+        "/System/Library/Keychains/SystemRootCertificates.keychain",
+        "/Library/Keychains/System.keychain",
+    ]:
+        try:
+            result = subprocess.run(
+                ["security", "find-certificate", "-a", "-p", keychain],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                certs.append(result.stdout)
+        except Exception:
+            pass
+
+    if certs:
+        combined.write_text("\n".join(certs))
+        _ca_certs_path = str(combined)
+        logger.debug("CA cert bundle: %s (%d bytes)", _ca_certs_path, combined.stat().st_size)
+    else:
+        logger.warning("Could not export macOS certificates")
+        _ca_certs_path = ""
+
+    return _ca_certs_path
 
 
 def _run_claude(cmd: list[str], env: dict) -> tuple[str, str, int]:
@@ -60,7 +108,12 @@ class ClaudeClient:
     def __init__(self, model: str = CHAT_MODEL) -> None:
         self.model = model
         self._claude_path = _find_claude()
+        self._usage_tracker = None
         logger.debug("Claude CLI path: %s", self._claude_path)
+
+    def set_usage_tracker(self, tracker):
+        """Attach a UsageTracker to record token consumption."""
+        self._usage_tracker = tracker
 
     async def ask(
         self,
@@ -77,13 +130,11 @@ class ClaudeClient:
             "--model", model or self.model,
             "--no-session-persistence",
             "--dangerously-skip-permissions",
+            "--output-format", "json",
         ]
 
         if system_prompt:
             cmd.extend(["--system-prompt", system_prompt])
-
-        if output_json:
-            cmd.extend(["--output-format", "json"])
 
         # Prompt as positional argument
         cmd.append(prompt)
@@ -92,6 +143,12 @@ class ClaudeClient:
         env = {**os.environ}
         env.pop("CLAUDECODE", None)
         env.pop("CLAUDE_CODE_ENTRYPOINT", None)
+
+        # Fix corporate proxy SSL: tell Node.js to trust macOS system certs
+        if "NODE_EXTRA_CA_CERTS" not in env:
+            ca_path = _get_ca_certs()
+            if ca_path:
+                env["NODE_EXTRA_CA_CERTS"] = ca_path
 
         logger.debug(
             "Claude CLI call: model=%s, prompt=%d chars, system=%d chars",
@@ -121,14 +178,21 @@ class ClaudeClient:
             logger.error("Claude CLI failed (rc=%d): %s", rc, stderr_text)
             raise RuntimeError(f"Claude CLI error (rc={rc}): {stderr_text}")
 
-        if output_json:
-            try:
-                data = json.loads(stdout_text)
-                return data.get("result", stdout_text)
-            except json.JSONDecodeError:
-                return stdout_text
+        # Always parse JSON to extract result + usage
+        try:
+            data = json.loads(stdout_text)
+            result_text = data.get("result", stdout_text)
 
-        return stdout_text
+            # Record usage if tracker attached
+            if self._usage_tracker and "usage" in data:
+                cost = data.get("total_cost_usd", 0.0)
+                self._usage_tracker.record(data["usage"], cost)
+
+            return result_text
+        except json.JSONDecodeError:
+            # Fallback: return raw text if JSON parsing fails
+            logger.warning("Failed to parse JSON output, returning raw text")
+            return stdout_text
 
     async def judge(
         self,

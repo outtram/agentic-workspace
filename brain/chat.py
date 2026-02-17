@@ -14,13 +14,24 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from brain.core.claude_client import ClaudeClient
+from brain.core.claude_client import ClaudeClient, CHAT_MODEL
 from brain.core.config import Config
+from brain.core.usage import UsageTracker
 from brain.core.db import Database
 from brain.core.events import EventBus
 from brain.core.models import Message
+from brain.memory.recall import is_recall_trigger, search_memory, format_recall_context
+from brain.memory.reflection import reflect_on_session
+from brain.memory.remember import (
+    is_remember_trigger,
+    is_forget_trigger,
+    extract_memory,
+    write_memory,
+    forget_memory,
+)
 from brain.personality.formatter import format_outbound
 from brain.personality.loader import PersonalityLoader
+from brain.session.archiver import SessionArchiver
 from brain.session.context import format_catchup_summary
 from brain.session.manager import SessionManager
 
@@ -38,7 +49,10 @@ class OutBotCLI:
         self.sessions = SessionManager(self.db, self.event_bus)
         self.personality_loader = PersonalityLoader(self.config.memory_dir)
         self.claude = ClaudeClient()
+        self.usage = UsageTracker()
+        self.claude.set_usage_tracker(self.usage)
         self.voice = voice
+        self._message_count = 0
 
         # Voice components (lazy loaded)
         self._voice_record = None
@@ -92,11 +106,33 @@ class OutBotCLI:
         """Send a message to OutBot and get a response."""
         # Store user message
         self._store_message(text, sender="troy", is_from_me=False)
+        self._message_count += 1
+
+        # Handle memory triggers before calling Claude
+        memory_note = ""
+        if is_forget_trigger(text):
+            removed = await forget_memory(text, self.config.memory_dir, self.claude)
+            if removed:
+                self.personality_loader.clear_cache()
+                memory_note = "[Memory removed]"
+            else:
+                memory_note = "[No matching memory found]"
+        elif is_remember_trigger(text):
+            entry = await extract_memory(text, self.claude)
+            summary = write_memory(entry, self.config.memory_dir)
+            self.personality_loader.clear_cache()
+            memory_note = f'[Memory saved: "{summary}"]'
+
+        # Search past memories if message references history
+        recall_context = ""
+        if is_recall_trigger(text):
+            results = search_memory(text, self.config.memory_dir)
+            recall_context = format_recall_context(results)
 
         # Get conversation context
         context = self._get_context()
 
-        # Load personality
+        # Load personality (picks up new memories after cache clear)
         personality = self.personality_loader.load_personality()
 
         # Build system prompt
@@ -118,17 +154,27 @@ class OutBotCLI:
         else:
             prompt = text
 
+        # Add recall context from past conversations
+        if recall_context:
+            prompt += f"\n\n{recall_context}"
+
+        # Add memory note so Claude can acknowledge naturally
+        if memory_note:
+            prompt += f"\n\n{memory_note}"
+
         # Call Claude
         reply = await self.claude.ask(
             prompt=prompt,
             system_prompt=system_prompt,
         )
 
-        # Format output (strip internal tags, clean formatting)
-        reply = format_outbound(reply)
+        # Format output for the active channel
+        channel = "voice" if self.voice else "cli"
+        reply = format_outbound(reply, channel=channel)
 
         # Store OutBot's reply
         self._store_message(reply, sender="outbot", is_from_me=True)
+        self._message_count += 1
 
         return reply
 
@@ -162,6 +208,7 @@ class OutBotCLI:
             print("  ║  ENTER = record, ENTER = stop     ║")
         else:
             print("  ║     OutBot Terminal Chat           ║")
+        print(f"  ║  Model: {CHAT_MODEL:<27}║")
         print("  ║  Type 'quit' to exit              ║")
         print("  ╚═══════════════════════════════════╝\n")
 
@@ -188,13 +235,43 @@ class OutBotCLI:
 
             try:
                 reply = await self.send(text)
-                print(f"\r  OutBot > {reply}                 \n")
+                print(f"\r  OutBot > {reply}                 ")
+                print(f"  [{self.usage.format_status()}]\n")
 
                 if self.voice and self._voice_speak:
                     self._voice_speak(reply)
 
             except Exception as e:
                 print(f"\r  [Error: {e}]                   \n")
+
+        # Archive session if enough messages
+        if self._message_count >= 3:
+            try:
+                messages = self.db.get_messages_since(CLI_JID, "", limit=200)
+                summary = await self.claude.judge(
+                    prompt="\n".join(m.content for m in messages[-10:]),
+                    system_prompt=(
+                        "Summarise this conversation in 5-8 words for a filename. "
+                        "Reply with ONLY the summary, no quotes or punctuation."
+                    ),
+                )
+                archiver = SessionArchiver()
+                path = archiver.archive(CLI_JID, messages, summary.strip())
+                print(f"  Session archived ({path.name})")
+
+                # Reflect on the session — observe patterns
+                observations = await reflect_on_session(
+                    messages, self.config.memory_dir, self.claude,
+                )
+                if observations:
+                    print(f"  Learned {len(observations)} new pattern(s)")
+            except Exception as e:
+                print(f"  [Archive failed: {e}]")
+
+        # Show usage summary
+        if self.usage.session_calls > 0:
+            print()
+            print(self.usage.format_session_summary())
 
         print("\n  Cheers, mate!\n")
         self.db.close()
@@ -223,10 +300,14 @@ async def _run_diagnostics():
     print(f" {r.stdout.strip()}")
 
     # Step 3: Raw shell test (no pipes — output goes straight to terminal)
+    # Set NODE_EXTRA_CA_CERTS for corporate proxy SSL
+    from brain.core.claude_client import _get_ca_certs
+    ca_path = _get_ca_certs()
+    ca_env = f"NODE_EXTRA_CA_CERTS='{ca_path}' " if ca_path else ""
     print("  3. Raw shell test (output appears below):")
-    print("     Running: claude -p --model haiku 'say PING'")
+    print(f"     Running: {ca_env}claude -p --model haiku 'say PING'")
     t0 = time.time()
-    rc = os.system(f"'{path}' -p --model haiku 'say PING' 2>/dev/null")
+    rc = os.system(f"{ca_env}'{path}' -p --model haiku 'say PING' 2>/dev/null")
     elapsed = time.time() - t0
     print(f"     rc={rc}, {elapsed:.1f}s")
     if rc != 0:
@@ -238,11 +319,15 @@ async def _run_diagnostics():
     # Step 4: subprocess.run with pipe capture
     print("  4. Pipe capture test...", end="", flush=True)
     t0 = time.time()
+    step4_env = {**os.environ}
+    if ca_path:
+        step4_env["NODE_EXTRA_CA_CERTS"] = ca_path
     r = subprocess.run(
         [path, "-p", "--model", "haiku", "Reply with: PONG OK"],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=step4_env,
         timeout=60,
     )
     elapsed = time.time() - t0
