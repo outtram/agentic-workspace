@@ -40,9 +40,12 @@ from brain.session.manager import SessionManager
 CLI_JID = "cli@local"
 MAX_CONTEXT_MESSAGES = 20
 
-# Email command patterns
-_EMAIL_SEND_PREFIXES = ("send email", "email ", "send an email", "email to ")
-_EMAIL_CHECK_WORDS = ("check email", "check my email", "any emails", "new emails", "inbox")
+# Email command patterns — matched with "in" not "startswith" so natural phrasing works
+_EMAIL_SEND_WORDS = ("send email", "send an email", "send me an email", "send a test email",
+                     "email to ", "send him an email", "send her an email", "send them an email",
+                     "send me a test email", "send a email")
+_EMAIL_CHECK_WORDS = ("check email", "check my email", "any emails", "new emails", "inbox",
+                      "check my inbox", "any new mail", "check mail")
 
 
 class OutBotCLI:
@@ -123,7 +126,7 @@ class OutBotCLI:
     def _is_email_send(self, text: str) -> bool:
         """Check if the user wants to send an email."""
         lower = text.lower().strip()
-        return any(lower.startswith(p) for p in _EMAIL_SEND_PREFIXES)
+        return any(w in lower for w in _EMAIL_SEND_WORDS)
 
     async def _handle_email_check(self) -> str:
         """Check inbox and return a summary."""
@@ -239,10 +242,20 @@ class OutBotCLI:
         personality = self.personality_loader.load_personality()
 
         # Build system prompt
+        email_status = ""
+        if self._outbox:
+            email_status = (
+                f"\nYou CAN send and check email via {self._outbox.from_address}. "
+                "If Troy asks you to send an email, tell him to phrase it as "
+                "'send email to X about Y' or 'send me a test email'. "
+                "If he asks to check email, tell him to say 'check email' or 'inbox'."
+            )
+
         system_prompt = (
             f"{personality}\n\n"
             "You are chatting with Troy in a terminal. "
             "Follow your personality rules exactly. Keep responses concise."
+            f"{email_status}"
         )
         if self.voice:
             system_prompt += (
