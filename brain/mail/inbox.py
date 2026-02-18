@@ -81,14 +81,14 @@ class Inbox:
             app_password=config.email_app_password,
         )
 
-    async def check(self, folder: str = "INBOX", limit: int = 5) -> list[InboundEmail]:
-        """Check for unread emails. Returns newest first, up to limit."""
+    async def check(self, folder: str = "INBOX", limit: int = 10, unread_only: bool = True) -> list[InboundEmail]:
+        """Check for emails. Returns newest first, up to limit."""
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
-            None, self._imap_fetch, folder, limit
+            None, self._imap_fetch, folder, limit, unread_only
         )
 
-    def _imap_fetch(self, folder: str, limit: int) -> list[InboundEmail]:
+    def _imap_fetch(self, folder: str, limit: int, unread_only: bool = True) -> list[InboundEmail]:
         """Blocking IMAP fetch — called via run_in_executor."""
         results: list[InboundEmail] = []
 
@@ -98,8 +98,9 @@ class Inbox:
             conn.login(self._address, self._app_password)
             conn.select(folder, readonly=True)
 
-            # Search for unseen messages
-            status, data = conn.search(None, "UNSEEN")
+            # Search for messages
+            criteria = "UNSEEN" if unread_only else "ALL"
+            status, data = conn.search(None, criteria)
             if status != "OK" or not data[0]:
                 conn.close()
                 conn.logout()

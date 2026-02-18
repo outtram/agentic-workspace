@@ -129,32 +129,36 @@ class OutBotCLI:
         lower = text.lower().strip()
         return any(w in lower for w in _EMAIL_SEND_WORDS)
 
-    async def _handle_email_check(self) -> str:
-        """Check inbox and return a summary."""
+    async def _fetch_emails(self, limit: int = 10) -> str:
+        """Fetch inbox and format as context for Claude."""
         if not self._inbox:
-            return "Email not configured. Set OUTBOT_EMAIL_ADDRESS and OUTBOT_EMAIL_APP_PASSWORD in brain/.env"
+            return "[Email not configured — set credentials in brain/.env]"
 
         try:
-            emails = await self._inbox.check(limit=5)
+            emails = await self._inbox.check(limit=limit)
         except Exception as e:
             hint = ""
             if "EOF" in str(e) or "AUTHENTICATIONFAILED" in str(e):
-                hint = "\nHint: Enable IMAP in Gmail Settings > Forwarding and POP/IMAP"
-            return f"Couldn't check email: {e}{hint}"
+                hint = " (hint: enable IMAP in Gmail Settings)"
+            return f"[Email check failed: {e}{hint}]"
 
         if not emails:
-            return "No new emails."
+            return "[No unread emails in inbox]"
 
-        lines = [f"{len(emails)} unread email(s):"]
-        for e in emails:
+        lines = [f"[{len(emails)} unread email(s) fetched from inbox:]"]
+        for i, e in enumerate(emails, 1):
             name = e.sender_name or e.sender
-            lines.append(f"  - From: {name} | Subject: {e.subject}")
+            preview = e.body[:200].replace("\n", " ") if e.body else "(no body)"
+            lines.append(f"  {i}. From: {name} <{e.sender}>")
+            lines.append(f"     Subject: {e.subject}")
+            lines.append(f"     Date: {e.date}")
+            lines.append(f"     Preview: {preview}")
         return "\n".join(lines)
 
-    async def _handle_email_send(self, text: str) -> str:
-        """Use Claude to extract email details and send."""
+    async def _do_email_send(self, text: str) -> str:
+        """Extract email details via Claude and send. Returns status note."""
         if not self._outbox:
-            return "Email not configured. Set OUTBOT_EMAIL_ADDRESS and OUTBOT_EMAIL_APP_PASSWORD in brain/.env"
+            return "[Email not configured — set credentials in brain/.env]"
 
         # Ask Claude to extract email fields from the user's message
         extraction = await self.claude.judge(
@@ -186,18 +190,18 @@ class OutBotCLI:
         if to_addr.lower() == "default" or not to_addr:
             to_addr = self.config.email_default_to
             if not to_addr:
-                return "No recipient specified and OUTBOT_EMAIL_DEFAULT_TO not set."
+                return "[No recipient specified and OUTBOT_EMAIL_DEFAULT_TO not set]"
 
         if not subject:
             subject = "(no subject)"
         if not body:
-            body = text  # Fall back to the full user message
+            body = text
 
         try:
-            msg_id = await self._outbox.send(to=to_addr, subject=subject, body=body)
-            return f"Email sent to {to_addr}: \"{subject}\""
+            await self._outbox.send(to=to_addr, subject=subject, body=body)
+            return f"[Email SENT to {to_addr} — subject: \"{subject}\"]"
         except Exception as e:
-            return f"Failed to send email: {e}"
+            return f"[Email send FAILED: {e}]"
 
     async def send(self, text: str) -> str:
         """Send a message to OutBot and get a response."""
@@ -205,18 +209,12 @@ class OutBotCLI:
         self._store_message(text, sender="troy", is_from_me=False)
         self._message_count += 1
 
-        # Handle email commands directly (before Claude)
+        # Handle email — fetch/send data, then pass through Claude for natural response
+        email_context = ""
         if self._is_email_check(text):
-            reply = await self._handle_email_check()
-            self._store_message(reply, sender="outbot", is_from_me=True)
-            self._message_count += 1
-            return reply
-
-        if self._is_email_send(text):
-            reply = await self._handle_email_send(text)
-            self._store_message(reply, sender="outbot", is_from_me=True)
-            self._message_count += 1
-            return reply
+            email_context = await self._fetch_emails(limit=10)
+        elif self._is_email_send(text):
+            email_context = await self._do_email_send(text)
 
         # Handle memory triggers before calling Claude
         memory_note = ""
@@ -277,6 +275,10 @@ class OutBotCLI:
         # Add recall context from past conversations
         if recall_context:
             prompt += f"\n\n{recall_context}"
+
+        # Add email context (inbox results or send confirmation)
+        if email_context:
+            prompt += f"\n\n{email_context}"
 
         # Add memory note so Claude can acknowledge naturally
         if memory_note:
