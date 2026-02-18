@@ -27,16 +27,21 @@ GMAIL_IMAP_PORT = 993
 
 
 def _make_ssl_context() -> ssl.SSLContext:
-    """Build an SSL context that trusts macOS system + corporate proxy certs."""
-    ctx = ssl.create_default_context()
-    # Load macOS system root certs (includes corporate proxy CAs)
-    try:
-        import certifi
-        ctx.load_verify_locations(certifi.where())
-    except ImportError:
-        pass
+    """Build an SSL context that trusts macOS system + corporate proxy certs.
 
-    # Also try the combined CA bundle we build for the Claude CLI
+    Corporate proxies often have CA certs with non-critical Basic Constraints,
+    which Python 3.13's strict mode rejects. We disable strict X.509 checks
+    while keeping hostname + cert chain verification.
+    """
+    ctx = ssl.create_default_context()
+
+    # Disable strict X.509 mode — corporate proxy certs fail the
+    # "Basic Constraints must be critical" check in Python 3.13+
+    if hasattr(ssl, "VERIFY_X509_STRICT"):
+        ctx.verify_flags &= ~ssl.VERIFY_X509_STRICT
+
+    # Load the combined CA bundle we build for the Claude CLI
+    # (includes macOS system roots + corporate proxy CAs)
     from brain.core.claude_client import _get_ca_certs
     ca_path = _get_ca_certs()
     if ca_path:
