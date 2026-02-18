@@ -40,13 +40,10 @@ from brain.session.manager import SessionManager
 CLI_JID = "cli@local"
 MAX_CONTEXT_MESSAGES = 20
 
-# Email command patterns — matched with "in" not "startswith" so natural phrasing works
-_EMAIL_SEND_WORDS = ("send email", "send an email", "send me an email", "send a test email",
-                     "email to ", "send him an email", "send her an email", "send them an email",
-                     "send me a test email", "send a email")
-_EMAIL_CHECK_WORDS = ("check email", "check my email", "any emails", "new emails", "inbox",
-                      "check my inbox", "any new mail", "check mail", "check emails",
-                      "read email", "read my email", "read emails")
+# Email intent detection — word-pair approach for natural phrasing
+_EMAIL_NOUNS = {"email", "emails", "mail", "inbox"}
+_CHECK_VERBS = {"check", "read", "show", "get", "fetch", "see", "list", "any", "new", "latest", "recent"}
+_SEND_VERBS = {"send", "write", "compose", "draft", "fire"}
 
 
 class OutBotCLI:
@@ -119,15 +116,26 @@ class OutBotCLI:
         # Skip the very last one (it's the message we just stored)
         return format_catchup_summary(recent)
 
+    @staticmethod
+    def _words(text: str) -> set[str]:
+        """Extract lowercase words, stripping punctuation."""
+        import re
+        return set(re.findall(r"[a-z]+", text.lower()))
+
     def _is_email_check(self, text: str) -> bool:
         """Check if the user wants to check their email."""
-        lower = text.lower().strip()
-        return any(w in lower for w in _EMAIL_CHECK_WORDS)
+        words = self._words(text)
+        has_email_noun = bool(words & _EMAIL_NOUNS)
+        has_check_verb = bool(words & _CHECK_VERBS)
+        # "inbox" alone is enough, others need a verb
+        return "inbox" in words or (has_email_noun and has_check_verb)
 
     def _is_email_send(self, text: str) -> bool:
         """Check if the user wants to send an email."""
-        lower = text.lower().strip()
-        return any(w in lower for w in _EMAIL_SEND_WORDS)
+        words = self._words(text)
+        has_email_noun = bool(words & _EMAIL_NOUNS)
+        has_send_verb = bool(words & _SEND_VERBS)
+        return has_email_noun and has_send_verb
 
     async def _fetch_emails(self, limit: int = 10) -> str:
         """Fetch inbox and format as context for Claude."""
