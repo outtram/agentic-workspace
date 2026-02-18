@@ -129,8 +129,9 @@ class ClaudeClient:
             "--print",
             "--model", model or self.model,
             "--no-session-persistence",
-            "--dangerously-skip-permissions",
             "--output-format", "json",
+            "--max-turns", "1",
+            "--allowedTools", "",
         ]
 
         if system_prompt:
