@@ -16,6 +16,7 @@ import email
 import email.utils
 import imaplib
 import logging
+import ssl
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -23,6 +24,28 @@ logger = logging.getLogger(__name__)
 
 GMAIL_IMAP_HOST = "imap.gmail.com"
 GMAIL_IMAP_PORT = 993
+
+
+def _make_ssl_context() -> ssl.SSLContext:
+    """Build an SSL context that trusts macOS system + corporate proxy certs."""
+    ctx = ssl.create_default_context()
+    # Load macOS system root certs (includes corporate proxy CAs)
+    try:
+        import certifi
+        ctx.load_verify_locations(certifi.where())
+    except ImportError:
+        pass
+
+    # Also try the combined CA bundle we build for the Claude CLI
+    from brain.core.claude_client import _get_ca_certs
+    ca_path = _get_ca_certs()
+    if ca_path:
+        try:
+            ctx.load_verify_locations(ca_path)
+        except Exception:
+            pass
+
+    return ctx
 
 
 @dataclass
@@ -70,7 +93,8 @@ class Inbox:
         results: list[InboundEmail] = []
 
         try:
-            conn = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, GMAIL_IMAP_PORT)
+            ssl_ctx = _make_ssl_context()
+            conn = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, GMAIL_IMAP_PORT, ssl_context=ssl_ctx)
             conn.login(self._address, self._app_password)
             conn.select(folder, readonly=True)
 
