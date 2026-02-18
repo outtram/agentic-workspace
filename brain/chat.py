@@ -42,7 +42,7 @@ MAX_CONTEXT_MESSAGES = 20
 
 # Email intent detection — word-pair approach for natural phrasing
 _EMAIL_NOUNS = {"email", "emails", "mail", "inbox"}
-_CHECK_VERBS = {"check", "read", "show", "get", "fetch", "see", "list", "any", "new", "latest", "recent"}
+_CHECK_VERBS = {"check", "read", "show", "get", "fetch", "see", "list", "any", "new", "latest", "recent", "look", "open", "view", "pull"}
 _SEND_VERBS = {"send", "write", "compose", "draft", "fire"}
 
 
@@ -137,13 +137,17 @@ class OutBotCLI:
         has_send_verb = bool(words & _SEND_VERBS)
         return has_email_noun and has_send_verb
 
-    async def _fetch_emails(self, limit: int = 10) -> str:
-        """Fetch inbox and format as context for Claude."""
+    async def _fetch_emails(self, limit: int = 10, unread_only: bool = False) -> str:
+        """Fetch inbox and format as context for Claude.
+
+        Defaults to ALL recent emails (not just unread) so Troy can always
+        see what's in his inbox even if messages were already opened.
+        """
         if not self._inbox:
             return "[Email not configured — set credentials in brain/.env]"
 
         try:
-            emails = await self._inbox.check(limit=limit)
+            emails = await self._inbox.check(limit=limit, unread_only=unread_only)
         except Exception as e:
             hint = ""
             if "EOF" in str(e) or "AUTHENTICATIONFAILED" in str(e):
@@ -151,9 +155,11 @@ class OutBotCLI:
             return f"[Email check failed: {e}{hint}]"
 
         if not emails:
-            return "[No unread emails in inbox]"
+            label = "unread emails" if unread_only else "recent emails"
+            return f"[No {label} in inbox]"
 
-        lines = [f"[{len(emails)} unread email(s) fetched from inbox:]"]
+        label = "unread" if unread_only else "recent"
+        lines = [f"[{len(emails)} {label} email(s) fetched from inbox:]"]
         for i, e in enumerate(emails, 1):
             name = e.sender_name or e.sender
             preview = e.body[:200].replace("\n", " ") if e.body else "(no body)"
@@ -220,7 +226,10 @@ class OutBotCLI:
         # Handle email — fetch/send data, then pass through Claude for natural response
         email_context = ""
         if self._is_email_check(text):
-            email_context = await self._fetch_emails(limit=10)
+            # Only filter to unread if user specifically asks for "unread" or "new"
+            words = self._words(text)
+            unread_only = bool(words & {"unread", "new", "unseen"})
+            email_context = await self._fetch_emails(limit=10, unread_only=unread_only)
         elif self._is_email_send(text):
             email_context = await self._do_email_send(text)
 

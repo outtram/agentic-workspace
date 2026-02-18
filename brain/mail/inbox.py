@@ -17,6 +17,7 @@ import email.utils
 import imaplib
 import logging
 import ssl
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -94,12 +95,43 @@ class Inbox:
         )
 
     def _imap_fetch(self, folder: str, limit: int, unread_only: bool = True) -> list[InboundEmail]:
-        """Blocking IMAP fetch — called via run_in_executor."""
+        """Blocking IMAP fetch with retry — called via run_in_executor.
+
+        Corporate proxies and Gmail can drop IMAP connections intermittently
+        (EOF on second connect). We retry once after a brief pause.
+        """
+        last_error: Exception | None = None
+
+        for attempt in range(2):  # Try twice
+            if attempt > 0:
+                logger.info("IMAP retry (attempt %d)...", attempt + 1)
+                time.sleep(1.5)  # Brief pause before retry
+
+            try:
+                return self._imap_fetch_once(folder, limit, unread_only)
+            except (OSError, imaplib.IMAP4.error) as e:
+                last_error = e
+                err_str = str(e)
+                # Retry on connection issues (EOF, reset, timeout)
+                if any(k in err_str for k in ("EOF", "reset", "timed out", "Broken pipe")):
+                    logger.warning("IMAP connection failed (attempt %d): %s", attempt + 1, e)
+                    continue
+                # Non-retryable IMAP error (auth, etc.)
+                raise RuntimeError(f"Gmail IMAP error: {e}") from e
+            except Exception as e:
+                logger.error("Inbox check failed: %s", e)
+                raise
+
+        # Both attempts failed
+        raise RuntimeError(f"Gmail IMAP failed after 2 attempts: {last_error}") from last_error
+
+    def _imap_fetch_once(self, folder: str, limit: int, unread_only: bool) -> list[InboundEmail]:
+        """Single IMAP fetch attempt."""
         results: list[InboundEmail] = []
 
+        ssl_ctx = _make_ssl_context()
+        conn = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, GMAIL_IMAP_PORT, ssl_context=ssl_ctx)
         try:
-            ssl_ctx = _make_ssl_context()
-            conn = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, GMAIL_IMAP_PORT, ssl_context=ssl_ctx)
             conn.login(self._address, self._app_password)
             conn.select(folder, readonly=True)
 
@@ -154,12 +186,12 @@ class Inbox:
             conn.close()
             conn.logout()
             self._last_check = datetime.now(timezone.utc)
-
-        except imaplib.IMAP4.error as e:
-            logger.error("IMAP error: %s", e)
-            raise RuntimeError(f"Gmail IMAP error: {e}") from e
-        except Exception as e:
-            logger.error("Inbox check failed: %s", e)
+        except Exception:
+            # Clean up connection on error
+            try:
+                conn.logout()
+            except Exception:
+                pass
             raise
 
         return results

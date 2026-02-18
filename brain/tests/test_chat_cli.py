@@ -72,6 +72,80 @@ class TestOutBotCLI:
         assert "second" in context
 
 
+class TestEmailDetection:
+    """Tests for email intent detection — must handle natural phrasing."""
+
+    def test_check_email(self, cli):
+        assert cli._is_email_check("check my email")
+
+    def test_check_emails(self, cli):
+        assert cli._is_email_check("check my emails")
+
+    def test_any_new_emails(self, cli):
+        assert cli._is_email_check("any new emails?")
+
+    def test_show_inbox(self, cli):
+        assert cli._is_email_check("show me my inbox")
+
+    def test_inbox_alone(self, cli):
+        assert cli._is_email_check("inbox")
+
+    def test_latest_emails(self, cli):
+        assert cli._is_email_check("check my latest emails")
+
+    def test_look_at_emails(self, cli):
+        assert cli._is_email_check("look at my emails")
+
+    def test_read_email(self, cli):
+        assert cli._is_email_check("read my email")
+
+    def test_view_emails(self, cli):
+        assert cli._is_email_check("view emails")
+
+    def test_open_mail(self, cli):
+        assert cli._is_email_check("open my mail")
+
+    def test_look_at_external_emails(self, cli):
+        assert cli._is_email_check("look at external emails about a failure")
+
+    def test_not_email_check_generic(self, cli):
+        """Generic messages should NOT trigger email check."""
+        assert not cli._is_email_check("hello mate")
+        assert not cli._is_email_check("what's on today?")
+        assert not cli._is_email_check("remember I like coffee")
+
+    def test_not_email_check_question_about_email(self, cli):
+        """Questions about email capability shouldn't trigger a check."""
+        assert not cli._is_email_check("can you do email?")
+
+    def test_send_email(self, cli):
+        assert cli._is_email_send("send an email to troy")
+
+    def test_send_me_test_email(self, cli):
+        assert cli._is_email_send("can you send me a test email")
+
+    def test_compose_email(self, cli):
+        assert cli._is_email_send("compose an email")
+
+    def test_draft_email(self, cli):
+        assert cli._is_email_send("draft an email to the team")
+
+    def test_not_send_generic(self, cli):
+        assert not cli._is_email_send("send me a joke")
+        assert not cli._is_email_send("what should I send?")
+
+    def test_unread_only_flag(self, cli):
+        """'unread' or 'new' in text should set unread_only."""
+        words_new = cli._words("any new emails?")
+        assert bool(words_new & {"unread", "new", "unseen"})
+
+        words_all = cli._words("check my emails")
+        assert not bool(words_all & {"unread", "new", "unseen"})
+
+        words_unread = cli._words("show unread emails")
+        assert bool(words_unread & {"unread", "new", "unseen"})
+
+
 class TestOutBotCLILive:
     """Live integration tests — actually calls Claude."""
 
