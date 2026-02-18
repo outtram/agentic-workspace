@@ -250,7 +250,11 @@ class OutBotCLI:
                 f"\nYou CAN send and check email via {self._outbox.from_address}. "
                 "If Troy asks you to send an email, tell him to phrase it as "
                 "'send email to X about Y' or 'send me a test email'. "
-                "If he asks to check email, tell him to say 'check email' or 'inbox'."
+                "If he asks to check email, tell him to say 'check email' or 'inbox'.\n"
+                "IMPORTANT: Email is handled by your built-in adapter. "
+                "NEVER use browser tools, web tools, or any external tools to access email. "
+                "If email data appears in the prompt below, just read it and respond — "
+                "do NOT try to fetch, open, or browse email yourself."
             )
 
         system_prompt = (
