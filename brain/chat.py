@@ -286,6 +286,12 @@ class OutBotCLI:
                 "Keep responses SHORT (1-3 sentences). This will be spoken aloud, "
                 "so avoid bullet points, formatting, and long lists."
             )
+        else:
+            system_prompt += (
+                "\nYou DO have voice mode. Troy can run 'outbot --voice' to "
+                "start a voice conversation where he speaks and you reply aloud. "
+                "If he asks about audio/voice, tell him to restart with 'outbot --voice'."
+            )
 
         # Build prompt with conversation context
         if context:
