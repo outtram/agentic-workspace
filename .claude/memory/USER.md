@@ -26,3 +26,8 @@
 - Group related notifications together
 - Morning briefing is welcome (after 7am)
 - Quiet hours: 10pm - 7am
+
+## Observed Patterns
+- Troy repeats the exact same request multiple times without variation when he doesn't get a satisfactory result, using persistence over rephrasing. (observed 2026-02-19)
+- Troy expects issues to be diagnosed and fixed in one step, not just reported back to him for action. (observed 2026-02-19)
+- Troy's commands are extremely terse (1–5 words) with no added context, expecting the system to infer intent from prior conversation. (observed 2026-02-19)

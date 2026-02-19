@@ -4,445 +4,485 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eisenhower Matrix - {date}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-task: #f1f5f9;
+            --bg-task-hover: #e2e8f0;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --badge-bg: #e2e8f0;
+            --badge-text: #334155;
+            --code-bg: #f1f5f9;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-task: #334155;
+            --bg-task-hover: #475569;
+            --text: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border: #334155;
+            --badge-bg: #334155;
+            --badge-text: #cbd5e1;
+            --code-bg: #1e293b;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        /* Quadrant boxes */
-        .quadrant {
-            min-height: 350px;
-            border: 3px solid;
-            border-radius: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             padding: 24px;
-            background: white;
+            line-height: 1.5;
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* Dark mode quadrant backgrounds */
-        body.dark .quadrant {
-            background: #1f2937;
+        /* Header */
+        header {
+            margin-bottom: 28px;
         }
 
-        /* Quadrant border colours */
-        .q1-border { border-color: #dc2626; }
-        .q2-border { border-color: #2563eb; }
-        .q3-border { border-color: #eab308; }
-        .q4-border { border-color: #6b7280; }
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
 
-        /* Task cards */
-        .task-card {
-            margin: 12px 0;
-            padding: 16px;
-            background: #f9fafb;
-            border-left: 5px solid;
-            border-radius: 6px;
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+
+        .total-count {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            border: 2px solid transparent;
+            background: var(--bg-task);
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            background: var(--bg-task-hover);
+        }
+
+        .btn.active {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .btn-toggle {
+            margin-left: auto;
+        }
+
+        /* Grid */
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .matrix { grid-template-columns: 1fr; }
+            body { padding: 16px; }
+        }
+
+        /* Quadrant */
+        .quadrant {
+            min-height: 300px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            background: var(--bg-card);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .quadrant.q1 { border-left: 5px solid #ef4444; }
+        .quadrant.q2 { border-left: 5px solid #3b82f6; }
+        .quadrant.q3 { border-left: 5px solid #f59e0b; }
+        .quadrant.q4 { border-left: 5px solid #6b7280; }
+
+        .quadrant-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .quadrant-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        .quadrant.q1 .quadrant-title { color: #ef4444; }
+        .quadrant.q2 .quadrant-title { color: #3b82f6; }
+        .quadrant.q3 .quadrant-title { color: #f59e0b; }
+        .quadrant.q4 .quadrant-title { color: #6b7280; }
+
+        .count-badge {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .quadrant-subtitle {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-bottom: 16px;
+        }
+
+        /* Task card */
+        .task-card {
+            margin: 8px 0;
+            padding: 14px;
+            background: var(--bg-task);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 4px solid transparent;
         }
 
         .task-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateX(4px);
+            background: var(--bg-task-hover);
+            transform: translateX(2px);
         }
 
-        /* Dark mode task cards */
-        body.dark .task-card {
-            background: #374151;
-            color: #f3f4f6;
-        }
-
-        /* Task card border colours */
-        .task-card.q1-card { border-left-color: #dc2626; }
-        .task-card.q2-card { border-left-color: #2563eb; }
-        .task-card.q3-card { border-left-color: #eab308; }
+        .task-card.q1-card { border-left-color: #ef4444; }
+        .task-card.q2-card { border-left-color: #3b82f6; }
+        .task-card.q3-card { border-left-color: #f59e0b; }
         .task-card.q4-card { border-left-color: #6b7280; }
 
+        .task-card.done-card {
+            opacity: 0.5;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .task-meta {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+
+        .task-meta code {
+            background: var(--code-bg);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+        }
+
+        .overdue {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .due-today {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
         /* Badges */
+        .badges {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
         .badge {
             display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.6875rem;
             font-weight: 600;
-            margin-left: 8px;
-        }
-
-        .badge-count {
-            background: #e5e7eb;
-            color: #1f2937;
-        }
-
-        body.dark .badge-count {
-            background: #4b5563;
-            color: #f3f4f6;
         }
 
         .badge-high { background: #fecaca; color: #991b1b; }
         .badge-medium { background: #fef3c7; color: #92400e; }
-        .badge-low { background: #d1fae5; color: #065f46; }
-
+        .badge-low { background: #dcfce7; color: #166534; }
         .badge-reminder { background: #dbeafe; color: #1e40af; }
-        .badge-auto { background: #fde68a; color: #78350f; }
+        .badge-done { background: #d1fae5; color: #065f46; }
+
+        [data-theme="dark"] .badge-high { background: #7f1d1d; color: #fecaca; }
+        [data-theme="dark"] .badge-medium { background: #78350f; color: #fef3c7; }
+        [data-theme="dark"] .badge-low { background: #14532d; color: #dcfce7; }
+        [data-theme="dark"] .badge-reminder { background: #1e3a5f; color: #93c5fd; }
+        [data-theme="dark"] .badge-done { background: #064e3b; color: #a7f3d0; }
+
+        /* Details */
+        details { margin-top: 8px; }
+
+        summary {
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        summary:hover { color: #3b82f6; }
+
+        details[open] summary { margin-bottom: 6px; }
+
+        .detail-content {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .detail-content p { margin-top: 4px; }
 
         /* Empty state */
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: #9ca3af;
-        }
-
-        body.dark .empty-state {
-            color: #6b7280;
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .btn-primary {
-            background: #2563eb;
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #e5e7eb;
-            color: #1f2937;
-        }
-
-        body.dark .btn-secondary {
-            background: #4b5563;
-            color: #f3f4f6;
-        }
-
-        .btn-active {
-            border-color: #2563eb;
-        }
-
-        /* Details/Summary */
-        details {
-            margin-top: 12px;
-        }
-
-        summary {
-            font-weight: 600;
-            cursor: pointer;
-            color: #6b7280;
+            color: var(--text-muted);
             font-size: 0.875rem;
         }
 
-        summary:hover {
-            color: #2563eb;
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
         }
 
-        details[open] summary {
-            margin-bottom: 8px;
+        footer code {
+            background: var(--code-bg);
+            padding: 1px 5px;
+            border-radius: 4px;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .grid-cols-2 {
-                grid-template-columns: 1fr;
-            }
-            .quadrant {
-                min-height: 250px;
-            }
-        }
-
-        /* Print styles */
+        /* Print */
         @media print {
-            .no-print {
-                display: none !important;
-            }
-            .task-card {
-                page-break-inside: avoid;
-            }
+            .no-print { display: none !important; }
+            .task-card { break-inside: avoid; }
         }
     </style>
 </head>
-<body class="bg-gray-50 p-6 md:p-8">
+<body>
     <!-- Header -->
-    <header class="mb-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+    <header>
+        <div class="header-row">
             <div>
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
-                    📊 Eisenhower Matrix
-                </h1>
-                <p class="text-gray-600 dark:text-gray-400 mt-2">
-                    Generated: {timestamp}
-                </p>
+                <h1>Eisenhower Matrix</h1>
+                <p class="subtitle">Generated: {timestamp}</p>
             </div>
-
-            <div class="mt-4 md:mt-0">
-                <span class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Total: <span id="total-count">{total_tasks}</span> tasks
-                </span>
+            <div class="total-count">
+                <span id="total-count">{total_tasks}</span> tasks
             </div>
         </div>
 
-        <!-- Filter buttons -->
-        <div class="mt-6 flex flex-wrap gap-3 no-print">
-            <button onclick="filterAll()" class="btn btn-secondary" id="btn-all">
-                Show All
-            </button>
-            <button onclick="filterReminders()" class="btn btn-secondary" id="btn-reminders">
-                📲 Reminders Only
-            </button>
-            <button onclick="filterManual()" class="btn btn-secondary" id="btn-manual">
-                ✍️ Manual Only
-            </button>
-            <button onclick="toggleDarkMode()" class="btn btn-secondary">
-                🌓 Dark Mode
-            </button>
+        <!-- Toolbar -->
+        <div class="toolbar no-print">
+            <button onclick="setFilter('all')" class="btn active" id="btn-all">All</button>
+            <button onclick="setFilter('reminder')" class="btn" id="btn-reminders">Reminders</button>
+            <button onclick="setFilter('manual')" class="btn" id="btn-manual">Manual</button>
+            <button onclick="toggleDone()" class="btn btn-toggle" id="btn-done">Show Done</button>
+            <button onclick="toggleTheme()" class="btn btn-toggle" id="btn-theme">Dark Mode</button>
         </div>
     </header>
 
-    <!-- Eisenhower Matrix Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Matrix Grid -->
+    <div class="matrix">
         <!-- Q1: Do First -->
-        <div class="quadrant q1-border">
-            <h2 class="text-2xl font-bold text-red-600 mb-4">
-                🔥 Do First
-                <span class="badge badge-count">{q1_count}</span>
-            </h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Urgent & Important
-            </p>
+        <div class="quadrant q1">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Do First</span>
+                <span class="count-badge" id="q1-count">{q1_count}</span>
+            </div>
+            <p class="quadrant-subtitle">Urgent & Important</p>
             <div id="q1-tasks"></div>
         </div>
 
         <!-- Q2: Schedule -->
-        <div class="quadrant q2-border">
-            <h2 class="text-2xl font-bold text-blue-600 mb-4">
-                📅 Schedule
-                <span class="badge badge-count">{q2_count}</span>
-            </h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Not Urgent but Important
-            </p>
+        <div class="quadrant q2">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Schedule</span>
+                <span class="count-badge" id="q2-count">{q2_count}</span>
+            </div>
+            <p class="quadrant-subtitle">Not Urgent but Important</p>
             <div id="q2-tasks"></div>
         </div>
 
         <!-- Q3: Delegate -->
-        <div class="quadrant q3-border">
-            <h2 class="text-2xl font-bold text-yellow-600 mb-4">
-                🔀 Delegate
-                <span class="badge badge-count">{q3_count}</span>
-            </h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Urgent but Not Important
-            </p>
+        <div class="quadrant q3">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Delegate</span>
+                <span class="count-badge" id="q3-count">{q3_count}</span>
+            </div>
+            <p class="quadrant-subtitle">Urgent but Not Important</p>
             <div id="q3-tasks"></div>
         </div>
 
         <!-- Q4: Eliminate -->
-        <div class="quadrant q4-border">
-            <h2 class="text-2xl font-bold text-gray-600 mb-4">
-                🗑️ Eliminate
-                <span class="badge badge-count">{q4_count}</span>
-            </h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Not Urgent & Not Important
-            </p>
+        <div class="quadrant q4">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Eliminate</span>
+                <span class="count-badge" id="q4-count">{q4_count}</span>
+            </div>
+            <p class="quadrant-subtitle">Not Urgent & Not Important</p>
             <div id="q4-tasks"></div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="mt-12 text-center text-gray-500 text-sm no-print">
-        <p>Generated from <code>.claude/work/tasks/</code> and <code>.claude/work/bugs/</code></p>
-        <p class="mt-2">To regenerate: Ask dashboard-generator agent</p>
+    <footer class="no-print">
+        <p>Source: <code>.claude/work/tasks/</code></p>
     </footer>
 
     <script>
-        // Injected data from generator agent
-        const dashboardData = {INJECTED_JSON_DATA};
-
+        const data = {INJECTED_JSON_DATA};
         let currentFilter = 'all';
+        let showDone = false;
 
-        // Render tasks on page load
         function renderTasks() {
-            ['q1', 'q2', 'q3', 'q4'].forEach(quadrant => {
-                const container = document.getElementById(`${quadrant}-tasks`);
-                const tasks = dashboardData[quadrant] || [];
+            ['q1', 'q2', 'q3', 'q4'].forEach(q => {
+                const container = document.getElementById(`${q}-tasks`);
+                const tasks = (data[q] || []).filter(t => shouldShow(t));
 
                 if (tasks.length === 0) {
-                    container.innerHTML = '<div class="empty-state">No tasks in this quadrant</div>';
-                    return;
+                    container.innerHTML = '<div class="empty-state">No tasks</div>';
+                } else {
+                    container.innerHTML = tasks.map(t => renderCard(t, q)).join('');
                 }
 
-                container.innerHTML = tasks.map(task => {
-                    const priorityBadge = task.priority ?
-                        `<span class="badge badge-${task.priority}">${task.priority.toUpperCase()}</span>` : '';
-
-                    const reminderBadge = task.source === 'reminder' ?
-                        '<span class="badge badge-reminder">📲 Reminder</span>' : '';
-
-                    const autoBadge = task.auto_classified ?
-                        '<span class="badge badge-auto">auto</span>' : '';
-
-                    const dueDateText = task.due_date ?
-                        `📅 ${formatDate(task.due_date)}` : 'No due date';
-
-                    const description = task.description || 'No description available';
-
-                    const reminderInfo = task.source === 'reminder' && task.reminder_list ?
-                        `<p class="text-xs text-gray-500 mt-2">From list: ${task.reminder_list}</p>` : '';
-
-                    return `
-                        <div class="task-card ${quadrant}-card"
-                             data-source="${task.source}"
-                             data-id="${task.id}">
-                            <div class="flex justify-between items-start">
-                                <h3 class="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                                    ${task.title}
-                                </h3>
-                                <span class="text-sm text-gray-500 ml-2">${task.status}</span>
-                            </div>
-
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                <code>${task.id}</code> | ${dueDateText}
-                            </p>
-
-                            <div class="mt-2">
-                                ${priorityBadge}
-                                ${reminderBadge}
-                                ${autoBadge}
-                            </div>
-
-                            ${reminderInfo}
-
-                            <details class="mt-3">
-                                <summary>View details</summary>
-                                <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                                    <p><strong>Description:</strong> ${description}</p>
-                                    <p class="mt-2"><strong>File:</strong> <code>${task.file_path}</code></p>
-                                    ${task.eisenhower_urgent !== undefined ?
-                                        `<p class="mt-1"><strong>Urgent:</strong> ${task.eisenhower_urgent ? 'Yes' : 'No'}</p>` : ''}
-                                    ${task.eisenhower_important !== undefined ?
-                                        `<p class="mt-1"><strong>Important:</strong> ${task.eisenhower_important ? 'Yes' : 'No'}</p>` : ''}
-                                </div>
-                            </details>
-                        </div>
-                    `;
-                }).join('');
+                // Update count
+                document.getElementById(`${q}-count`).textContent = tasks.length;
             });
+
+            // Update total
+            const total = ['q1','q2','q3','q4'].reduce((sum, q) =>
+                sum + (data[q] || []).filter(t => shouldShow(t)).length, 0);
+            document.getElementById('total-count').textContent = total;
         }
 
-        // Format date string
+        function shouldShow(task) {
+            const isDone = task.status === 'done' || task.status === 'completed';
+            if (isDone && !showDone) return false;
+            if (currentFilter === 'reminder' && task.source !== 'reminder') return false;
+            if (currentFilter === 'manual' && task.source === 'reminder') return false;
+            return true;
+        }
+
+        function renderCard(task, quadrant) {
+            const isDone = task.status === 'done' || task.status === 'completed';
+            const doneClass = isDone ? ' done-card' : '';
+
+            const due = formatDate(task.due_date);
+            const badges = [];
+            if (task.priority) badges.push(`<span class="badge badge-${task.priority}">${task.priority}</span>`);
+            if (task.source === 'reminder') badges.push('<span class="badge badge-reminder">reminder</span>');
+            if (isDone) badges.push('<span class="badge badge-done">done</span>');
+
+            const desc = task.description || '';
+            const detailHtml = desc ? `
+                <details>
+                    <summary>details</summary>
+                    <div class="detail-content">
+                        <p>${desc}</p>
+                        <p><code>${task.file_path}</code></p>
+                    </div>
+                </details>` : '';
+
+            return `
+                <div class="task-card ${quadrant}-card${doneClass}" data-source="${task.source}" data-status="${task.status}">
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-meta">
+                        <code>${task.id}</code> &middot; ${due}
+                    </div>
+                    ${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}
+                    ${detailHtml}
+                </div>`;
+        }
+
         function formatDate(dateStr) {
             if (!dateStr) return 'No due date';
             try {
-                const date = new Date(dateStr);
+                const date = new Date(dateStr + 'T00:00:00');
                 const today = new Date();
-                const diffTime = date - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays < 0) return `${dateStr} (overdue)`;
-                if (diffDays === 0) return `${dateStr} (today!)`;
-                if (diffDays === 1) return `${dateStr} (tomorrow)`;
-                if (diffDays <= 7) return `${dateStr} (in ${diffDays} days)`;
-
+                today.setHours(0,0,0,0);
+                const diff = Math.round((date - today) / 86400000);
+                if (diff < 0) return `<span class="overdue">${dateStr} (${Math.abs(diff)}d overdue)</span>`;
+                if (diff === 0) return `<span class="due-today">${dateStr} (today)</span>`;
+                if (diff === 1) return `${dateStr} (tomorrow)`;
+                if (diff <= 7) return `${dateStr} (${diff}d)`;
                 return dateStr;
-            } catch (e) {
-                return dateStr;
-            }
+            } catch (e) { return dateStr; }
         }
 
-        // Filter: Show all tasks
-        function filterAll() {
-            currentFilter = 'all';
-            document.querySelectorAll('.task-card').forEach(card => {
-                card.style.display = 'block';
-            });
-            updateActiveButton('btn-all');
-            updateCounts();
-        }
-
-        // Filter: Show only reminders
-        function filterReminders() {
-            currentFilter = 'reminder';
-            document.querySelectorAll('.task-card').forEach(card => {
-                card.style.display = card.dataset.source === 'reminder' ? 'block' : 'none';
-            });
-            updateActiveButton('btn-reminders');
-            updateCounts();
-        }
-
-        // Filter: Show only manual tasks
-        function filterManual() {
-            currentFilter = 'manual';
-            document.querySelectorAll('.task-card').forEach(card => {
-                card.style.display = card.dataset.source === 'manual' ? 'block' : 'none';
-            });
-            updateActiveButton('btn-manual');
-            updateCounts();
-        }
-
-        // Update active button styling
-        function updateActiveButton(btnId) {
-            document.querySelectorAll('.btn').forEach(btn => {
-                btn.classList.remove('btn-active');
-            });
-            document.getElementById(btnId).classList.add('btn-active');
-        }
-
-        // Update task counts based on visible cards
-        function updateCounts() {
-            ['q1', 'q2', 'q3', 'q4'].forEach(quadrant => {
-                const container = document.getElementById(`${quadrant}-tasks`);
-                const visibleCards = container.querySelectorAll('.task-card[style*="display: block"], .task-card:not([style*="display: none"])');
-                const count = visibleCards.length;
-
-                // Update count in header badge
-                const badge = container.closest('.quadrant').querySelector('.badge-count');
-                if (badge) {
-                    badge.textContent = count;
-                }
-            });
-
-            // Update total count
-            const totalVisible = document.querySelectorAll('.task-card[style*="display: block"], .task-card:not([style*="display: none"])').length;
-            document.getElementById('total-count').textContent = totalVisible;
-        }
-
-        // Toggle dark mode
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-        }
-
-        // Initialize dark mode from localStorage
-        function initDarkMode() {
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark');
-            }
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            initDarkMode();
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.toolbar .btn:not(.btn-toggle)').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${filter === 'all' ? 'all' : filter === 'reminder' ? 'reminders' : 'manual'}`).classList.add('active');
             renderTasks();
-            updateActiveButton('btn-all');
+        }
 
-            console.log('📊 Dashboard loaded successfully');
-            console.log('Tasks by quadrant:', {
-                q1: (dashboardData.q1 || []).length,
-                q2: (dashboardData.q2 || []).length,
-                q3: (dashboardData.q3 || []).length,
-                q4: (dashboardData.q4 || []).length
-            });
+        function toggleDone() {
+            showDone = !showDone;
+            const btn = document.getElementById('btn-done');
+            btn.textContent = showDone ? 'Hide Done' : 'Show Done';
+            btn.classList.toggle('active', showDone);
+            renderTasks();
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            const btn = document.getElementById('btn-theme');
+            btn.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            btn.classList.toggle('active', !isDark);
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            // Restore theme
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.setAttribute('data-theme', 'dark');
+                document.getElementById('btn-theme').textContent = 'Light Mode';
+                document.getElementById('btn-theme').classList.add('active');
+            }
+            renderTasks();
         });
     </script>
 </body>
