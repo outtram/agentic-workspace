@@ -288,9 +288,11 @@ class OutBotCLI:
             )
         else:
             system_prompt += (
-                "\nYou DO have voice mode. Troy can run 'outbot --voice' to "
+                "\nYou DO have voice mode. Troy can run 'outbot voice' to "
                 "start a voice conversation where he speaks and you reply aloud. "
-                "If he asks about audio/voice, tell him to restart with 'outbot --voice'."
+                "Other options: 'outbot sonnet' (save credits), 'outbot test' (diagnostics), "
+                "'outbot debug' (verbose logging). "
+                "If he asks about audio/voice, tell him to restart with 'outbot voice'."
             )
 
         # Build prompt with conversation context
