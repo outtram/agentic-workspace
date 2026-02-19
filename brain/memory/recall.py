@@ -31,7 +31,7 @@ def is_recall_trigger(text: str) -> bool:
     return any(r.search(text) for r in _RECALL_RE)
 
 
-def search_memory(query: str, memory_dir: str) -> list[dict]:
+def search_memory(query: str, memory_dir: str, conversations_dir: str = "brain/store/conversations") -> list[dict]:
     """Search memory files and conversation archives for relevant content.
 
     Uses subprocess grep for simplicity — no vector search needed.
@@ -48,10 +48,10 @@ def search_memory(query: str, memory_dir: str) -> list[dict]:
         return []
 
     # Search conversation archives
-    conversations_dir = Path("brain/store/conversations")
-    if conversations_dir.exists():
+    conv_path = Path(conversations_dir)
+    if conv_path.exists():
         for kw in keywords[:3]:  # Top 3 keywords
-            results.extend(_grep_dir(conversations_dir, kw))
+            results.extend(_grep_dir(conv_path, kw))
 
     # Search memory files (USER.md, LEARNED.md, etc.)
     if memory_path.exists():

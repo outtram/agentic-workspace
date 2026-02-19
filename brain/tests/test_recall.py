@@ -60,7 +60,10 @@ class TestSearchMemory:
         user_md = tmp_path / "USER.md"
         user_md.write_text("## Preferences\n- Hates morning meetings\n- Likes dark mode\n")
 
-        results = search_memory("morning meetings", str(tmp_path))
+        # Use tmp_path for conversations too, to isolate from real data
+        conv_dir = tmp_path / "convos"
+        conv_dir.mkdir()
+        results = search_memory("morning meetings", str(tmp_path), str(conv_dir))
         assert len(results) >= 1
         assert any("morning" in r["snippet"].lower() for r in results)
 
@@ -68,7 +71,9 @@ class TestSearchMemory:
         user_md = tmp_path / "USER.md"
         user_md.write_text("## Preferences\n- Likes coffee\n")
 
-        results = search_memory("dinosaurs in space", str(tmp_path))
+        conv_dir = tmp_path / "convos"
+        conv_dir.mkdir()
+        results = search_memory("dinosaurs in space", str(tmp_path), str(conv_dir))
         assert len(results) == 0
 
     def test_searches_conversation_archives(self, tmp_path):
@@ -82,12 +87,9 @@ class TestSearchMemory:
             "**OutBot:** Let me check the CA bundle\n"
         )
 
-        # search_memory looks in brain/store/conversations/ by default
-        # For this test, search the tmp dir directly
-        results = search_memory("SSL certs", str(tmp_path))
-        # Results come from memory dir search, not conversations
-        # (conversations dir is hardcoded to brain/store/conversations/)
-        assert isinstance(results, list)
+        results = search_memory("SSL certs", str(tmp_path), str(conv_dir))
+        assert len(results) >= 1
+        assert any("SSL" in r["snippet"] for r in results)
 
 
 class TestFormatRecallContext:
