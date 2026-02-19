@@ -82,9 +82,14 @@ end tell
 
     def fetch_all_reminders(self) -> list[dict]:
         """Fetch all active (non-completed) reminders"""
+        # Use ␞ (ASCII record separator) as field delimiter and ␟ (unit separator)
+        # to replace newlines in body text — pipe + newline breaks parsing when
+        # reminder bodies contain URLs or multi-line notes.
         script = '''
 tell application "Reminders"
     set output to ""
+    set fieldSep to (ASCII character 30) -- record separator ␞
+    set recSep to (ASCII character 29) -- group separator ␝
     repeat with aList in lists
         set listName to name of aList
         repeat with aReminder in reminders of aList
@@ -93,6 +98,12 @@ tell application "Reminders"
                 set rName to name of aReminder
                 try
                     set rBody to body of aReminder
+                    -- Replace newlines in body so they don't break line parsing
+                    set {oldDelims, AppleScript's text item delimiters} to {AppleScript's text item delimiters, return}
+                    set bodyParts to text items of rBody
+                    set AppleScript's text item delimiters to "\\\\n"
+                    set rBody to bodyParts as string
+                    set AppleScript's text item delimiters to oldDelims
                 on error
                     set rBody to ""
                 end try
@@ -102,7 +113,7 @@ tell application "Reminders"
                     set rDueDate to ""
                 end try
                 set rPriority to priority of aReminder
-                set output to output & listName & "|" & rId & "|" & rName & "|" & rBody & "|" & rDueDate & "|" & rPriority & linefeed
+                set output to output & listName & fieldSep & rId & fieldSep & rName & fieldSep & rBody & fieldSep & rDueDate & fieldSep & rPriority & recSep
             end if
         end repeat
     end repeat
@@ -135,22 +146,38 @@ end tell
         return text.replace('"', '\\"')
 
     def _parse_reminders(self, output: str) -> list[dict]:
-        """Parse pipe-delimited reminder data"""
-        reminders = []
+        """Parse reminder data using ASCII control character delimiters.
 
-        for line in output.strip().split('\n'):
-            if not line:
+        Fields separated by ␞ (ASCII 30), records separated by ␝ (ASCII 29).
+        Newlines in body text are escaped as literal \\n.
+        """
+        import re
+
+        reminders = []
+        field_sep = chr(30)  # Record separator
+        record_sep = chr(29)  # Group separator
+
+        for record in output.strip().split(record_sep):
+            record = record.strip()
+            if not record:
                 continue
 
-            parts = line.split('|')
+            parts = record.split(field_sep)
             if len(parts) != 6:
                 continue
 
             list_name, rid, name, body, due_date, priority = parts
 
+            # Restore newlines in body
+            body = body.replace("\\n", "\n")
+
             # Extract hashtags from body as tags
-            import re
             tags = re.findall(r'#(\w+)', body)
+
+            try:
+                pri = int(priority)
+            except ValueError:
+                pri = 0
 
             reminders.append({
                 "id": rid,
@@ -158,7 +185,7 @@ end tell
                 "body": body,
                 "tags": tags,
                 "due_date": self._parse_date(due_date),
-                "priority": int(priority),
+                "priority": pri,
                 "list": list_name,
                 "completed": False,
                 "modified": datetime.now()
