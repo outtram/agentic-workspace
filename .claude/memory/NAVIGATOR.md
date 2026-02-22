@@ -84,6 +84,24 @@
 - **Post-import**: work-item-enricher → dashboard-generator
 - **Weekly review**: daily pipeline + meta-agent + navigator-updater + memory-writer
 
+## Documentation
+| Document | Path | Purpose |
+|---|---|---|
+| Architecture | `docs/ARCHITECTURE.md` | Full system architecture with Mermaid diagrams |
+| Project Context | `CLAUDE.md` | Root context for Claude Code and Cursor |
+| This File | `.claude/memory/NAVIGATOR.md` | Grep-optimised index |
+| Root README | `README.md` | Quick start and system overview |
+| Laptop Setup | `docs/FRESH-LAPTOP-SETUP.md` | New machine setup guide |
+| Reminders Docs | `.claude/reminders/README.md` | Reminders sync system |
+
+### Doc Freshness Check
+```bash
+# Check architecture doc currency
+head -3 docs/ARCHITECTURE.md
+# Compare against latest structural changes
+ls -lt .claude/agents/*.md brain/*.py docs/*.md | head -10
+```
+
 ## Domain Descriptions
 - **projects**: Repository details, tech stacks, deployment configs
 - **skills**: Reusable techniques Troy wants to remember

@@ -225,6 +225,27 @@ if agent.has_conflicting_rules:
 - Minimum evidence threshold: a pattern must appear 3+ times before recommending automation
 - Include effort estimates (small = <1hr, medium = 1-4hrs, large = 4hrs+)
 
+## Documentation Freshness Check
+As part of weekly review, check if key docs are stale:
+
+```bash
+# Check architecture doc
+head -3 docs/ARCHITECTURE.md
+
+# Compare against latest structural changes
+ls -lt .claude/agents/*.md | head -3
+ls -lt brain/*.py | head -3
+
+# If agents or OutBot have changed since ARCHITECTURE.md was last updated,
+# flag it: "docs/ARCHITECTURE.md needs updating — new agents/capabilities added"
+```
+
+Key docs to check:
+- `docs/ARCHITECTURE.md` — full system architecture
+- `README.md` — quick start guide
+- `CLAUDE.md` — project context
+- `.claude/memory/NAVIGATOR.md` — grep index
+
 ## Self-Improvement
 The meta agent should also review itself:
 - Are my recommendations being adopted? (check status in log)

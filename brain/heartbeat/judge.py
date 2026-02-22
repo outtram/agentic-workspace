@@ -1,5 +1,7 @@
 """Importance judge - uses Claude to decide if findings warrant notification."""
 
+from __future__ import annotations
+
 import json
 import logging
 

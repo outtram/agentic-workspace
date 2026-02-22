@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AAGLOBAL Architecture</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d28;
+    --border: #2a2d3a;
+    --text: #e0e0e6;
+    --muted: #8888a0;
+    --accent-pink: #e94560;
+    --accent-blue: #4a9eff;
+    --accent-purple: #9d6aff;
+    --accent-green: #2dd4a0;
+    --accent-orange: #ff9f43;
+    --accent-yellow: #ffd93d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    padding: 2rem;
+    min-height: 100vh;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.875rem;
+    margin-bottom: 2rem;
+  }
+
+  .diagram {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .row {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    flex: 1;
+    min-width: 280px;
+    max-width: 520px;
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .label-pink { color: var(--accent-pink); }
+  .label-blue { color: var(--accent-blue); }
+  .label-purple { color: var(--accent-purple); }
+  .label-green { color: var(--accent-green); }
+  .label-orange { color: var(--accent-orange); }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .command-block {
+    background: #12141e;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.8rem;
+    color: var(--accent-green);
+    margin-bottom: 0.75rem;
+  }
+
+  .items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .item {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    background: #12141e;
+    border: 1px solid var(--border);
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .item-pink { border-color: rgba(233,69,96,0.4); color: var(--accent-pink); }
+  .item-blue { border-color: rgba(74,158,255,0.4); color: var(--accent-blue); }
+  .item-purple { border-color: rgba(157,106,255,0.4); color: var(--accent-purple); }
+  .item-green { border-color: rgba(45,212,160,0.4); color: var(--accent-green); }
+  .item-orange { border-color: rgba(255,159,67,0.4); color: var(--accent-orange); }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+
+  .pipeline-step {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: 6px;
+    background: rgba(233,69,96,0.1);
+    border: 1px solid rgba(233,69,96,0.3);
+    color: var(--accent-pink);
+  }
+
+  .pipeline-arrow {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .connector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+  }
+
+  .connector-line {
+    width: 2px;
+    height: 24px;
+    background: var(--border);
+  }
+
+  .connector-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    background: var(--surface);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .full-width {
+    max-width: 100%;
+  }
+
+  .shared-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .shared-item {
+    background: #12141e;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem;
+    text-align: center;
+  }
+
+  .shared-item-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent-purple);
+    margin-bottom: 0.2rem;
+  }
+
+  .shared-item-desc {
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-green { background: var(--accent-green); }
+  .dot-orange { background: var(--accent-orange); }
+  .dot-red { background: var(--accent-pink); }
+  .dot-grey { background: var(--muted); }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  @media print {
+    body { background: #fff; color: #111; padding: 1rem; }
+    .section { border-color: #ccc; background: #f8f8f8; }
+    .command-block { background: #eee; color: #111; border-color: #ccc; }
+    .item, .pipeline-step, .shared-item { background: #eee; border-color: #ccc; }
+    h1, .section-title, .shared-item-title { color: #111; }
+    .section-label, .section-desc, .muted, .subtitle, .connector-label, .shared-item-desc { color: #555; }
+  }
+</style>
+</head>
+<body>
+
+<h1>AAGLOBAL — System Architecture</h1>
+<p class="subtitle">Two interfaces, one shared brain &middot; Last updated: 22 Feb 2026</p>
+
+<div class="diagram">
+
+  <!-- User Layer -->
+  <div class="row">
+    <div class="section">
+      <div class="section-label label-pink">How You Use It</div>
+      <div class="section-title">Three Entry Points</div>
+      <div class="section-desc">Each does different things. Claude Code for task management. OutBot for chat/memory/email. Cursor for coding.</div>
+      <div class="command-block">
+        <div><span style="color:var(--muted);"># Claude Code (agents + pipelines)</span></div>
+        <div>cd ~/CODE/AAGLOBAL && claude</div>
+        <div style="margin-top:0.5rem;"><span style="color:var(--muted);"># OutBot CLI (chat + memory + email)</span></div>
+        <div>python brain/chat.py</div>
+        <div style="margin-top:0.5rem;"><span style="color:var(--muted);"># OutBot Telegram (mobile + heartbeat)</span></div>
+        <div>python brain/main.py</div>
+        <div style="margin-top:0.5rem;"><span style="color:var(--muted);"># Cursor (coding + editing)</span></div>
+        <div>Open folder in Cursor IDE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="connector-line"></div>
+    <div class="connector-label">powered by Claude CLI (Max plan)</div>
+    <div class="connector-line"></div>
+  </div>
+
+  <!-- Two Systems -->
+  <div class="row">
+    <!-- Claude Code -->
+    <div class="section">
+      <div class="section-label label-pink">System 1 &mdash; Task Management</div>
+      <div class="section-title">Claude Code Agents</div>
+      <div class="section-desc">9 agents orchestrated by the Overseer. Run from terminal with <code>claude</code>. Say "do my daily review" to trigger the pipeline.</div>
+
+      <div style="margin-bottom:0.5rem;font-size:0.75rem;font-weight:600;color:var(--accent-pink);">Daily Pipeline:</div>
+      <div class="pipeline">
+        <span class="pipeline-step">Import Reminders</span>
+        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-step">Enrich Tasks</span>
+        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-step">Wrangle Overdue</span>
+        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-step">Dashboard</span>
+      </div>
+
+      <div style="margin-top:0.75rem;font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:0.4rem;">All Agents:</div>
+      <div class="items">
+        <span class="item item-pink">Overseer</span>
+        <span class="item item-pink">Reminders Importer</span>
+        <span class="item item-pink">Work Item Enricher</span>
+        <span class="item item-pink">Overdue Wrangler</span>
+        <span class="item item-pink">Dashboard Generator</span>
+        <span class="item item-pink">Work Tracker</span>
+        <span class="item item-pink">Memory Writer</span>
+        <span class="item item-pink">Navigator Updater</span>
+        <span class="item item-pink">Meta Agent</span>
+      </div>
+    </div>
+
+    <!-- OutBot -->
+    <div class="section">
+      <div class="section-label label-blue">System 2 &mdash; Conversational AI</div>
+      <div class="section-title">OutBot</div>
+      <div class="section-desc">Chat interface with personality, memory, and email. Works via CLI, voice, or messaging app. The "always reachable" layer.</div>
+
+      <div style="margin-bottom:0.4rem;font-size:0.75rem;font-weight:600;color:var(--muted);">Entry Points:</div>
+      <div class="items" style="margin-bottom:0.75rem;">
+        <span class="item item-blue">CLI Chat</span>
+        <span class="item item-blue">Voice Mode</span>
+        <span class="item item-blue">Telegram Bot</span>
+      </div>
+
+      <div style="font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:0.4rem;">Capabilities:</div>
+      <div class="items">
+        <span class="item item-green">Remember</span>
+        <span class="item item-green">Recall</span>
+        <span class="item item-green">Reflection</span>
+        <span class="item item-green">Gmail Inbox</span>
+        <span class="item item-green">Gmail Outbox</span>
+        <span class="item item-green">Personality (SOUL.md)</span>
+        <span class="item item-green">Session Continuity</span>
+        <span class="item item-green">Heartbeat (Telegram)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="connector-line"></div>
+    <div class="connector-label">both read/write the same files</div>
+    <div class="connector-line"></div>
+  </div>
+
+  <!-- Shared Layer -->
+  <div class="row">
+    <div class="section full-width" style="max-width:100%;">
+      <div class="section-label label-purple">Shared File System</div>
+      <div class="section-title">The Brain &mdash; .claude/</div>
+      <div class="section-desc">File-native memory system. Both Claude Code agents and OutBot read/write here. Changes from one are visible to the other.</div>
+
+      <div class="shared-grid">
+        <div class="shared-item">
+          <div class="shared-item-title">memory/</div>
+          <div class="shared-item-desc">SOUL.md, USER.md, NAVIGATOR.md, YAML domains</div>
+        </div>
+        <div class="shared-item">
+          <div class="shared-item-title">work/</div>
+          <div class="shared-item-desc">Tasks, bugs, PRDs (markdown + YAML frontmatter)</div>
+        </div>
+        <div class="shared-item">
+          <div class="shared-item-title">agents/</div>
+          <div class="shared-item-desc">9 agent definitions (Claude Code reads these)</div>
+        </div>
+        <div class="shared-item">
+          <div class="shared-item-title">skills/</div>
+          <div class="shared-item-desc">18 skills (pptx, TDD, design, etc.)</div>
+        </div>
+        <div class="shared-item">
+          <div class="shared-item-title">dashboards/</div>
+          <div class="shared-item-desc">Eisenhower Matrix HTML + mobile gist</div>
+        </div>
+        <div class="shared-item">
+          <div class="shared-item-title">reminders/</div>
+          <div class="shared-item-desc">macOS Reminders.app sync (Python)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="connector-line"></div>
+    <div class="connector-label">external connections</div>
+    <div class="connector-line"></div>
+  </div>
+
+  <!-- External Services -->
+  <div class="row">
+    <div class="section full-width" style="max-width:100%;">
+      <div class="section-label label-orange">External Services</div>
+      <div class="items" style="justify-content:center;">
+        <span class="item item-green">Claude CLI (Max plan)</span>
+        <span class="item item-green">macOS Reminders.app</span>
+        <span class="item item-green">Gmail (IMAP/SMTP)</span>
+        <span class="item item-green">GitHub</span>
+        <span class="item item-orange" style="opacity:0.5;">Google Calendar (planned)</span>
+        <span class="item item-green">Telegram Bot API</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="row">
+    <div class="section full-width" style="max-width:100%;">
+      <div class="section-label label-green">OpenClaw Implementation Progress</div>
+      <div class="section-title">~80% Complete</div>
+      <div class="section-desc">Based on the original implementation plan from docs/openclaw-research/IMPLEMENTATION-PLAN.md</div>
+
+      <div class="status-grid">
+        <div class="status-item"><span class="dot dot-green"></span> Memory System (file-based)</div>
+        <div class="status-item"><span class="dot dot-green"></span> Personality Injection (SOUL.md)</div>
+        <div class="status-item"><span class="dot dot-green"></span> Session Continuity</div>
+        <div class="status-item"><span class="dot dot-green"></span> Gmail Integration</div>
+        <div class="status-item"><span class="dot dot-green"></span> Voice Mode (bonus)</div>
+        <div class="status-item"><span class="dot dot-green"></span> Agent System (bonus, 9 agents)</div>
+        <div class="status-item"><span class="dot dot-green"></span> Heartbeat (Telegram)</div>
+        <div class="status-item"><span class="dot dot-green"></span> Telegram Bot Adapter</div>
+        <div class="status-item"><span class="dot dot-grey"></span> Calendar Integration (not started)</div>
+        <div class="status-item"><span class="dot dot-grey"></span> Hybrid Search (correctly deferred)</div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="dot dot-green"></span> Done</div>
+        <div class="legend-item"><span class="dot dot-orange"></span> Partial</div>
+        <div class="legend-item"><span class="dot dot-red"></span> Blocked</div>
+        <div class="legend-item"><span class="dot dot-grey"></span> Not started</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

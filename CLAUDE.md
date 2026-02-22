@@ -70,12 +70,17 @@ When Troy says any of these phrases, automatically run the daily review workflow
 - Files under 200 lines where possible
 - Test-driven development (TDD) with Superpowers
 
+## System Architecture
+For the full system architecture including diagrams, component details, and how Claude Code agents relate to OutBot, see **`docs/ARCHITECTURE.md`**.
+
 ## Tech Stack (AAGLOBAL)
 - File-native memory: YAML-based schemas
 - Work tracking: Markdown files with YAML frontmatter
-- Agents: work-tracker, memory-writer, navigator-updater
+- Agents: 9 agents (overseer, enricher, wrangler, tracker, importer, dashboard, memory-writer, navigator-updater, meta-agent)
+- Skills: 18 skills (pptx, daily-review, TDD, design, etc.)
+- OutBot: Conversational AI (CLI, voice, WhatsApp) in `brain/`
 - Hooks: Session start, file change notifications
-- Zero external dependencies
+- Zero external dependencies for core system
 
 ## Research Foundation
 Based on "Structured Context Engineering for File-Native Agentic Systems" (Damon McMillan, 2026):

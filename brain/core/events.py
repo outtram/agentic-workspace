@@ -41,7 +41,7 @@ class EventBus:
 
 @dataclass
 class MessageReceived(Event):
-    """New message received from WhatsApp."""
+    """New message received from a messaging channel (Telegram, CLI, etc.)."""
 
     chat_jid: str = ""
     message: Message | None = None
@@ -49,7 +49,7 @@ class MessageReceived(Event):
 
 @dataclass
 class MessageSent(Event):
-    """Message sent to WhatsApp."""
+    """Message sent to a messaging channel."""
 
     chat_jid: str = ""
     content: str = ""
@@ -88,7 +88,7 @@ class SessionEnded(Event):
 
 @dataclass
 class ConnectionChanged(Event):
-    """WhatsApp connection status changed."""
+    """Messaging channel connection status changed."""
 
     connected: bool = False
 

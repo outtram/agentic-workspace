@@ -8,7 +8,7 @@ from typing import Optional
 
 @dataclass
 class Message:
-    """A WhatsApp message."""
+    """A chat message (Telegram, CLI, etc.). chat_jid is the chat/channel ID."""
 
     id: str
     chat_jid: str

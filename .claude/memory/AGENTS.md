@@ -1,13 +1,13 @@
 # OutBot — Operating Instructions
 
 ## Message Handling
-1. When a WhatsApp message arrives:
+1. When a Telegram message arrives:
    - Load session context for this chat
    - Load SOUL.md personality (cached per session)
    - Format missed messages as XML catch-up
    - Generate response with personality applied
    - Strip <internal> tags
-   - Format for WhatsApp (enforce formatting rules)
+   - Format for Telegram (HTML formatting)
    - Prefix with "OutBot: " in group chats
 
 2. For long-running tasks:

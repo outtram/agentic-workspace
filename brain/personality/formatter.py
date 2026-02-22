@@ -132,13 +132,13 @@ def prefix_name(text: str, in_group: bool = False) -> str:
 
 
 def format_outbound(
-    text: str, channel: str = "whatsapp", in_group: bool = False
+    text: str, channel: str = "telegram", in_group: bool = False
 ) -> str:
     """Full outbound formatting pipeline.
 
     Args:
         text: Raw response from Claude
-        channel: One of "cli", "whatsapp", "voice"
+        channel: One of "cli", "telegram", "whatsapp", "voice"
         in_group: Whether this is a group chat (adds name prefix)
     """
     text = strip_internal_tags(text)
@@ -147,6 +147,9 @@ def format_outbound(
         text = format_for_terminal(text)
     elif channel == "voice":
         text = format_for_voice(text)
+    elif channel == "telegram":
+        from brain.telegram.formatter import format_for_telegram
+        text = format_for_telegram(text)
     else:
         text = format_for_whatsapp(text)
 

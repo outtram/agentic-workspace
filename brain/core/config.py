@@ -13,16 +13,15 @@ from dotenv import load_dotenv
 class Config:
     """OutBot settings, loaded from .env file or environment."""
 
-    socket_path: str = "/tmp/outbot.sock"
     db_path: str = "brain/store/outbot.db"
     quiet_start: int = 22  # 10pm - no proactive notifications after this
     quiet_end: int = 7     # 7am - notifications resume
     heartbeat_interval: int = 1800  # 30 minutes in seconds
     anthropic_api_key: str = ""  # Optional: only needed if using API directly
-    troy_jid: str = ""
+    telegram_token: str = ""
+    telegram_chat_id: str = ""  # Troy's Telegram chat ID for proactive notifications
     max_concurrent_tasks: int = 3
     memory_dir: str = ".claude/memory"
-    phone_number: str = ""
     email_backend: str = "console"
     email_address: str = ""
     email_app_password: str = ""
@@ -34,21 +33,19 @@ class Config:
         if env_path:
             load_dotenv(env_path)
         else:
-            # Walk up from brain/ to find .env
             brain_dir = Path(__file__).parent.parent
             load_dotenv(brain_dir / ".env")
 
         return cls(
-            socket_path=os.getenv("OUTBOT_SOCKET_PATH", "/tmp/outbot.sock"),
             db_path=os.getenv("OUTBOT_DB_PATH", "brain/store/outbot.db"),
             quiet_start=int(os.getenv("OUTBOT_QUIET_START", "22")),
             quiet_end=int(os.getenv("OUTBOT_QUIET_END", "7")),
             heartbeat_interval=int(os.getenv("OUTBOT_HEARTBEAT_INTERVAL", "1800")),
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
-            troy_jid=os.getenv("OUTBOT_TROY_JID", ""),
+            telegram_token=os.getenv("OUTBOT_TELEGRAM_TOKEN", ""),
+            telegram_chat_id=os.getenv("OUTBOT_TELEGRAM_CHAT_ID", ""),
             max_concurrent_tasks=int(os.getenv("OUTBOT_MAX_CONCURRENT_TASKS", "3")),
             memory_dir=os.getenv("OUTBOT_MEMORY_DIR", ".claude/memory"),
-            phone_number=os.getenv("OUTBOT_PHONE_NUMBER", ""),
             email_backend=os.getenv("OUTBOT_EMAIL_BACKEND", "console"),
             email_address=os.getenv("OUTBOT_EMAIL_ADDRESS", ""),
             email_app_password=os.getenv("OUTBOT_EMAIL_APP_PASSWORD", ""),

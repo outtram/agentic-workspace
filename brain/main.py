@@ -1,4 +1,7 @@
-"""OutBot entry point - python brain/main.py"""
+"""OutBot entry point — python brain/main.py
+
+Starts the Telegram bot with heartbeat scheduler.
+"""
 
 from __future__ import annotations
 
@@ -18,8 +21,6 @@ def setup_logging() -> None:
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
         datefmt="%H:%M:%S",
     )
-    # Quieten noisy libraries
-    logging.getLogger("anthropic").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
@@ -27,9 +28,17 @@ async def run() -> None:
     """Main async entry point."""
     config = Config.load()
 
+    if not config.telegram_token:
+        print("\n  Error: OUTBOT_TELEGRAM_TOKEN not set in brain/.env")
+        print("  Get a token from @BotFather on Telegram:")
+        print("    1. Open Telegram and search for @BotFather")
+        print("    2. Send /newbot and follow the prompts")
+        print("    3. Copy the token into brain/.env as OUTBOT_TELEGRAM_TOKEN=your_token")
+        print()
+        sys.exit(1)
+
     orchestrator = Orchestrator(config)
 
-    # Graceful shutdown on signals
     loop = asyncio.get_running_loop()
     shutdown_event = asyncio.Event()
 
@@ -42,12 +51,14 @@ async def run() -> None:
 
     await orchestrator.start()
 
-    print("\n  OutBot is running. Scan the QR code with WhatsApp to connect.")
+    print("\n  OutBot is running on Telegram.")
+    print("  Send a message to your bot to start chatting.")
+    if not config.telegram_chat_id:
+        print("  Tip: Send /start to your bot, then check logs for your chat ID.")
+        print("  Set OUTBOT_TELEGRAM_CHAT_ID in .env for proactive notifications.")
     print("  Press Ctrl+C to stop.\n")
 
-    # Wait for shutdown signal
     await shutdown_event.wait()
-
     await orchestrator.stop()
 
 

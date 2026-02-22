@@ -152,9 +152,17 @@ class TestFormatForVoice:
 
 
 class TestFormatOutbound:
-    def test_full_pipeline_whatsapp(self):
+    def test_full_pipeline_telegram(self):
         text = "<internal>reasoning</internal>**Hey** Troy! Check [this](https://x.com)"
         result = format_outbound(text)
+        assert "<internal>" not in result
+        assert "**" not in result
+        assert "<b>Hey</b>" in result
+        assert "https://x.com" in result
+
+    def test_full_pipeline_whatsapp(self):
+        text = "<internal>reasoning</internal>**Hey** Troy! Check [this](https://x.com)"
+        result = format_outbound(text, channel="whatsapp")
         assert "<internal>" not in result
         assert "**" not in result
         assert "*Hey*" in result
@@ -177,8 +185,8 @@ class TestFormatOutbound:
         result = format_outbound("Hello mate", in_group=True)
         assert result.startswith("OutBot: ")
 
-    def test_default_channel_is_whatsapp(self):
-        """Default channel should be whatsapp for backward compat."""
+    def test_default_channel_is_telegram(self):
+        """Default channel should be telegram."""
         result = format_outbound("**bold**")
-        assert "*bold*" in result
+        assert "<b>bold</b>" in result
         assert BOLD not in result
