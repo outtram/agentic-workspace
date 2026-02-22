@@ -56,7 +56,7 @@ OutBot is a conversational assistant. It can:
 - Run background heartbeat checks (Telegram mode)
 - Proactively nudge you via Telegram (overdue tasks, reminders, etc.)
 
-**OutBot does NOT run the Claude Code agents.** It reads the same memory files but is a separate runtime.
+OutBot can now run the **daily review workflow** natively (sync reminders, generate dashboard, check overdue) via `brain/workflows/daily_review.py`. Say "daily review" or "start my day" in CLI chat or Telegram.
 
 ### 3. Cursor IDE
 
@@ -203,6 +203,7 @@ Weekly Review:   Daily pipeline + Meta Agent + Navigator Updater + Memory Writer
 | **Reflection** | `brain/memory/reflection.py` | End-of-session pattern analysis |
 | **Inbox** | `brain/mail/inbox.py` | Gmail IMAP email checking |
 | **Outbox** | `brain/mail/outbox.py` | Gmail SMTP email sending |
+| **Daily Review** | `brain/workflows/daily_review.py` | Sync reminders, generate dashboard, check overdue — pure Python |
 | **Claude Client** | `brain/core/claude_client.py` | Calls `claude --print` (Max plan, no API key) |
 | **Telegram Adapter** | `brain/telegram/bot.py` | Telegram Bot API long-polling adapter |
 | **Telegram Formatter** | `brain/telegram/formatter.py` | Converts markdown to Telegram HTML |
@@ -297,7 +298,7 @@ Skills are specialised instructions Claude Code can follow for specific tasks:
 - OutBot **talks to you** (chat, remember, email, nudge via WhatsApp)
 - Both read and write to the same files, so changes from one are visible to the other
 
-**Future integration:** The OutBot heartbeat scheduler could trigger Claude Code agent pipelines via IPC, making the system fully autonomous. This is noted in the overseer as a future enhancement.
+**Shared workflows:** The `brain/workflows/` module provides pure Python implementations of key pipelines (daily review, etc.) that both OutBot and Claude Code agents can call. No shell execution needed — they import the reminders manager and dashboard generator directly.
 
 ---
 

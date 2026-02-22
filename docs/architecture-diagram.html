@@ -105,10 +105,15 @@
     border-radius: 8px;
     padding: 0.6rem 0.85rem;
     font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--accent-green);
     margin-bottom: 0.75rem;
+    line-height: 1.6;
   }
+
+  .cmd-comment { color: var(--muted); }
+  .cmd-shortcut { color: var(--accent-yellow); font-weight: 600; }
+  .cmd-path { color: var(--muted); font-size: 0.65rem; opacity: 0.7; }
 
   .items {
     display: flex;
@@ -147,6 +152,15 @@
     background: rgba(233,69,96,0.1);
     border: 1px solid rgba(233,69,96,0.3);
     color: var(--accent-pink);
+  }
+
+  .pipeline-step-blue {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: 6px;
+    background: rgba(74,158,255,0.1);
+    border: 1px solid rgba(74,158,255,0.3);
+    color: var(--accent-blue);
   }
 
   .pipeline-arrow {
@@ -253,7 +267,7 @@
     body { background: #fff; color: #111; padding: 1rem; }
     .section { border-color: #ccc; background: #f8f8f8; }
     .command-block { background: #eee; color: #111; border-color: #ccc; }
-    .item, .pipeline-step, .shared-item { background: #eee; border-color: #ccc; }
+    .item, .pipeline-step, .pipeline-step-blue, .shared-item { background: #eee; border-color: #ccc; }
     h1, .section-title, .shared-item-title { color: #111; }
     .section-label, .section-desc, .muted, .subtitle, .connector-label, .shared-item-desc { color: #555; }
   }
@@ -262,25 +276,34 @@
 <body>
 
 <h1>AAGLOBAL — System Architecture</h1>
-<p class="subtitle">Two interfaces, one shared brain &middot; Last updated: 22 Feb 2026</p>
+<p class="subtitle">Two interfaces, one shared brain &middot; Last updated: 23 Feb 2026</p>
 
 <div class="diagram">
 
   <!-- User Layer -->
   <div class="row">
-    <div class="section">
+    <div class="section" style="max-width:100%;">
       <div class="section-label label-pink">How You Use It</div>
-      <div class="section-title">Three Entry Points</div>
-      <div class="section-desc">Each does different things. Claude Code for task management. OutBot for chat/memory/email. Cursor for coding.</div>
+      <div class="section-title">Four Entry Points</div>
+      <div class="section-desc">Claude Code for task management + agents. OutBot for chat, memory, email, and daily review. Cursor for coding.</div>
       <div class="command-block">
-        <div><span style="color:var(--muted);"># Claude Code (agents + pipelines)</span></div>
-        <div>cd ~/CODE/AAGLOBAL && claude</div>
-        <div style="margin-top:0.5rem;"><span style="color:var(--muted);"># OutBot CLI (chat + memory + email)</span></div>
-        <div>python brain/chat.py</div>
-        <div style="margin-top:0.5rem;"><span style="color:var(--muted);"># OutBot Telegram (mobile + heartbeat)</span></div>
-        <div>python brain/main.py</div>
-        <div style="margin-top:0.5rem;"><span style="color:var(--muted);"># Cursor (coding + editing)</span></div>
-        <div>Open folder in Cursor IDE</div>
+        <div><span class="cmd-comment"># Claude Code (agents + pipelines)</span></div>
+        <div><span class="cmd-shortcut">claude</span></div>
+        <div class="cmd-path">cd ~/CODE/AAGLOBAL && claude</div>
+
+        <div style="margin-top:0.5rem;"><span class="cmd-comment"># OutBot CLI (chat + memory + email + daily review)</span></div>
+        <div><span class="cmd-shortcut">outbot</span></div>
+        <div class="cmd-path">cd ~/CODE/AAGLOBAL && python brain/chat.py</div>
+
+        <div style="margin-top:0.5rem;"><span class="cmd-comment"># OutBot Voice</span></div>
+        <div><span class="cmd-shortcut">outbot voice</span></div>
+        <div class="cmd-path">cd ~/CODE/AAGLOBAL && python brain/chat.py --voice</div>
+
+        <div style="margin-top:0.5rem;"><span class="cmd-comment"># OutBot Telegram (mobile + heartbeat)</span></div>
+        <div class="cmd-path">cd ~/CODE/AAGLOBAL && python brain/main.py</div>
+
+        <div style="margin-top:0.5rem;"><span class="cmd-comment"># Cursor (coding + editing)</span></div>
+        <div class="cmd-path">Open ~/CODE/AAGLOBAL in Cursor IDE</div>
       </div>
     </div>
   </div>
@@ -303,11 +326,11 @@
       <div style="margin-bottom:0.5rem;font-size:0.75rem;font-weight:600;color:var(--accent-pink);">Daily Pipeline:</div>
       <div class="pipeline">
         <span class="pipeline-step">Import Reminders</span>
-        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-arrow">&rarr;</span>
         <span class="pipeline-step">Enrich Tasks</span>
-        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-arrow">&rarr;</span>
         <span class="pipeline-step">Wrangle Overdue</span>
-        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-arrow">&rarr;</span>
         <span class="pipeline-step">Dashboard</span>
       </div>
 
@@ -329,9 +352,20 @@
     <div class="section">
       <div class="section-label label-blue">System 2 &mdash; Conversational AI</div>
       <div class="section-title">OutBot</div>
-      <div class="section-desc">Chat interface with personality, memory, and email. Works via CLI, voice, or messaging app. The "always reachable" layer.</div>
+      <div class="section-desc">Chat with personality, memory, email, and daily review. Works via CLI, voice, or Telegram. The "always reachable" layer.</div>
 
-      <div style="margin-bottom:0.4rem;font-size:0.75rem;font-weight:600;color:var(--muted);">Entry Points:</div>
+      <div style="margin-bottom:0.5rem;font-size:0.75rem;font-weight:600;color:var(--accent-blue);">Daily Review (shared workflow):</div>
+      <div class="pipeline">
+        <span class="pipeline-step-blue">Sync Reminders</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step-blue">Check Overdue</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step-blue">Dashboard</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step-blue">Update Gist</span>
+      </div>
+
+      <div style="margin-top:0.75rem;font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:0.4rem;">Entry Points:</div>
       <div class="items" style="margin-bottom:0.75rem;">
         <span class="item item-blue">CLI Chat</span>
         <span class="item item-blue">Voice Mode</span>
@@ -340,6 +374,7 @@
 
       <div style="font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:0.4rem;">Capabilities:</div>
       <div class="items">
+        <span class="item item-green">Daily Review</span>
         <span class="item item-green">Remember</span>
         <span class="item item-green">Recall</span>
         <span class="item item-green">Reflection</span>
@@ -355,7 +390,7 @@
   <!-- Connector -->
   <div class="connector">
     <div class="connector-line"></div>
-    <div class="connector-label">both read/write the same files</div>
+    <div class="connector-label">both read/write the same files + share workflows</div>
     <div class="connector-line"></div>
   </div>
 
@@ -391,6 +426,10 @@
           <div class="shared-item-title">reminders/</div>
           <div class="shared-item-desc">macOS Reminders.app sync (Python)</div>
         </div>
+        <div class="shared-item">
+          <div class="shared-item-title">workflows/</div>
+          <div class="shared-item-desc">brain/workflows/ &mdash; shared Python pipelines</div>
+        </div>
       </div>
     </div>
   </div>
@@ -411,8 +450,8 @@
         <span class="item item-green">macOS Reminders.app</span>
         <span class="item item-green">Gmail (IMAP/SMTP)</span>
         <span class="item item-green">GitHub</span>
-        <span class="item item-orange" style="opacity:0.5;">Google Calendar (planned)</span>
         <span class="item item-green">Telegram Bot API</span>
+        <span class="item item-orange" style="opacity:0.5;">Google Calendar (planned)</span>
       </div>
     </div>
   </div>
@@ -421,18 +460,20 @@
   <div class="row">
     <div class="section full-width" style="max-width:100%;">
       <div class="section-label label-green">OpenClaw Implementation Progress</div>
-      <div class="section-title">~80% Complete</div>
+      <div class="section-title">~85% Complete</div>
       <div class="section-desc">Based on the original implementation plan from docs/openclaw-research/IMPLEMENTATION-PLAN.md</div>
 
       <div class="status-grid">
         <div class="status-item"><span class="dot dot-green"></span> Memory System (file-based)</div>
         <div class="status-item"><span class="dot dot-green"></span> Personality Injection (SOUL.md)</div>
         <div class="status-item"><span class="dot dot-green"></span> Session Continuity</div>
-        <div class="status-item"><span class="dot dot-green"></span> Gmail Integration</div>
+        <div class="status-item"><span class="dot dot-green"></span> Gmail Integration (CLI + Telegram)</div>
         <div class="status-item"><span class="dot dot-green"></span> Voice Mode (bonus)</div>
         <div class="status-item"><span class="dot dot-green"></span> Agent System (bonus, 9 agents)</div>
         <div class="status-item"><span class="dot dot-green"></span> Heartbeat (Telegram)</div>
         <div class="status-item"><span class="dot dot-green"></span> Telegram Bot Adapter</div>
+        <div class="status-item"><span class="dot dot-green"></span> Shared Workflows (daily review)</div>
+        <div class="status-item"><span class="dot dot-green"></span> Portable Paths (auto-detected)</div>
         <div class="status-item"><span class="dot dot-grey"></span> Calendar Integration (not started)</div>
         <div class="status-item"><span class="dot dot-grey"></span> Hybrid Search (correctly deferred)</div>
       </div>

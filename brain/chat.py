@@ -45,6 +45,14 @@ _EMAIL_NOUNS = {"email", "emails", "mail", "inbox"}
 _CHECK_VERBS = {"check", "read", "show", "get", "fetch", "see", "list", "any", "new", "latest", "recent", "look", "open", "view", "pull"}
 _SEND_VERBS = {"send", "write", "compose", "draft", "fire"}
 
+# Daily review intent detection
+_DAILY_REVIEW_PHRASES = {
+    "daily review", "daily-review", "do my daily review",
+    "start my day", "daily priorities", "morning review",
+    "import my reminders", "sync reminders",
+    "what should i work on", "show me my q1",
+}
+
 
 class OutBotCLI:
     """Full OutBot experience via terminal — sessions, memory, personality."""
@@ -137,6 +145,20 @@ class OutBotCLI:
         has_send_verb = bool(words & _SEND_VERBS)
         return has_email_noun and has_send_verb
 
+    @staticmethod
+    def _is_daily_review(text: str) -> bool:
+        """Check if the user wants to run the daily review."""
+        lowered = text.lower().strip().rstrip("?!.")
+        return any(phrase in lowered for phrase in _DAILY_REVIEW_PHRASES)
+
+    async def _run_daily_review(self) -> str:
+        """Run the daily review workflow and return context for Claude."""
+        from brain.workflows.daily_review import run_daily_review
+        try:
+            return f"[DAILY REVIEW RESULTS]\n{run_daily_review()}"
+        except Exception as e:
+            return f"[Daily review failed: {e}]"
+
     async def _fetch_emails(self, limit: int = 10, unread_only: bool = False) -> str:
         """Fetch inbox and format as context for Claude.
 
@@ -223,14 +245,19 @@ class OutBotCLI:
         self._store_message(text, sender="troy", is_from_me=False)
         self._message_count += 1
 
+        # Handle daily review — run full pipeline, pass results to Claude
+        review_context = ""
+        if self._is_daily_review(text):
+            review_context = await self._run_daily_review()
+
         # Handle email — fetch/send data, then pass through Claude for natural response
         email_context = ""
-        if self._is_email_check(text):
+        if not review_context and self._is_email_check(text):
             # Only filter to unread if user specifically asks for "unread" or "new"
             words = self._words(text)
             unread_only = bool(words & {"unread", "new", "unseen"})
             email_context = await self._fetch_emails(limit=10, unread_only=unread_only)
-        elif self._is_email_send(text):
+        elif not review_context and self._is_email_send(text):
             email_context = await self._do_email_send(text)
 
         # Handle memory triggers before calling Claude
@@ -304,6 +331,10 @@ class OutBotCLI:
         # Add recall context from past conversations
         if recall_context:
             prompt += f"\n\n{recall_context}"
+
+        # Add daily review context
+        if review_context:
+            prompt += f"\n\n{review_context}"
 
         # Add email context (inbox results or send confirmation)
         if email_context:

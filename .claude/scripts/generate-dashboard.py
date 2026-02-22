@@ -157,48 +157,49 @@ def generate_dashboard(tasks):
     return filepath, q1_count, q2_count, q3_count, q4_count
 
 
-# Main execution
-print("📊 Generating Eisenhower Matrix Dashboard")
-print()
+def update_gist(filepath):
+    """Update the permanent gist for mobile access. Returns success bool."""
+    import subprocess
+    gist_id = "20f5befb1e2f8cef427b784e6860ddf8"
+    result = subprocess.run(
+        ["gh", "gist", "edit", gist_id, str(filepath), "--filename", "eisenhower-dashboard.html"],
+        capture_output=True,
+        text=True
+    )
+    return result.returncode == 0
 
-# Scan work items
-tasks = scan_work_items()
 
-# Generate dashboard
-filepath, q1, q2, q3, q4 = generate_dashboard(tasks)
+if __name__ == "__main__":
+    import subprocess
 
-# Print summary
-print()
-print("✅ Dashboard Generated")
-print()
-print(f"File: {filepath}")
-print(f"Latest: {filepath.parent}/eisenhower-latest.html")
-print()
-print("Tasks by Quadrant:")
-print(f"- 🔥 Q1 (Do First): {q1} tasks")
-print(f"- 📅 Q2 (Schedule): {q2} tasks")
-print(f"- 🔀 Q3 (Delegate): {q3} tasks")
-print(f"- 🗑️  Q4 (Eliminate): {q4} tasks")
-print()
+    print("📊 Generating Eisenhower Matrix Dashboard")
+    print()
 
-# Auto-open in browser
-import subprocess
-file_url = f"file://{filepath}"
-subprocess.run(["open", file_url])
-print(f"Opening in browser: {file_url}")
+    tasks = scan_work_items()
+    filepath, q1, q2, q3, q4 = generate_dashboard(tasks)
 
-# Update permanent gist for mobile access
-print()
-print("📤 Updating mobile dashboard gist...")
-gist_id = "20f5befb1e2f8cef427b784e6860ddf8"
-gist_result = subprocess.run(
-    ["gh", "gist", "edit", gist_id, str(filepath), "--filename", "eisenhower-dashboard.html"],
-    capture_output=True,
-    text=True
-)
+    print()
+    print("✅ Dashboard Generated")
+    print()
+    print(f"File: {filepath}")
+    print(f"Latest: {filepath.parent}/eisenhower-latest.html")
+    print()
+    print("Tasks by Quadrant:")
+    print(f"- 🔥 Q1 (Do First): {q1} tasks")
+    print(f"- 📅 Q2 (Schedule): {q2} tasks")
+    print(f"- 🔀 Q3 (Delegate): {q3} tasks")
+    print(f"- 🗑️  Q4 (Eliminate): {q4} tasks")
+    print()
 
-if gist_result.returncode == 0:
-    print(f"✅ Mobile dashboard updated!")
-    print(f"🔗 https://gist.githack.com/outtram/{gist_id}/raw/eisenhower-dashboard.html")
-else:
-    print(f"⚠️  Failed to update gist: {gist_result.stderr}")
+    file_url = f"file://{filepath}"
+    subprocess.run(["open", file_url])
+    print(f"Opening in browser: {file_url}")
+
+    print()
+    print("📤 Updating mobile dashboard gist...")
+    if update_gist(filepath):
+        gist_id = "20f5befb1e2f8cef427b784e6860ddf8"
+        print(f"✅ Mobile dashboard updated!")
+        print(f"🔗 https://gist.githack.com/outtram/{gist_id}/raw/eisenhower-dashboard.html")
+    else:
+        print(f"⚠️  Failed to update gist")
