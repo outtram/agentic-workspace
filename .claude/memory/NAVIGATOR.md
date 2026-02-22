@@ -57,6 +57,33 @@
 - Generated dashboards: `ls -lt .claude/dashboards/ | head -10`
 - Dashboard archive: `find .claude/dashboards -name "eisenhower-*.html" -mtime +30` (older than 30 days)
 
+## Agents
+
+### Agent Registry
+| Agent | File | Purpose | Trigger |
+|-------|------|---------|---------|
+| reminders-importer | `.claude/agents/reminders-importer.md` | Import macOS Reminders → work items | Daily, manual |
+| work-item-enricher | `.claude/agents/work-item-enricher.md` | Enrich bare tasks with real steps + categories | After import, manual |
+| overdue-wrangler | `.claude/agents/overdue-wrangler.md` | Review overdue items, propose actions | Daily, manual |
+| dashboard-generator | `.claude/agents/dashboard-generator.md` | Generate Eisenhower HTML dashboard | After changes, manual |
+| work-tracker | `.claude/agents/work-tracker.md` | CRUD for PRDs/bugs/tasks | On demand |
+| memory-writer | `.claude/agents/memory-writer.md` | Update YAML memory domains | On demand |
+| navigator-updater | `.claude/agents/navigator-updater.md` | Keep NAVIGATOR.md current | After changes |
+| overseer | `.claude/agents/overseer.md` | Orchestrate agents, run pipelines | Session start, daily review |
+| meta-agent | `.claude/agents/meta-agent.md` | Detect need for new agents/skills/upgrades | Weekly, manual |
+
+### Agent Search Patterns
+- All agents: `ls .claude/agents/*.md`
+- Meta-agent review log: `cat .claude/memory/meta-agent-log.yml`
+- Agent recommendations: `grep "status:" .claude/memory/meta-agent-log.yml`
+- Enriched items: `grep -l "enriched: true" .claude/work/tasks/*.md`
+- Wrangler actions: `grep "overdue wrangler" .claude/work/tasks/OUT-*.md .claude/work/done/tasks/OUT-*.md 2>/dev/null`
+
+### Pipelines (run via overseer)
+- **Daily review**: reminders-importer → work-item-enricher → overdue-wrangler → dashboard-generator
+- **Post-import**: work-item-enricher → dashboard-generator
+- **Weekly review**: daily pipeline + meta-agent + navigator-updater + memory-writer
+
 ## Domain Descriptions
 - **projects**: Repository details, tech stacks, deployment configs
 - **skills**: Reusable techniques Troy wants to remember
