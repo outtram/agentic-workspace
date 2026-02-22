@@ -14,7 +14,7 @@ Bi-directional sync between macOS Reminders.app and file-native task system.
 ## Installation
 
 ```bash
-cd /Users/touttram/CODE/AAGLOBAL/.claude/reminders
+cd .claude/reminders
 pip install -e ".[dev]"
 ```
 

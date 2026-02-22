@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional
 from reminders.core.models import WorkItem
+from reminders.core.paths import TASK_DIR
 
 
 class WorkItemFileAdapter:
@@ -11,7 +12,7 @@ class WorkItemFileAdapter:
 
     def __init__(self, work_dir: Path = None):
         if work_dir is None:
-            work_dir = Path("/Users/touttram/CODE/AAGLOBAL/.claude/work/tasks")
+            work_dir = TASK_DIR
         self.work_dir = Path(work_dir)
         self.work_dir.mkdir(parents=True, exist_ok=True)
 

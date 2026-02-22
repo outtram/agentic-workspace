@@ -114,7 +114,7 @@ Group tasks into JSON object:
 
 5. **Auto-open in browser:**
    ```bash
-   open "file:///Users/touttram/CODE/AAGLOBAL/.claude/dashboards/eisenhower-latest.html"
+   open .claude/dashboards/eisenhower-latest.html
    ```
 
 ## Classification Fallback

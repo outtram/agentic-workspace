@@ -3,12 +3,14 @@
 
 import os
 import re
+import sys
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# Configuration
-TASK_DIR = Path("/Users/touttram/CODE/AAGLOBAL/.claude/work/tasks")
+# Add .claude dir to path so we can import reminders.core.paths
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from reminders.core.paths import TASK_DIR
 START_ID = 220
 TODAY = datetime.now().date()
 URGENT_THRESHOLD_DAYS = 3

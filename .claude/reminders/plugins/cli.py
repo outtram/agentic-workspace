@@ -57,14 +57,16 @@ def add(ctx, title, due, priority, tags, list_name, notes):
 
 @main.command('list')
 @click.option('--tag', 'tags', multiple=True, help='Filter by tag')
-@click.option('--q1', 'quadrant', flag_value='q1', help='Show Q1 (urgent & important)')
-@click.option('--q2', 'quadrant', flag_value='q2', help='Show Q2 (not urgent but important)')
-@click.option('--q3', 'quadrant', flag_value='q3', help='Show Q3 (urgent but not important)')
-@click.option('--q4', 'quadrant', flag_value='q4', help='Show Q4 (not urgent & not important)')
+@click.option('--q1', 'quadrant_flag', flag_value='q1', help='Show Q1 (urgent & important)')
+@click.option('--q2', 'quadrant_flag', flag_value='q2', help='Show Q2 (not urgent but important)')
+@click.option('--q3', 'quadrant_flag', flag_value='q3', help='Show Q3 (urgent but not important)')
+@click.option('--q4', 'quadrant_flag', flag_value='q4', help='Show Q4 (not urgent & not important)')
+@click.option('--quadrant', 'quadrant_opt', type=click.Choice(['q1', 'q2', 'q3', 'q4']), help='Filter by quadrant')
 @click.option('--status', default='todo', help='Filter by status')
 @click.option('--format', 'output_format', default='table', type=click.Choice(['table', 'compact', 'json']))
 @click.pass_context
-def list_cmd(ctx, tags, quadrant, status, output_format):
+def list_cmd(ctx, tags, quadrant_flag, quadrant_opt, status, output_format):
+    quadrant = quadrant_opt or quadrant_flag
     """List reminders with filters"""
     manager = ctx.obj['manager']
 

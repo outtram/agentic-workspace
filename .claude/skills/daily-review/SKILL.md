@@ -22,7 +22,7 @@ You are performing Troy's daily task review. Execute these steps in order:
 ### Step 1: Import Reminders
 Run the new reminders CLI sync command:
 ```bash
-cd /Users/touttram/CODE/AAGLOBAL/.claude/reminders && python3 -m reminders.plugins.cli sync
+cd .claude/reminders && python3 -m reminders.plugins.cli sync
 ```
 
 The sync command will:
@@ -35,7 +35,7 @@ The sync command will:
 ### Step 2: Generate Dashboard
 Run the dashboard generator:
 ```bash
-python3 /Users/touttram/CODE/AAGLOBAL/.claude/scripts/generate-dashboard.py
+python3 .claude/scripts/generate-dashboard.py
 ```
 
 Confirm:
@@ -46,7 +46,7 @@ Confirm:
 ### Step 3: Check for Urgent/Overdue Tasks
 Run the nudge command to check for overdue and urgent tasks:
 ```bash
-python3 /Users/touttram/CODE/AAGLOBAL/.claude/reminders/plugins/cli.py nudge
+cd .claude/reminders && python3 -m reminders.plugins.cli nudge
 ```
 
 This will show:

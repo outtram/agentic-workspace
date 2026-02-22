@@ -3,14 +3,17 @@
 
 import os
 import re
+import sys
 import json
 from datetime import datetime
 from pathlib import Path
 
+# Add .claude dir to path so we can import reminders.core.paths
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from reminders.core.paths import WORK_DIR, TEMPLATE_DIR, DASHBOARD_DIR
+
 # Paths
-WORK_DIR = Path("/Users/touttram/CODE/AAGLOBAL/.claude/work")
-TEMPLATE_PATH = Path("/Users/touttram/CODE/AAGLOBAL/.claude/templates/eisenhower-template.html")
-DASHBOARD_DIR = Path("/Users/touttram/CODE/AAGLOBAL/.claude/dashboards")
+TEMPLATE_PATH = TEMPLATE_DIR / "eisenhower-template.html"
 
 def extract_frontmatter(file_path):
     """Extract YAML frontmatter from markdown file"""
