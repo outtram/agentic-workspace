@@ -3,491 +3,1372 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AAGLOBAL Architecture</title>
+<title>AAGLOBAL — System Architecture</title>
+
+<!-- Fonts: Vapor Clinic preset -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
 <style>
+  /* ═══════════════════════════════════════════
+     DESIGN TOKENS — Vapor Clinic Preset
+     ═══════════════════════════════════════════ */
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d28;
-    --border: #2a2d3a;
-    --text: #e0e0e6;
-    --muted: #8888a0;
-    --accent-pink: #e94560;
-    --accent-blue: #4a9eff;
-    --accent-purple: #9d6aff;
-    --accent-green: #2dd4a0;
-    --accent-orange: #ff9f43;
-    --accent-yellow: #ffd93d;
+    --primary: #0A0A14;
+    --accent: #7B61FF;
+    --accent-glow: rgba(123, 97, 255, 0.25);
+    --bg: #08080F;
+    --surface: #0F0F1A;
+    --surface-elevated: #151525;
+    --border: rgba(123, 97, 255, 0.12);
+    --border-hover: rgba(123, 97, 255, 0.3);
+    --text: #F0EFF4;
+    --text-muted: #6B6B80;
+    --graphite: #18181B;
+
+    /* Semantic accents */
+    --pink: #E94560;
+    --blue: #4A9EFF;
+    --green: #2DD4A0;
+    --orange: #FF9F43;
+    --yellow: #FFD93D;
+
+    /* Spacing */
+    --section-gap: 8rem;
+    --container-max: 1200px;
+    --radius: 2rem;
+    --radius-sm: 1.25rem;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* ═══════════════════════════════════════════
+     RESET + BASE
+     ═══════════════════════════════════════════ */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    padding: 2rem;
-    min-height: 100vh;
+    font-family: 'Sora', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
   }
 
-  h1 {
-    text-align: center;
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    color: var(--text);
+  /* ═══════════════════════════════════════════
+     NOISE OVERLAY (feTurbulence)
+     ═══════════════════════════════════════════ */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.04;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
   }
 
-  .subtitle {
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.875rem;
-    margin-bottom: 2rem;
-  }
-
-  .diagram {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .row {
-    display: flex;
-    gap: 1.5rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.25rem;
-    flex: 1;
-    min-width: 280px;
-    max-width: 520px;
-  }
-
-  .section-label {
-    font-size: 0.7rem;
+  /* ═══════════════════════════════════════════
+     TYPOGRAPHY
+     ═══════════════════════════════════════════ */
+  .font-heading {
+    font-family: 'Sora', sans-serif;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 0.75rem;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .font-drama {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.05;
+  }
+
+  .font-mono {
+    font-family: 'Fira Code', monospace;
+    font-weight: 400;
+  }
+
+  /* ═══════════════════════════════════════════
+     LAYOUT
+     ═══════════════════════════════════════════ */
+  .container {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  section {
+    position: relative;
+  }
+
+  /* ═══════════════════════════════════════════
+     NAVBAR — "The Floating Island"
+     ═══════════════════════════════════════════ */
+  .navbar {
+    position: fixed;
+    top: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 2rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 100px;
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: transparent;
+    border: 1px solid transparent;
   }
 
-  .label-pink { color: var(--accent-pink); }
-  .label-blue { color: var(--accent-blue); }
-  .label-purple { color: var(--accent-purple); }
-  .label-green { color: var(--accent-green); }
-  .label-orange { color: var(--accent-orange); }
-
-  .section-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+  .navbar.scrolled {
+    background: rgba(10, 10, 20, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-color: var(--border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
-  .section-desc {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-bottom: 0.75rem;
-    line-height: 1.5;
-  }
-
-  .command-block {
-    background: #12141e;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.6rem 0.85rem;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 0.75rem;
-    color: var(--accent-green);
-    margin-bottom: 0.75rem;
-    line-height: 1.6;
-  }
-
-  .cmd-comment { color: var(--muted); }
-  .cmd-shortcut { color: var(--accent-yellow); font-weight: 600; }
-  .cmd-path { color: var(--muted); font-size: 0.65rem; opacity: 0.7; }
-
-  .items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .item {
-    font-size: 0.72rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 6px;
-    background: #12141e;
-    border: 1px solid var(--border);
+  .nav-logo {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
     color: var(--text);
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 400;
+  }
+
+  .nav-links a:hover {
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+
+  .nav-cta {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    border-radius: 100px;
+    background: var(--accent);
+    color: var(--text);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     white-space: nowrap;
   }
 
-  .item-pink { border-color: rgba(233,69,96,0.4); color: var(--accent-pink); }
-  .item-blue { border-color: rgba(74,158,255,0.4); color: var(--accent-blue); }
-  .item-purple { border-color: rgba(157,106,255,0.4); color: var(--accent-purple); }
-  .item-green { border-color: rgba(45,212,160,0.4); color: var(--accent-green); }
-  .item-orange { border-color: rgba(255,159,67,0.4); color: var(--accent-orange); }
+  .nav-cta:hover {
+    transform: scale(1.03);
+  }
 
+  /* ═══════════════════════════════════════════
+     HERO — "The Opening Shot"
+     ═══════════════════════════════════════════ */
+  .hero {
+    position: relative;
+    height: 100dvh;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 8rem;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, var(--bg) 0%, rgba(10,10,20,0.6) 40%, rgba(10,10,20,0.3) 100%),
+      url('https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?w=1920&q=80') center/cover no-repeat;
+  }
+
+  .hero-glow {
+    position: absolute;
+    bottom: 20%;
+    left: 10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    filter: blur(80px);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+  }
+
+  .hero-title-line1 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: var(--text);
+    opacity: 0;
+  }
+
+  .hero-title-line2 {
+    font-size: clamp(4rem, 10vw, 8rem);
+    color: var(--accent);
+    margin-top: -0.25rem;
+    opacity: 0;
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-top: 1.5rem;
+    max-width: 520px;
+    line-height: 1.7;
+    opacity: 0;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+    opacity: 0;
+  }
+
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .hero-meta-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(45, 212, 160, 0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(45, 212, 160, 0); }
+  }
+
+  .hero-meta-text {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .hero-meta-text span {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  /* ═══════════════════════════════════════════
+     SECTION HEADERS
+     ═══════════════════════════════════════════ */
+  .section-header {
+    margin-bottom: 3.5rem;
+  }
+
+  .section-tag {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-tag::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .section-title .drama {
+    color: var(--accent);
+  }
+
+  /* ═══════════════════════════════════════════
+     ENTRY POINTS — Interactive Cards
+     ═══════════════════════════════════════════ */
+  .entry-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .entry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .entry-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 0;
+    transform: translateY(40px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .entry-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    background: radial-gradient(circle at top right, var(--accent-glow), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .entry-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(123, 97, 255, 0.08);
+  }
+
+  .entry-card:hover::before {
+    opacity: 1;
+  }
+
+  .entry-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .entry-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .entry-card-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .entry-card-cmd {
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--green);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ═══════════════════════════════════════════
+     TWO SYSTEMS — Stacking Cards
+     ═══════════════════════════════════════════ */
+  .systems-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .system-card {
+    position: relative;
+    min-height: 80vh;
+    border-radius: var(--radius);
+    padding: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .system-card-inner {
+    max-width: 640px;
+  }
+
+  .system-card.claude-code {
+    background: linear-gradient(135deg, #12081f 0%, var(--surface) 100%);
+    border: 1px solid rgba(233, 69, 96, 0.15);
+  }
+
+  .system-card.outbot {
+    background: linear-gradient(135deg, #08102a 0%, var(--surface) 100%);
+    border: 1px solid rgba(74, 158, 255, 0.15);
+  }
+
+  .system-number {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .system-name {
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .system-desc {
+    font-size: 1rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    max-width: 480px;
+  }
+
+  /* Pipeline */
   .pipeline {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
+    margin-bottom: 2rem;
   }
 
   .pipeline-step {
-    font-size: 0.72rem;
-    padding: 0.3rem 0.55rem;
-    border-radius: 6px;
-    background: rgba(233,69,96,0.1);
-    border: 1px solid rgba(233,69,96,0.3);
-    color: var(--accent-pink);
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.45rem 0.85rem;
+    border-radius: 100px;
+    white-space: nowrap;
+    transition: all 0.3s ease;
   }
 
-  .pipeline-step-blue {
-    font-size: 0.72rem;
-    padding: 0.3rem 0.55rem;
-    border-radius: 6px;
-    background: rgba(74,158,255,0.1);
-    border: 1px solid rgba(74,158,255,0.3);
-    color: var(--accent-blue);
+  .pipeline-step:hover {
+    transform: scale(1.03);
+  }
+
+  .pipeline-step.pink {
+    background: rgba(233, 69, 96, 0.12);
+    border: 1px solid rgba(233, 69, 96, 0.3);
+    color: var(--pink);
+  }
+
+  .pipeline-step.blue {
+    background: rgba(74, 158, 255, 0.12);
+    border: 1px solid rgba(74, 158, 255, 0.3);
+    color: var(--blue);
   }
 
   .pipeline-arrow {
-    color: var(--muted);
-    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    opacity: 0.5;
   }
 
-  .connector {
+  /* Tags */
+  .tags {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
-  }
-
-  .connector-line {
-    width: 2px;
-    height: 24px;
-    background: var(--border);
-  }
-
-  .connector-label {
-    font-size: 0.7rem;
-    color: var(--muted);
-    background: var(--surface);
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-  }
-
-  .full-width {
-    max-width: 100%;
-  }
-
-  .shared-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
-  .shared-item {
-    background: #12141e;
+  .tag {
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.6rem;
-    text-align: center;
+    color: var(--text);
+    transition: all 0.3s ease;
   }
 
-  .shared-item-title {
-    font-size: 0.75rem;
+  .tag:hover {
+    transform: translateY(-1px);
+    border-color: var(--border-hover);
+  }
+
+  .tag.pink { border-color: rgba(233, 69, 96, 0.35); color: var(--pink); }
+  .tag.blue { border-color: rgba(74, 158, 255, 0.35); color: var(--blue); }
+  .tag.green { border-color: rgba(45, 212, 160, 0.35); color: var(--green); }
+
+  .tags-label {
+    font-size: 0.72rem;
     font-weight: 600;
-    color: var(--accent-purple);
-    margin-bottom: 0.2rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
   }
 
-  .shared-item-desc {
-    font-size: 0.65rem;
-    color: var(--muted);
+  /* Canvas animation on system cards */
+  .system-canvas {
+    position: absolute;
+    right: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.25;
+    pointer-events: none;
   }
 
-  .status-grid {
+  /* ═══════════════════════════════════════════
+     SHARED BRAIN — "The Manifesto"
+     ═══════════════════════════════════════════ */
+  .brain-section {
+    padding: var(--section-gap) 0;
+    background: var(--primary);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .brain-texture {
+    position: absolute;
+    inset: 0;
+    background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80') center/cover no-repeat;
+    opacity: 0.05;
+  }
+
+  .brain-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .brain-statement {
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .brain-statement-muted {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .brain-statement-bold {
+    font-size: clamp(1.75rem, 4vw, 3rem);
+    line-height: 1.2;
+    margin-top: 0.5rem;
+  }
+
+  .brain-statement-bold .highlight {
+    color: var(--accent);
+  }
+
+  .brain-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-top: 4rem;
   }
 
-  .status-item {
+  .brain-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .brain-item:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .brain-item-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+  }
+
+  .brain-item-desc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════════════
+     EXTERNAL SERVICES
+     ═══════════════════════════════════════════ */
+  .services-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .service-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
+    gap: 1rem;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 0;
+    transform: translateY(30px);
   }
 
-  .dot {
-    width: 8px;
-    height: 8px;
+  .service-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+
+  .service-dot {
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
   }
 
-  .dot-green { background: var(--accent-green); }
-  .dot-orange { background: var(--accent-orange); }
-  .dot-red { background: var(--accent-pink); }
-  .dot-grey { background: var(--muted); }
+  .service-dot.live { background: var(--green); box-shadow: 0 0 8px rgba(45, 212, 160, 0.4); }
+  .service-dot.planned { background: var(--orange); opacity: 0.5; }
 
-  .legend {
+  .service-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .service-name.planned { opacity: 0.5; }
+
+  /* ═══════════════════════════════════════════
+     PROGRESS — Telemetry Display
+     ═══════════════════════════════════════════ */
+  .progress-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .progress-header {
     display: flex;
-    justify-content: center;
+    align-items: baseline;
     gap: 1.5rem;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .progress-pct {
+    font-size: clamp(4rem, 8vw, 7rem);
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .progress-bar-track {
+    width: 100%;
+    height: 4px;
+    background: var(--surface);
+    border-radius: 100px;
+    margin-bottom: 3rem;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    border-radius: 100px;
+    transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .progress-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .progress-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.82rem;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  .progress-item:hover {
+    border-color: var(--border-hover);
+  }
+
+  .progress-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .progress-dot.done { background: var(--green); box-shadow: 0 0 6px rgba(45, 212, 160, 0.3); }
+  .progress-dot.not-started { background: var(--text-muted); opacity: 0.4; }
+
+  .progress-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
   }
 
   .legend-item {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    font-size: 0.7rem;
-    color: var(--muted);
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
   }
 
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  /* ═══════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════ */
+  .footer {
+    background: var(--primary);
+    border-radius: 4rem 4rem 0 0;
+    padding: 4rem 2rem 2.5rem;
+    margin-top: var(--section-gap);
+  }
+
+  .footer-inner {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+
+  .footer-brand {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .footer-tagline {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  .footer-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .footer-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .footer-status-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .footer-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    text-align: center;
+    margin-top: 2.5rem;
+  }
+
+  /* ═══════════════════════════════════════════
+     RESPONSIVE
+     ═══════════════════════════════════════════ */
+  @media (max-width: 768px) {
+    :root {
+      --section-gap: 5rem;
+      --radius: 1.5rem;
+    }
+
+    .navbar { display: none; }
+
+    .hero { padding-bottom: 4rem; }
+
+    .system-card {
+      min-height: auto;
+      padding: 2rem;
+    }
+
+    .system-canvas { display: none; }
+
+    .brain-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .progress-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .footer-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     PRINT
+     ═══════════════════════════════════════════ */
   @media print {
-    body { background: #fff; color: #111; padding: 1rem; }
-    .section { border-color: #ccc; background: #f8f8f8; }
-    .command-block { background: #eee; color: #111; border-color: #ccc; }
-    .item, .pipeline-step, .pipeline-step-blue, .shared-item { background: #eee; border-color: #ccc; }
-    h1, .section-title, .shared-item-title { color: #111; }
-    .section-label, .section-desc, .muted, .subtitle, .connector-label, .shared-item-desc { color: #555; }
+    body { background: #fff; color: #111; }
+    body::before { display: none; }
+    .navbar { display: none; }
+    .hero-bg, .hero-glow, .brain-texture { display: none; }
+    .hero { height: auto; padding: 2rem 0; }
+    section { padding: 2rem 0 !important; }
+    .system-card, .entry-card, .brain-item, .service-card, .progress-item {
+      background: #f8f8f8; border-color: #ddd; opacity: 1 !important; transform: none !important;
+    }
+    .footer { border-radius: 0; background: #f0f0f0; }
   }
 </style>
 </head>
+
 <body>
 
-<h1>AAGLOBAL — System Architecture</h1>
-<p class="subtitle">Two interfaces, one shared brain &middot; Last updated: 23 Feb 2026</p>
+<!-- ═══════════════════════════════════════════
+     NAVBAR
+     ═══════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <a href="#" class="nav-logo">AAGLOBAL</a>
+  <ul class="nav-links">
+    <li><a href="#systems">Systems</a></li>
+    <li><a href="#brain">The Brain</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#progress">Progress</a></li>
+  </ul>
+  <a href="#progress" class="nav-cta font-mono">~85% Complete</a>
+</nav>
 
-<div class="diagram">
-
-  <!-- User Layer -->
-  <div class="row">
-    <div class="section" style="max-width:100%;">
-      <div class="section-label label-pink">How You Use It</div>
-      <div class="section-title">Four Entry Points</div>
-      <div class="section-desc">Claude Code for task management + agents. OutBot for chat, memory, email, and daily review. Cursor for coding.</div>
-      <div class="command-block">
-        <div><span class="cmd-comment"># Claude Code (agents + pipelines)</span></div>
-        <div><span class="cmd-shortcut">claude</span></div>
-        <div class="cmd-path">cd ~/CODE/AAGLOBAL && claude</div>
-
-        <div style="margin-top:0.5rem;"><span class="cmd-comment"># OutBot CLI (chat + memory + email + daily review)</span></div>
-        <div><span class="cmd-shortcut">outbot</span></div>
-        <div class="cmd-path">cd ~/CODE/AAGLOBAL && python brain/chat.py</div>
-
-        <div style="margin-top:0.5rem;"><span class="cmd-comment"># OutBot Voice</span></div>
-        <div><span class="cmd-shortcut">outbot voice</span></div>
-        <div class="cmd-path">cd ~/CODE/AAGLOBAL && python brain/chat.py --voice</div>
-
-        <div style="margin-top:0.5rem;"><span class="cmd-comment"># OutBot Telegram (mobile + heartbeat)</span></div>
-        <div class="cmd-path">cd ~/CODE/AAGLOBAL && python brain/main.py</div>
-
-        <div style="margin-top:0.5rem;"><span class="cmd-comment"># Cursor (coding + editing)</span></div>
-        <div class="cmd-path">Open ~/CODE/AAGLOBAL in Cursor IDE</div>
+<!-- ═══════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="container hero-content">
+    <div class="hero-label font-mono">System Architecture · Feb 2026</div>
+    <h1 class="hero-title-line1 font-heading">Architecture beyond</h1>
+    <h1 class="hero-title-line2 font-drama">Complexity.</h1>
+    <p class="hero-sub">Two interfaces, one shared brain. Claude Code agents and OutBot converge on a file-native memory system — zero external dependencies, pure signal.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <div class="hero-meta-dot"></div>
+        <span class="hero-meta-text font-mono"><span>9</span> Agents</span>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-dot"></div>
+        <span class="hero-meta-text font-mono"><span>18</span> Skills</span>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-dot"></div>
+        <span class="hero-meta-text font-mono"><span>4</span> Entry Points</span>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- Connector -->
-  <div class="connector">
-    <div class="connector-line"></div>
-    <div class="connector-label">powered by Claude CLI (Max plan)</div>
-    <div class="connector-line"></div>
-  </div>
-
-  <!-- Two Systems -->
-  <div class="row">
-    <!-- Claude Code -->
-    <div class="section">
-      <div class="section-label label-pink">System 1 &mdash; Task Management</div>
-      <div class="section-title">Claude Code Agents</div>
-      <div class="section-desc">9 agents orchestrated by the Overseer. Run from terminal with <code>claude</code>. Say "do my daily review" to trigger the pipeline.</div>
-
-      <div style="margin-bottom:0.5rem;font-size:0.75rem;font-weight:600;color:var(--accent-pink);">Daily Pipeline:</div>
-      <div class="pipeline">
-        <span class="pipeline-step">Import Reminders</span>
-        <span class="pipeline-arrow">&rarr;</span>
-        <span class="pipeline-step">Enrich Tasks</span>
-        <span class="pipeline-arrow">&rarr;</span>
-        <span class="pipeline-step">Wrangle Overdue</span>
-        <span class="pipeline-arrow">&rarr;</span>
-        <span class="pipeline-step">Dashboard</span>
-      </div>
-
-      <div style="margin-top:0.75rem;font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:0.4rem;">All Agents:</div>
-      <div class="items">
-        <span class="item item-pink">Overseer</span>
-        <span class="item item-pink">Reminders Importer</span>
-        <span class="item item-pink">Work Item Enricher</span>
-        <span class="item item-pink">Overdue Wrangler</span>
-        <span class="item item-pink">Dashboard Generator</span>
-        <span class="item item-pink">Work Tracker</span>
-        <span class="item item-pink">Memory Writer</span>
-        <span class="item item-pink">Navigator Updater</span>
-        <span class="item item-pink">Meta Agent</span>
-      </div>
+<!-- ═══════════════════════════════════════════
+     ENTRY POINTS
+     ═══════════════════════════════════════════ -->
+<section class="entry-section" id="entry">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">How You Use It</div>
+      <h2 class="section-title font-heading">Four <span class="drama font-drama">entry points.</span></h2>
     </div>
 
-    <!-- OutBot -->
-    <div class="section">
-      <div class="section-label label-blue">System 2 &mdash; Conversational AI</div>
-      <div class="section-title">OutBot</div>
-      <div class="section-desc">Chat with personality, memory, email, and daily review. Works via CLI, voice, or Telegram. The "always reachable" layer.</div>
-
-      <div style="margin-bottom:0.5rem;font-size:0.75rem;font-weight:600;color:var(--accent-blue);">Daily Review (shared workflow):</div>
-      <div class="pipeline">
-        <span class="pipeline-step-blue">Sync Reminders</span>
-        <span class="pipeline-arrow">&rarr;</span>
-        <span class="pipeline-step-blue">Check Overdue</span>
-        <span class="pipeline-arrow">&rarr;</span>
-        <span class="pipeline-step-blue">Dashboard</span>
-        <span class="pipeline-arrow">&rarr;</span>
-        <span class="pipeline-step-blue">Update Gist</span>
+    <div class="entry-grid">
+      <div class="entry-card">
+        <div class="entry-card-icon" style="background: rgba(233,69,96,0.12); color: var(--pink);">&#9881;</div>
+        <h3 class="entry-card-title">Claude Code</h3>
+        <p class="entry-card-desc">Agents + pipelines. Task management, daily reviews, work tracking. The orchestration layer.</p>
+        <div class="entry-card-cmd font-mono">claude</div>
       </div>
 
-      <div style="margin-top:0.75rem;font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:0.4rem;">Entry Points:</div>
-      <div class="items" style="margin-bottom:0.75rem;">
-        <span class="item item-blue">CLI Chat</span>
-        <span class="item item-blue">Voice Mode</span>
-        <span class="item item-blue">Telegram Bot</span>
+      <div class="entry-card">
+        <div class="entry-card-icon" style="background: rgba(74,158,255,0.12); color: var(--blue);">&#9993;</div>
+        <h3 class="entry-card-title">OutBot CLI</h3>
+        <p class="entry-card-desc">Chat + memory + email + daily review. The conversational layer with personality.</p>
+        <div class="entry-card-cmd font-mono">outbot</div>
       </div>
 
-      <div style="font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:0.4rem;">Capabilities:</div>
-      <div class="items">
-        <span class="item item-green">Daily Review</span>
-        <span class="item item-green">Remember</span>
-        <span class="item item-green">Recall</span>
-        <span class="item item-green">Reflection</span>
-        <span class="item item-green">Gmail Inbox</span>
-        <span class="item item-green">Gmail Outbox</span>
-        <span class="item item-green">Personality (SOUL.md)</span>
-        <span class="item item-green">Session Continuity</span>
-        <span class="item item-green">Heartbeat (Telegram)</span>
+      <div class="entry-card">
+        <div class="entry-card-icon" style="background: rgba(123,97,255,0.12); color: var(--accent);">&#127908;</div>
+        <h3 class="entry-card-title">OutBot Voice</h3>
+        <p class="entry-card-desc">Speak naturally. Voice-to-text with the same brain underneath. Hands-free operation.</p>
+        <div class="entry-card-cmd font-mono">outbot voice</div>
+      </div>
+
+      <div class="entry-card">
+        <div class="entry-card-icon" style="background: rgba(45,212,160,0.12); color: var(--green);">&#9992;</div>
+        <h3 class="entry-card-title">Telegram</h3>
+        <p class="entry-card-desc">Mobile + heartbeat. Reachable anywhere. Daily check-ins, quick tasks, email from the go.</p>
+        <div class="entry-card-cmd font-mono">@OutBotAU</div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- Connector -->
-  <div class="connector">
-    <div class="connector-line"></div>
-    <div class="connector-label">both read/write the same files + share workflows</div>
-    <div class="connector-line"></div>
-  </div>
+<!-- ═══════════════════════════════════════════
+     TWO SYSTEMS
+     ═══════════════════════════════════════════ -->
+<section class="systems-section" id="systems">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Core Systems</div>
+      <h2 class="section-title font-heading">Two systems, <span class="drama font-drama">one brain.</span></h2>
+    </div>
 
-  <!-- Shared Layer -->
-  <div class="row">
-    <div class="section full-width" style="max-width:100%;">
-      <div class="section-label label-purple">Shared File System</div>
-      <div class="section-title">The Brain &mdash; .claude/</div>
-      <div class="section-desc">File-native memory system. Both Claude Code agents and OutBot read/write here. Changes from one are visible to the other.</div>
+    <!-- System 1: Claude Code -->
+    <div class="system-card claude-code">
+      <svg class="system-canvas" width="200" height="200" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(233,69,96,0.15)" stroke-width="1"/>
+        <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(233,69,96,0.1)" stroke-width="1"/>
+        <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(233,69,96,0.07)" stroke-width="1"/>
+        <circle cx="100" cy="100" r="3" fill="rgba(233,69,96,0.5)">
+          <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="12s" repeatCount="indefinite"/>
+          <animateMotion dur="12s" repeatCount="indefinite" path="M0,0 a80,80 0 1,1 0,-1 z"/>
+        </circle>
+      </svg>
 
-      <div class="shared-grid">
-        <div class="shared-item">
-          <div class="shared-item-title">memory/</div>
-          <div class="shared-item-desc">SOUL.md, USER.md, NAVIGATOR.md, YAML domains</div>
+      <div class="system-card-inner">
+        <div class="system-number font-mono" style="color: var(--pink);">System 01 — Task Management</div>
+        <h3 class="system-name font-heading">Claude Code <span class="font-drama" style="color: var(--pink);">Agents</span></h3>
+        <p class="system-desc">9 agents orchestrated by the Overseer. Run from terminal. Say "do my daily review" to trigger the full pipeline.</p>
+
+        <div class="tags-label">Daily Pipeline</div>
+        <div class="pipeline">
+          <span class="pipeline-step pink">Import Reminders</span>
+          <span class="pipeline-arrow">&#8594;</span>
+          <span class="pipeline-step pink">Enrich Tasks</span>
+          <span class="pipeline-arrow">&#8594;</span>
+          <span class="pipeline-step pink">Wrangle Overdue</span>
+          <span class="pipeline-arrow">&#8594;</span>
+          <span class="pipeline-step pink">Dashboard</span>
         </div>
-        <div class="shared-item">
-          <div class="shared-item-title">work/</div>
-          <div class="shared-item-desc">Tasks, bugs, PRDs (markdown + YAML frontmatter)</div>
-        </div>
-        <div class="shared-item">
-          <div class="shared-item-title">agents/</div>
-          <div class="shared-item-desc">9 agent definitions (Claude Code reads these)</div>
-        </div>
-        <div class="shared-item">
-          <div class="shared-item-title">skills/</div>
-          <div class="shared-item-desc">18 skills (pptx, TDD, design, etc.)</div>
-        </div>
-        <div class="shared-item">
-          <div class="shared-item-title">dashboards/</div>
-          <div class="shared-item-desc">Eisenhower Matrix HTML + mobile gist</div>
-        </div>
-        <div class="shared-item">
-          <div class="shared-item-title">reminders/</div>
-          <div class="shared-item-desc">macOS Reminders.app sync (Python)</div>
-        </div>
-        <div class="shared-item">
-          <div class="shared-item-title">workflows/</div>
-          <div class="shared-item-desc">brain/workflows/ &mdash; shared Python pipelines</div>
+
+        <div class="tags-label">All Agents</div>
+        <div class="tags">
+          <span class="tag pink">Overseer</span>
+          <span class="tag pink">Reminders Importer</span>
+          <span class="tag pink">Work Item Enricher</span>
+          <span class="tag pink">Overdue Wrangler</span>
+          <span class="tag pink">Dashboard Generator</span>
+          <span class="tag pink">Work Tracker</span>
+          <span class="tag pink">Memory Writer</span>
+          <span class="tag pink">Navigator Updater</span>
+          <span class="tag pink">Meta Agent</span>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Connector -->
-  <div class="connector">
-    <div class="connector-line"></div>
-    <div class="connector-label">external connections</div>
-    <div class="connector-line"></div>
-  </div>
+    <!-- System 2: OutBot -->
+    <div class="system-card outbot">
+      <svg class="system-canvas" width="200" height="200" viewBox="0 0 200 200">
+        <path d="M 20 100 Q 60 60, 100 100 T 180 100" fill="none" stroke="rgba(74,158,255,0.2)" stroke-width="2">
+          <animate attributeName="d" values="M 20 100 Q 60 60, 100 100 T 180 100; M 20 100 Q 60 140, 100 100 T 180 100; M 20 100 Q 60 60, 100 100 T 180 100" dur="4s" repeatCount="indefinite"/>
+        </path>
+        <path d="M 20 100 Q 60 80, 100 100 T 180 100" fill="none" stroke="rgba(74,158,255,0.12)" stroke-width="1">
+          <animate attributeName="d" values="M 20 100 Q 60 80, 100 100 T 180 100; M 20 100 Q 60 120, 100 100 T 180 100; M 20 100 Q 60 80, 100 100 T 180 100" dur="3s" repeatCount="indefinite"/>
+        </path>
+      </svg>
 
-  <!-- External Services -->
-  <div class="row">
-    <div class="section full-width" style="max-width:100%;">
-      <div class="section-label label-orange">External Services</div>
-      <div class="items" style="justify-content:center;">
-        <span class="item item-green">Claude CLI (Max plan)</span>
-        <span class="item item-green">macOS Reminders.app</span>
-        <span class="item item-green">Gmail (IMAP/SMTP)</span>
-        <span class="item item-green">GitHub</span>
-        <span class="item item-green">Telegram Bot API</span>
-        <span class="item item-orange" style="opacity:0.5;">Google Calendar (planned)</span>
+      <div class="system-card-inner">
+        <div class="system-number font-mono" style="color: var(--blue);">System 02 — Conversational AI</div>
+        <h3 class="system-name font-heading">Out<span class="font-drama" style="color: var(--blue);">Bot</span></h3>
+        <p class="system-desc">Chat with personality, memory, email, and daily review. Works via CLI, voice, or Telegram. The "always reachable" layer.</p>
+
+        <div class="tags-label">Daily Review (shared workflow)</div>
+        <div class="pipeline">
+          <span class="pipeline-step blue">Sync Reminders</span>
+          <span class="pipeline-arrow">&#8594;</span>
+          <span class="pipeline-step blue">Check Overdue</span>
+          <span class="pipeline-arrow">&#8594;</span>
+          <span class="pipeline-step blue">Dashboard</span>
+          <span class="pipeline-arrow">&#8594;</span>
+          <span class="pipeline-step blue">Update Gist</span>
+        </div>
+
+        <div class="tags-label">Entry Points</div>
+        <div class="tags" style="margin-bottom: 1rem;">
+          <span class="tag blue">CLI Chat</span>
+          <span class="tag blue">Voice Mode</span>
+          <span class="tag blue">Telegram Bot</span>
+        </div>
+
+        <div class="tags-label">Capabilities</div>
+        <div class="tags">
+          <span class="tag green">Daily Review</span>
+          <span class="tag green">Remember</span>
+          <span class="tag green">Recall</span>
+          <span class="tag green">Reflection</span>
+          <span class="tag green">Gmail Inbox</span>
+          <span class="tag green">Gmail Outbox</span>
+          <span class="tag green">Personality (SOUL.md)</span>
+          <span class="tag green">Session Continuity</span>
+          <span class="tag green">Heartbeat</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     THE BRAIN — Shared File System
+     ═══════════════════════════════════════════ -->
+<section class="brain-section" id="brain">
+  <div class="brain-texture"></div>
+  <div class="container brain-content">
+    <div class="section-header">
+      <div class="section-tag font-mono">Shared File System</div>
+    </div>
+
+    <div class="brain-statement">
+      <p class="brain-statement-muted">Most AI systems scatter state across databases, APIs, and cloud services.</p>
+      <h3 class="brain-statement-bold font-heading">We converge on <span class="highlight font-drama">one directory.</span></h3>
+    </div>
+
+    <div class="brain-statement">
+      <p class="brain-statement-muted">Both Claude Code agents and OutBot read and write the same files.</p>
+      <h3 class="brain-statement-bold font-heading">Changes from one are <span class="highlight font-drama">instantly visible</span> to the other.</h3>
+    </div>
+
+    <div class="brain-grid">
+      <div class="brain-item">
+        <div class="brain-item-title font-mono">memory/</div>
+        <div class="brain-item-desc">SOUL.md, USER.md, NAVIGATOR.md, YAML domains</div>
+      </div>
+      <div class="brain-item">
+        <div class="brain-item-title font-mono">work/</div>
+        <div class="brain-item-desc">Tasks, bugs, PRDs — markdown with YAML frontmatter</div>
+      </div>
+      <div class="brain-item">
+        <div class="brain-item-title font-mono">agents/</div>
+        <div class="brain-item-desc">9 agent definitions read by Claude Code</div>
+      </div>
+      <div class="brain-item">
+        <div class="brain-item-title font-mono">skills/</div>
+        <div class="brain-item-desc">18+ skills — pptx, TDD, design, cinematic, etc.</div>
+      </div>
+      <div class="brain-item">
+        <div class="brain-item-title font-mono">dashboards/</div>
+        <div class="brain-item-desc">Eisenhower Matrix HTML + mobile gist</div>
+      </div>
+      <div class="brain-item">
+        <div class="brain-item-title font-mono">reminders/</div>
+        <div class="brain-item-desc">macOS Reminders.app sync pipeline</div>
+      </div>
+      <div class="brain-item">
+        <div class="brain-item-title font-mono">workflows/</div>
+        <div class="brain-item-desc">Shared Python pipelines in brain/workflows/</div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- Progress -->
-  <div class="row">
-    <div class="section full-width" style="max-width:100%;">
-      <div class="section-label label-green">OpenClaw Implementation Progress</div>
-      <div class="section-title">~85% Complete</div>
-      <div class="section-desc">Based on the original implementation plan from docs/openclaw-research/IMPLEMENTATION-PLAN.md</div>
+<!-- ═══════════════════════════════════════════
+     EXTERNAL SERVICES
+     ═══════════════════════════════════════════ -->
+<section class="services-section" id="services">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">External Connections</div>
+      <h2 class="section-title font-heading">Powered by <span class="drama font-drama">signals.</span></h2>
+    </div>
 
-      <div class="status-grid">
-        <div class="status-item"><span class="dot dot-green"></span> Memory System (file-based)</div>
-        <div class="status-item"><span class="dot dot-green"></span> Personality Injection (SOUL.md)</div>
-        <div class="status-item"><span class="dot dot-green"></span> Session Continuity</div>
-        <div class="status-item"><span class="dot dot-green"></span> Gmail Integration (CLI + Telegram)</div>
-        <div class="status-item"><span class="dot dot-green"></span> Voice Mode (bonus)</div>
-        <div class="status-item"><span class="dot dot-green"></span> Agent System (bonus, 9 agents)</div>
-        <div class="status-item"><span class="dot dot-green"></span> Heartbeat (Telegram)</div>
-        <div class="status-item"><span class="dot dot-green"></span> Telegram Bot Adapter</div>
-        <div class="status-item"><span class="dot dot-green"></span> Shared Workflows (daily review)</div>
-        <div class="status-item"><span class="dot dot-green"></span> Portable Paths (auto-detected)</div>
-        <div class="status-item"><span class="dot dot-grey"></span> Calendar Integration (not started)</div>
-        <div class="status-item"><span class="dot dot-grey"></span> Hybrid Search (correctly deferred)</div>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-dot live"></div>
+        <span class="service-name">Claude CLI (Max plan)</span>
       </div>
-
-      <div class="legend">
-        <div class="legend-item"><span class="dot dot-green"></span> Done</div>
-        <div class="legend-item"><span class="dot dot-orange"></span> Partial</div>
-        <div class="legend-item"><span class="dot dot-red"></span> Blocked</div>
-        <div class="legend-item"><span class="dot dot-grey"></span> Not started</div>
+      <div class="service-card">
+        <div class="service-dot live"></div>
+        <span class="service-name">macOS Reminders.app</span>
+      </div>
+      <div class="service-card">
+        <div class="service-dot live"></div>
+        <span class="service-name">Gmail (IMAP/SMTP)</span>
+      </div>
+      <div class="service-card">
+        <div class="service-dot live"></div>
+        <span class="service-name">GitHub</span>
+      </div>
+      <div class="service-card">
+        <div class="service-dot live"></div>
+        <span class="service-name">Telegram Bot API</span>
+      </div>
+      <div class="service-card">
+        <div class="service-dot planned"></div>
+        <span class="service-name planned">Google Calendar (planned)</span>
       </div>
     </div>
   </div>
+</section>
 
-</div>
+<!-- ═══════════════════════════════════════════
+     PROGRESS
+     ═══════════════════════════════════════════ -->
+<section class="progress-section" id="progress">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">OpenClaw Implementation</div>
+      <div class="progress-header">
+        <span class="progress-pct font-drama" id="progressPct">0</span>
+        <h2 class="section-title font-heading" style="font-size: clamp(1.25rem, 2vw, 1.75rem);">of the original plan <span class="drama font-drama">complete.</span></h2>
+      </div>
+    </div>
+
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <div class="progress-grid">
+      <div class="progress-item"><div class="progress-dot done"></div> Memory System (file-based)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Personality Injection (SOUL.md)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Session Continuity</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Gmail Integration (CLI + Telegram)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Voice Mode (bonus)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Agent System (bonus, 9 agents)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Heartbeat (Telegram)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Telegram Bot Adapter</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Shared Workflows (daily review)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Portable Paths (auto-detected)</div>
+      <div class="progress-item"><div class="progress-dot not-started"></div> Calendar Integration (not started)</div>
+      <div class="progress-item"><div class="progress-dot not-started"></div> Hybrid Search (correctly deferred)</div>
+    </div>
+
+    <div class="progress-legend">
+      <div class="legend-item"><div class="legend-dot" style="background: var(--green);"></div> Done</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--orange);"></div> Partial</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--pink);"></div> Blocked</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--text-muted); opacity: 0.4;"></div> Not started</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand font-heading">AAGLOBAL</div>
+      <div class="footer-tagline">Troy Outtram's agentic development environment</div>
+    </div>
+    <div class="footer-status">
+      <div class="footer-status-dot"></div>
+      <span class="footer-status-text font-mono">System Operational</span>
+    </div>
+  </div>
+  <div class="footer-date font-mono">Last updated: 22 Feb 2026</div>
+</footer>
+
+<!-- ═══════════════════════════════════════════
+     GSAP ANIMATIONS
+     ═══════════════════════════════════════════ -->
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  const ctx = gsap.context(() => {
+
+    // ── Navbar morph ──
+    ScrollTrigger.create({
+      trigger: '#hero',
+      start: 'bottom 80px',
+      onEnter: () => document.getElementById('navbar').classList.add('scrolled'),
+      onLeaveBack: () => document.getElementById('navbar').classList.remove('scrolled'),
+    });
+
+    // ── Hero staggered entrance ──
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 1 } });
+    heroTl
+      .to('.hero-label',       { opacity: 1, y: 0, duration: 0.8 }, 0.2)
+      .to('.hero-title-line1', { opacity: 1, y: 0 }, 0.4)
+      .to('.hero-title-line2', { opacity: 1, y: 0 }, 0.6)
+      .to('.hero-sub',         { opacity: 1, y: 0 }, 0.8)
+      .to('.hero-meta',        { opacity: 1, y: 0 }, 1.0);
+
+    // Set initial hero states
+    gsap.set(['.hero-label', '.hero-title-line1', '.hero-title-line2', '.hero-sub', '.hero-meta'], {
+      y: 40
+    });
+
+    // ── Entry cards stagger ──
+    gsap.to('.entry-card', {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.entry-grid',
+        start: 'top 80%',
+      }
+    });
+
+    // ── System cards fade in ──
+    gsap.utils.toArray('.system-card').forEach((card) => {
+      gsap.from(card, {
+        opacity: 0,
+        y: 60,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 80%',
+        }
+      });
+    });
+
+    // ── Brain manifesto statements ──
+    gsap.to('.brain-statement', {
+      opacity: 1,
+      y: 0,
+      duration: 1,
+      stagger: 0.3,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.brain-section',
+        start: 'top 60%',
+      }
+    });
+
+    // ── Brain grid items ──
+    gsap.to('.brain-item', {
+      opacity: 1,
+      y: 0,
+      duration: 0.7,
+      stagger: 0.1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.brain-grid',
+        start: 'top 80%',
+      }
+    });
+
+    // ── Service cards ──
+    gsap.to('.service-card', {
+      opacity: 1,
+      y: 0,
+      duration: 0.7,
+      stagger: 0.1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.services-grid',
+        start: 'top 80%',
+      }
+    });
+
+    // ── Progress items stagger ──
+    gsap.to('.progress-item', {
+      opacity: 1,
+      x: 0,
+      duration: 0.5,
+      stagger: 0.06,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.progress-grid',
+        start: 'top 80%',
+      }
+    });
+
+    // ── Progress bar fill ──
+    ScrollTrigger.create({
+      trigger: '.progress-bar-track',
+      start: 'top 80%',
+      onEnter: () => {
+        document.getElementById('progressBar').style.width = '85%';
+
+        // Animate counter
+        const target = { val: 0 };
+        gsap.to(target, {
+          val: 85,
+          duration: 1.5,
+          ease: 'power2.out',
+          onUpdate: () => {
+            document.getElementById('progressPct').textContent = '~' + Math.round(target.val) + '%';
+          }
+        });
+      },
+      once: true
+    });
+
+    // ── Parallax on brain texture ──
+    gsap.to('.brain-texture', {
+      yPercent: 20,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.brain-section',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true,
+      }
+    });
+
+  });
+</script>
 
 </body>
 </html>
