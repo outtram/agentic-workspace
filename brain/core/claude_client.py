@@ -85,11 +85,16 @@ def _get_ca_certs() -> str:
     return _ca_certs_path
 
 
-def _run_claude(cmd: list[str], env: dict) -> tuple[str, str, int]:
-    """Run claude CLI synchronously. Called from a thread."""
+def _run_claude(cmd: list[str], env: dict, stdin_text: str = "") -> tuple[str, str, int]:
+    """Run claude CLI synchronously. Called from a thread.
+
+    Pipes the prompt via stdin because some claude CLI versions hang
+    when the prompt is passed as a positional argument.
+    """
     result = subprocess.run(
         cmd,
-        stdin=subprocess.DEVNULL,
+        input=stdin_text.encode("utf-8") if stdin_text else None,
+        stdin=subprocess.DEVNULL if not stdin_text else subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
@@ -136,8 +141,8 @@ class ClaudeClient:
         if system_prompt:
             cmd.extend(["--system-prompt", system_prompt])
 
-        # Prompt as positional argument
-        cmd.append(prompt)
+        # Pipe prompt via stdin (positional arg hangs on some CLI versions)
+        stdin_text = prompt
 
         # Clean environment for nested invocation
         env = {**os.environ}
@@ -160,7 +165,7 @@ class ClaudeClient:
             stdout_text, stderr_text, rc = await asyncio.wait_for(
                 loop.run_in_executor(
                     None,
-                    functools.partial(_run_claude, cmd, env),
+                    functools.partial(_run_claude, cmd, env, stdin_text),
                 ),
                 timeout=190,  # Slightly above subprocess.run's 180s
             )
