@@ -93,8 +93,7 @@ def _run_claude(cmd: list[str], env: dict, stdin_text: str = "") -> tuple[str, s
     """
     result = subprocess.run(
         cmd,
-        input=stdin_text.encode("utf-8") if stdin_text else None,
-        stdin=subprocess.DEVNULL if not stdin_text else subprocess.PIPE,
+        input=stdin_text.encode("utf-8"),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
