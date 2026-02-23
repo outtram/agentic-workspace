@@ -58,3 +58,6 @@ brain/whatsapp/node_modules/
 brain/whatsapp/dist/
 brain/.env
 **/__pycache__/
+
+# IDE
+.windsurf/
