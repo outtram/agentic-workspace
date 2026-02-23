@@ -5,6 +5,8 @@ Usage:
   python brain/chat.py --voice  # Voice chat (speak + listen)
 """
 
+from __future__ import annotations
+
 import asyncio
 import sys
 import uuid
@@ -14,7 +16,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from brain.core.claude_client import ClaudeClient, CHAT_MODEL
+from brain.core.claude_client import ClaudeClient, _chat_model
 from brain.core.config import Config
 from brain.core.usage import UsageTracker
 from brain.core.db import Database
@@ -394,7 +396,7 @@ class OutBotCLI:
             print(_row("ENTER = record, ENTER = stop"))
         else:
             print(_row("OutBot Terminal Chat"))
-        print(_row(f"Model: {CHAT_MODEL}"))
+        print(_row(f"Model: {_chat_model()}"))
         email_addr = self._outbox.from_address if self._outbox else None
         if email_addr:
             print(_row(f"Email: {email_addr}"))

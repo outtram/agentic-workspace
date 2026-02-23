@@ -7,22 +7,22 @@ import pytest
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
-from brain.core.claude_client import ClaudeClient, CHAT_MODEL, JUDGE_MODEL
+from brain.core.claude_client import ClaudeClient, _chat_model, _judge_model
 
 
 class TestClaudeClient:
     def test_default_model(self):
         client = ClaudeClient()
-        assert client.model == CHAT_MODEL
+        assert client.model == _chat_model()
 
     def test_custom_model(self):
         client = ClaudeClient(model="haiku")
         assert client.model == "haiku"
 
     def test_model_constants(self):
-        # Both configurable via env vars, defaults: opus (chat), sonnet (judge)
-        assert CHAT_MODEL in ("opus", "sonnet", "haiku")
-        assert JUDGE_MODEL in ("opus", "sonnet", "haiku")
+        # Both configurable via env vars, defaults: sonnet (chat), haiku (judge)
+        assert _chat_model() in ("opus", "sonnet", "haiku")
+        assert _judge_model() in ("opus", "sonnet", "haiku")
 
 
 class TestClaudeClientLive:
