@@ -64,6 +64,31 @@ WHISPER_MODEL = os.environ.get("OUTBOT_WHISPER_MODEL", "base")  # tiny/base/smal
 SAMPLE_RATE = 16000
 # ────────────────────────────────────────────────────────
 
+
+def _find_input_device() -> int | None:
+    """Find a working input device since the default is often -1 with virtual audio drivers."""
+    # Prefer device set by env var
+    env_dev = os.environ.get("OUTBOT_INPUT_DEVICE")
+    if env_dev is not None:
+        return int(env_dev)
+
+    # Check if the default works
+    if sd.default.device[0] >= 0:
+        return None  # None = use sounddevice default
+
+    # Auto-detect: prefer the built-in MacBook mic
+    devices = sd.query_devices()
+    for i, d in enumerate(devices):
+        if d["max_input_channels"] > 0 and "macbook" in d["name"].lower():
+            return i
+
+    # Fall back to any device with input channels
+    for i, d in enumerate(devices):
+        if d["max_input_channels"] > 0:
+            return i
+
+    return None
+
 # Lazy-loaded Whisper model
 _whisper: WhisperModel | None = None
 
@@ -102,11 +127,13 @@ def record() -> np.ndarray | None:
         frames.append(indata.copy())
 
     try:
+        device = _find_input_device()
         stream = sd.InputStream(
             samplerate=SAMPLE_RATE,
             channels=1,
             dtype="int16",
             callback=callback,
+            device=device,
         )
         stream.start()
         input()  # Block until Enter
@@ -120,7 +147,13 @@ def record() -> np.ndarray | None:
     if not frames:
         return None
 
-    return np.concatenate(frames)
+    audio = np.concatenate(frames)
+    peak = np.max(np.abs(audio))
+    duration = len(audio) / SAMPLE_RATE
+    print(f"  [{duration:.1f}s recorded, peak volume: {peak}]")
+    if peak < 100:
+        print("  [Warning: very quiet — check mic is not muted]")
+    return audio
 
 
 def audio_to_wav_bytes(audio: np.ndarray) -> bytes:
@@ -143,9 +176,12 @@ def transcribe(audio: np.ndarray) -> str | None:
     try:
         tmp.write(wav_data)
         tmp.close()
-        segments, _ = model.transcribe(tmp.name, language="en", beam_size=5)
+        segments, info = model.transcribe(tmp.name, language="en", beam_size=5)
         text = " ".join(seg.text.strip() for seg in segments)
-        return text.strip() or None
+        result = text.strip()
+        if not result:
+            print(f"\n  [Whisper returned empty — duration={info.duration:.1f}s]")
+        return result or None
     except Exception as e:
         print(f"\n  [Whisper error: {e}]")
         return None
