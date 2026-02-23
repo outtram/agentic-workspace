@@ -112,11 +112,15 @@ class TelegramBot:
         return data.get("result", {})
 
     async def _poll_loop(self) -> None:
-        """Long-poll for updates from Telegram."""
+        """Long-poll for updates from Telegram with exponential backoff."""
         logger.info("Telegram polling started")
+        backoff = 0.0
+        _MAX_BACKOFF = 120.0
+
         while self._running:
             try:
                 updates = await self._get_updates()
+                backoff = 0.0  # reset on success
                 for update in updates:
                     self._offset = update["update_id"] + 1
                     self._handle_update(update)
@@ -124,9 +128,14 @@ class TelegramBot:
                 raise
             except httpx.ReadTimeout:
                 continue
+            except (httpx.ConnectError, httpx.ConnectTimeout, OSError) as e:
+                backoff = min(max(backoff * 2, 5.0), _MAX_BACKOFF)
+                logger.warning("Network error (%s), retrying in %.0fs", type(e).__name__, backoff)
+                await asyncio.sleep(backoff)
             except Exception:
-                logger.exception("Telegram poll error, retrying in 5s")
-                await asyncio.sleep(5)
+                backoff = min(max(backoff * 2, 5.0), _MAX_BACKOFF)
+                logger.exception("Telegram poll error, retrying in %.0fs", backoff)
+                await asyncio.sleep(backoff)
 
     async def _get_updates(self) -> list[dict]:
         """Fetch updates using long-polling."""

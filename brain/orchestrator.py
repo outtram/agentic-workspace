@@ -25,6 +25,7 @@ from brain.mail.outbox import Outbox
 from brain.personality.formatter import format_outbound
 from brain.personality.loader import PersonalityLoader
 from brain.session.context import format_catchup_summary
+from brain.session.conversation_log import ConversationLogger
 from brain.session.manager import SessionManager
 from brain.telegram.bot import TelegramBot, TelegramConfig
 
@@ -47,6 +48,7 @@ class Orchestrator:
         self.scheduler = HeartbeatScheduler(config, self.db, self.event_bus)
         self.claude = ClaudeClient()
         self.judge = ImportanceJudge(self.claude)
+        self.convo_log = ConversationLogger()
         self._last_agent_ts: dict[str, str] = {}
 
         self._inbox: Inbox | None = None
@@ -186,11 +188,27 @@ class Orchestrator:
         }
         return any(phrase in lowered for phrase in phrases)
 
+    def _build_conversation_history(self, chat_id: str, current_msg: Message) -> str:
+        """Build multi-turn context from recent messages stored in the DB."""
+        recent = self.db.get_recent_messages(chat_id, limit=20)
+        if len(recent) <= 1:
+            return ""
+
+        lines = ["<conversation_history>"]
+        for m in recent:
+            role = "assistant" if m.is_from_me else "user"
+            name = m.sender_name if not m.is_from_me else "OutBot"
+            snippet = m.content[:500]
+            lines.append(f'<msg role="{role}" from="{name}">{snippet}</msg>')
+        lines.append("</conversation_history>")
+        return "\n".join(lines)
+
     async def _handle_message(self, msg: Message) -> None:
         """Process an incoming message through the full pipeline."""
         chat_id = msg.chat_jid
         logger.info("Message from %s: %s", msg.sender_name, msg.content[:80])
 
+        t0 = self.convo_log.log_incoming(chat_id, msg.sender_name, msg.content)
         self.db.store_message(msg)
 
         await self.telegram.set_typing(chat_id)
@@ -198,11 +216,8 @@ class Orchestrator:
         try:
             session = self.sessions.get_or_create_session(chat_id)
 
-            since = self._last_agent_ts.get(chat_id, "")
-            missed = self.db.get_messages_since(chat_id, since) if since else [msg]
-            catchup = format_catchup_summary(missed)
+            history = self._build_conversation_history(chat_id, msg)
 
-            # Run daily review if triggered
             review_context = ""
             if self._is_daily_review(msg.content):
                 try:
@@ -212,7 +227,6 @@ class Orchestrator:
                     review_context = f"\n\n[Daily review failed: {e}]"
                     logger.error("Daily review failed: %s", e)
 
-            # Handle email intents
             email_context = ""
             if not review_context and self._is_email_check(msg.content):
                 email_context = await self._fetch_emails(msg.content)
@@ -237,7 +251,10 @@ class Orchestrator:
                 f"{email_status}"
             )
 
-            user_content = catchup if catchup else msg.content
+            user_content = ""
+            if history:
+                user_content += f"{history}\n\n"
+            user_content += msg.content
             if review_context:
                 user_content += review_context
             if email_context:
@@ -248,6 +265,8 @@ class Orchestrator:
                 system_prompt=system_prompt,
             )
 
+            latency = time.monotonic() - t0
+
             is_group = self._is_group_chat(msg)
             formatted = format_outbound(reply_text, channel="telegram", in_group=is_group)
 
@@ -256,11 +275,47 @@ class Orchestrator:
                 self.event_bus.publish(
                     MessageSent(chat_jid=chat_id, content=formatted)
                 )
+                self.convo_log.log_outgoing(
+                    chat_id, formatted,
+                    model=self.claude.model, latency_s=latency,
+                )
+
+                bot_msg = Message(
+                    id=f"bot-{msg.id}",
+                    chat_jid=chat_id,
+                    sender="outbot",
+                    sender_name="OutBot",
+                    content=formatted,
+                    timestamp=msg.timestamp,
+                    is_from_me=True,
+                )
+                self.db.store_message(bot_msg)
 
             self._last_agent_ts[chat_id] = msg.timestamp
 
-        except Exception:
+        except RuntimeError as e:
             logger.exception("Failed to handle message from %s", msg.sender_name)
+            self.convo_log.log_error(chat_id, str(e), msg.sender_name)
+            error_hint = str(e)
+            if "timed out" in error_hint.lower():
+                user_msg = "Sorry mate, Claude took too long to respond. Try a simpler question or try again in a moment."
+            else:
+                user_msg = f"Something went wrong: {error_hint}"
+            try:
+                await self.telegram.send_message(chat_id, user_msg, parse_mode="")
+            except Exception:
+                logger.error("Could not send error message to Telegram")
+        except Exception as exc:
+            logger.exception("Failed to handle message from %s", msg.sender_name)
+            self.convo_log.log_error(chat_id, str(exc), msg.sender_name)
+            try:
+                await self.telegram.send_message(
+                    chat_id,
+                    "Hit an unexpected error processing your message. Check the logs.",
+                    parse_mode="",
+                )
+            except Exception:
+                logger.error("Could not send error message to Telegram")
 
     def _is_group_chat(self, msg: Message) -> bool:
         """Detect if a message is from a group chat.

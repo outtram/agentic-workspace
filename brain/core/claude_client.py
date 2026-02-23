@@ -18,11 +18,15 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Default model for chat responses — override with OUTBOT_CHAT_MODEL env var
-# Options: "opus" (smartest), "sonnet" (balanced), "haiku" (fastest/cheapest)
-CHAT_MODEL = os.environ.get("OUTBOT_CHAT_MODEL", "opus")
-# Model for background tasks (memory, judging, summaries) — override with OUTBOT_JUDGE_MODEL
-JUDGE_MODEL = os.environ.get("OUTBOT_JUDGE_MODEL", "sonnet")
+
+def _chat_model() -> str:
+    """Resolve chat model lazily so load_dotenv() has run by call-time."""
+    return os.environ.get("OUTBOT_CHAT_MODEL", "sonnet")
+
+
+def _judge_model() -> str:
+    """Resolve judge model lazily so load_dotenv() has run by call-time."""
+    return os.environ.get("OUTBOT_JUDGE_MODEL", "haiku")
 
 # Cached path to combined CA certs (for corporate proxies)
 _ca_certs_path: str | None = None
@@ -109,11 +113,12 @@ def _run_claude(cmd: list[str], env: dict, stdin_text: str = "") -> tuple[str, s
 class ClaudeClient:
     """Wrapper around `claude --print` CLI for LLM calls."""
 
-    def __init__(self, model: str = CHAT_MODEL) -> None:
-        self.model = model
+    def __init__(self, model: str | None = None) -> None:
+        self.model = model or _chat_model()
         self._claude_path = _find_claude()
         self._usage_tracker = None
-        logger.debug("Claude CLI path: %s", self._claude_path)
+        logger.info("ClaudeClient init: model=%s, judge=%s, path=%s",
+                     self.model, _judge_model(), self._claude_path)
 
     def set_usage_tracker(self, tracker):
         """Attach a UsageTracker to record token consumption."""
@@ -207,5 +212,5 @@ class ClaudeClient:
         return await self.ask(
             prompt=prompt,
             system_prompt=system_prompt,
-            model=JUDGE_MODEL,
+            model=_judge_model(),
         )

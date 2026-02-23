@@ -102,6 +102,28 @@ class Database:
             for r in rows
         ]
 
+    def get_recent_messages(
+        self, chat_jid: str, limit: int = 20
+    ) -> list[Message]:
+        """Get the most recent messages for a chat, ordered oldest-first."""
+        rows = self._conn.execute(
+            """SELECT id, chat_jid, sender, sender_name, content, timestamp, is_from_me
+               FROM messages
+               WHERE chat_jid = ?
+               ORDER BY timestamp DESC
+               LIMIT ?""",
+            (chat_jid, limit),
+        ).fetchall()
+        msgs = [
+            Message(
+                id=r[0], chat_jid=r[1], sender=r[2], sender_name=r[3],
+                content=r[4], timestamp=r[5], is_from_me=bool(r[6]),
+            )
+            for r in rows
+        ]
+        msgs.reverse()
+        return msgs
+
     # -- Sessions --
 
     def get_session(self, chat_jid: str) -> Optional[Session]:
