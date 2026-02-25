@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:29.596034'
+last_synced: '2026-02-25T21:07:32.174301'
 entries:
   OUT-223:
     title: Fire place fix
@@ -139,7 +139,7 @@ entries:
     title: Paint brackets
     file: OUT-287-paint-brackets.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://A579C54A-E7FE-4A48-A1C0-42D934E6CB74
   OUT-288:
