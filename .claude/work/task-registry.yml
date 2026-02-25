@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:47.434216'
+last_synced: '2026-02-25T21:07:49.710571'
 entries:
   OUT-223:
     title: Fire place fix
@@ -202,7 +202,7 @@ entries:
     title: Car board ends
     file: OUT-296-car-board-ends.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://797837AB-C1A2-48DC-9A16-B6DC466A5571
   OUT-297:
