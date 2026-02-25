@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:32.174301'
+last_synced: '2026-02-25T21:07:34.506988'
 entries:
   OUT-223:
     title: Fire place fix
@@ -146,7 +146,7 @@ entries:
     title: Swap laptop
     file: OUT-288-swap-laptop.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://E66B737D-7676-434E-A39C-5827D1C6E8FE
   OUT-289:
