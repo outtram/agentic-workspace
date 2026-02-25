@@ -1,0 +1,311 @@
+{
+  "brands": {
+    "economist": {
+      "name": "The Economist",
+      "description": "Iconic editorial style with signature red and serif typography. Perfect for reports, analysis, and thought leadership.",
+      "category": "editorial",
+      "colors": {
+        "primary": "#E3120B",
+        "accent": "#1F2E7A",
+        "background": "#FFFFFF",
+        "textPrimary": "#0D0D0D",
+        "textSecondary": "#666666"
+      },
+      "typography": {
+        "headingFont": "Georgia",
+        "bodyFont": "Georgia",
+        "headingWeight": "bold",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 28, "color": "#E3120B", "bold": true},
+        "h2": {"size": 18, "color": "#1F2E7A", "bold": true},
+        "h3": {"size": 13, "color": "#0D0D0D", "bold": true},
+        "body": {"size": 11, "color": "#0D0D0D"},
+        "caption": {"size": 9, "color": "#666666", "italic": true}
+      },
+      "elements": {
+        "borderRadius": 0,
+        "tableStyle": "minimal",
+        "accentUse": "headers_only"
+      }
+    },
+    "mckinsey": {
+      "name": "McKinsey & Company",
+      "description": "Premium consulting aesthetic with sharp corners and bold blue accents. Ideal for strategy decks and executive summaries.",
+      "category": "consulting",
+      "colors": {
+        "primary": "#2251FF",
+        "accent": "#051C2C",
+        "background": "#FFFFFF",
+        "textPrimary": "#051C2C",
+        "textSecondary": "#666666"
+      },
+      "typography": {
+        "headingFont": "Georgia",
+        "bodyFont": "Calibri",
+        "headingWeight": "bold",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 52, "color": "#051C2C", "bold": true},
+        "h2": {"size": 32, "color": "#051C2C", "bold": true},
+        "h3": {"size": 20, "color": "#051C2C", "bold": true},
+        "body": {"size": 11, "color": "#051C2C"},
+        "caption": {"size": 9, "color": "#666666"}
+      },
+      "elements": {
+        "borderRadius": 0,
+        "tableStyle": "clean_lines",
+        "accentUse": "cta_and_highlights"
+      }
+    },
+    "deloitte": {
+      "name": "Deloitte",
+      "description": "Modern professional with teal-blue accents and pill-shaped elements. Great for audits, assessments, and formal reports.",
+      "category": "consulting",
+      "colors": {
+        "primary": "#007CB0",
+        "accent": "#0076A8",
+        "background": "#FFFFFF",
+        "textPrimary": "#000000",
+        "textSecondary": "#666666"
+      },
+      "typography": {
+        "headingFont": "Calibri",
+        "bodyFont": "Calibri",
+        "headingWeight": "bold",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 40, "color": "#007CB0", "bold": true},
+        "h2": {"size": 28, "color": "#007CB0", "bold": true},
+        "h3": {"size": 16, "color": "#000000", "bold": true},
+        "body": {"size": 11, "color": "#000000"},
+        "caption": {"size": 9, "color": "#666666"}
+      },
+      "elements": {
+        "borderRadius": 8,
+        "tableStyle": "rounded",
+        "accentUse": "headers_and_callouts"
+      }
+    },
+    "kpmg": {
+      "name": "KPMG",
+      "description": "Bold corporate style with two-tone blue palette and condensed headings. Suitable for financial reports and compliance docs.",
+      "category": "consulting",
+      "colors": {
+        "primary": "#005EB8",
+        "accent": "#00338D",
+        "background": "#FFFFFF",
+        "textPrimary": "#00338D",
+        "textSecondary": "#666666"
+      },
+      "typography": {
+        "headingFont": "Calibri",
+        "bodyFont": "Calibri",
+        "headingWeight": "bold",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 42, "color": "#00338D", "bold": true},
+        "h2": {"size": 38, "color": "#00338D", "bold": true},
+        "h3": {"size": 16, "color": "#00338D", "bold": true},
+        "body": {"size": 11, "color": "#00338D"},
+        "caption": {"size": 9, "color": "#666666"}
+      },
+      "elements": {
+        "borderRadius": 3,
+        "tableStyle": "rounded_modern",
+        "accentUse": "buttons_and_badges"
+      }
+    },
+    "stripe": {
+      "name": "Stripe",
+      "description": "Tech-forward with dark blue and purple gradients. Perfect for API docs, developer guides, and product specs.",
+      "category": "tech",
+      "colors": {
+        "primary": "#0A2540",
+        "accent": "#635BFF",
+        "background": "#FFFFFF",
+        "textPrimary": "#0A2540",
+        "textSecondary": "#3F4B66"
+      },
+      "typography": {
+        "headingFont": "Arial",
+        "bodyFont": "Arial",
+        "headingWeight": "medium",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 32, "color": "#0A2540", "bold": true},
+        "h2": {"size": 24, "color": "#0A2540", "bold": true},
+        "h3": {"size": 16, "color": "#0A2540", "bold": true},
+        "body": {"size": 11, "color": "#0A2540"},
+        "caption": {"size": 9, "color": "#3F4B66"}
+      },
+      "elements": {
+        "borderRadius": 16,
+        "tableStyle": "subtle_shadow",
+        "accentUse": "code_and_highlights"
+      }
+    },
+    "apple": {
+      "name": "Apple",
+      "description": "Minimalist premium with SF Pro typography and generous whitespace. Ideal for product docs and user guides.",
+      "category": "tech",
+      "colors": {
+        "primary": "#0071E3",
+        "accent": "#0066CC",
+        "background": "#FFFFFF",
+        "textPrimary": "#1D1D1F",
+        "textSecondary": "#86868B"
+      },
+      "typography": {
+        "headingFont": "Arial",
+        "bodyFont": "Arial",
+        "headingWeight": "medium",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 32, "color": "#1D1D1F", "bold": false},
+        "h2": {"size": 24, "color": "#1D1D1F", "bold": false},
+        "h3": {"size": 16, "color": "#1D1D1F", "bold": true},
+        "body": {"size": 12, "color": "#1D1D1F"},
+        "caption": {"size": 10, "color": "#86868B"}
+      },
+      "elements": {
+        "borderRadius": 12,
+        "tableStyle": "minimal_clean",
+        "accentUse": "links_only"
+      }
+    },
+    "ibm": {
+      "name": "IBM",
+      "description": "Enterprise authority with Plex typography and Carbon design. Best for technical documentation and enterprise reports.",
+      "category": "tech",
+      "colors": {
+        "primary": "#0F62FE",
+        "accent": "#161616",
+        "background": "#FFFFFF",
+        "textPrimary": "#161616",
+        "textSecondary": "#525252"
+      },
+      "typography": {
+        "headingFont": "Arial",
+        "bodyFont": "Arial",
+        "headingWeight": "bold",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 36, "color": "#161616", "bold": true},
+        "h2": {"size": 28, "color": "#161616", "bold": true},
+        "h3": {"size": 18, "color": "#161616", "bold": true},
+        "body": {"size": 12, "color": "#161616"},
+        "caption": {"size": 10, "color": "#525252"}
+      },
+      "elements": {
+        "borderRadius": 0,
+        "tableStyle": "grid",
+        "accentUse": "cta_primary"
+      }
+    },
+    "notion": {
+      "name": "Notion",
+      "description": "Clean productivity aesthetic with Inter font and subtle blue accents. Perfect for wikis, docs, and project plans.",
+      "category": "productivity",
+      "colors": {
+        "primary": "#2383E2",
+        "accent": "#0075DE",
+        "background": "#FFFFFF",
+        "textPrimary": "#191918",
+        "textSecondary": "#6B6B6B"
+      },
+      "typography": {
+        "headingFont": "Segoe UI",
+        "bodyFont": "Segoe UI",
+        "headingWeight": "bold",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 48, "color": "#191918", "bold": true},
+        "h2": {"size": 32, "color": "#191918", "bold": true},
+        "h3": {"size": 20, "color": "#191918", "bold": true},
+        "body": {"size": 12, "color": "#191918"},
+        "caption": {"size": 10, "color": "#6B6B6B"}
+      },
+      "elements": {
+        "borderRadius": 5,
+        "tableStyle": "block_based",
+        "accentUse": "callouts_and_links"
+      }
+    },
+    "linear": {
+      "name": "Linear",
+      "description": "Ultra-modern dark aesthetic with purple accents. Great for product specs, changelogs, and dev documentation.",
+      "category": "tech",
+      "colors": {
+        "primary": "#5E6AD2",
+        "accent": "#A1A7C1",
+        "background": "#FFFFFF",
+        "textPrimary": "#1A1A1A",
+        "textSecondary": "#6B6B6B"
+      },
+      "typography": {
+        "headingFont": "Arial",
+        "bodyFont": "Arial",
+        "headingWeight": "medium",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 32, "color": "#1A1A1A", "bold": true},
+        "h2": {"size": 24, "color": "#1A1A1A", "bold": true},
+        "h3": {"size": 16, "color": "#1A1A1A", "bold": true},
+        "body": {"size": 11, "color": "#1A1A1A"},
+        "caption": {"size": 9, "color": "#6B6B6B"}
+      },
+      "elements": {
+        "borderRadius": 8,
+        "tableStyle": "modern_subtle",
+        "accentUse": "badges_and_status"
+      }
+    },
+    "figma": {
+      "name": "Figma",
+      "description": "Design-forward with vibrant multi-color palette. Ideal for creative briefs, design docs, and brand guidelines.",
+      "category": "design",
+      "colors": {
+        "primary": "#A259FF",
+        "accent": "#FF7262",
+        "background": "#FFFFFF",
+        "textPrimary": "#1E1E1E",
+        "textSecondary": "#6B6B6B"
+      },
+      "typography": {
+        "headingFont": "Arial",
+        "bodyFont": "Arial",
+        "headingWeight": "bold",
+        "bodyWeight": "normal"
+      },
+      "styles": {
+        "h1": {"size": 36, "color": "#A259FF", "bold": true},
+        "h2": {"size": 26, "color": "#1ABCFE", "bold": true},
+        "h3": {"size": 16, "color": "#0ACF83", "bold": true},
+        "body": {"size": 11, "color": "#1E1E1E"},
+        "caption": {"size": 10, "color": "#6B6B6B"}
+      },
+      "elements": {
+        "borderRadius": 8,
+        "tableStyle": "colorful",
+        "accentUse": "highlights_and_dividers"
+      }
+    }
+  },
+  "categories": {
+    "editorial": ["economist"],
+    "consulting": ["mckinsey", "deloitte", "kpmg"],
+    "tech": ["stripe", "apple", "ibm", "linear"],
+    "productivity": ["notion"],
+    "design": ["figma"]
+  }
+}
