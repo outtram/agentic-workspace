@@ -47,7 +47,84 @@ def extract_frontmatter(file_path):
 
 
 def scan_work_items():
-    """Scan all work items (tasks and bugs not in done/)"""
+    """Scan all work items. Uses registry if available, falls back to file scan."""
+    registry_path = WORK_DIR / "task-registry.yml"
+
+    if registry_path.exists():
+        return _scan_from_registry(registry_path)
+    else:
+        return _scan_from_files()
+
+
+def _build_task(file_path, frontmatter):
+    """Build a task dict from frontmatter. Returns (quadrant, task) or None."""
+    quadrant = frontmatter.get('eisenhower_quadrant', '')
+    if not quadrant or quadrant not in ['q1', 'q2', 'q3', 'q4']:
+        print(f"⚠️  Skipping {file_path.name} - no valid quadrant")
+        return None
+
+    task = {
+        "id": frontmatter.get('id', ''),
+        "title": frontmatter.get('title', ''),
+        "status": frontmatter.get('status', ''),
+        "priority": frontmatter.get('priority', ''),
+        "due_date": frontmatter.get('due_date', ''),
+        "source": frontmatter.get('source', 'manual'),
+        "reminder_list": frontmatter.get('reminder_list', ''),
+        "file_path": str(file_path.relative_to(WORK_DIR.parent)),
+        "description": frontmatter.get('description', ''),
+        "eisenhower_urgent": frontmatter.get('eisenhower_urgent', '') == 'true',
+        "eisenhower_important": frontmatter.get('eisenhower_important', '') == 'true',
+        "auto_classified": False
+    }
+
+    return quadrant, task
+
+
+def _scan_from_registry(registry_path):
+    """Read task list from registry, then load full details from files."""
+    import yaml
+    with open(registry_path) as f:
+        registry = yaml.safe_load(f)
+
+    tasks = {"q1": [], "q2": [], "q3": [], "q4": []}
+    entries = registry.get("entries", {})
+    task_dir = WORK_DIR / "tasks"
+    bug_dir = WORK_DIR / "bugs"
+
+    print(f"📂 Scanning {len(entries)} work items from registry...")
+
+    for out_id, entry in entries.items():
+        filename = entry.get("file", "")
+        if not filename:
+            continue
+
+        # Look in tasks/ first, then bugs/
+        file_path = task_dir / filename
+        if not file_path.exists():
+            file_path = bug_dir / filename
+        if not file_path.exists():
+            continue
+
+        # Skip done items (check both registry status and done/ directory)
+        reg_status = entry.get("status", "")
+        if reg_status == "done" or '/done/' in str(file_path):
+            continue
+
+        frontmatter = extract_frontmatter(file_path)
+        if not frontmatter:
+            continue
+
+        result = _build_task(file_path, frontmatter)
+        if result:
+            quadrant, task = result
+            tasks[quadrant].append(task)
+
+    return tasks
+
+
+def _scan_from_files():
+    """Original file-scan approach as fallback."""
     tasks = {"q1": [], "q2": [], "q3": [], "q4": []}
 
     # Scan tasks
@@ -57,7 +134,7 @@ def scan_work_items():
     if (WORK_DIR / "bugs").exists():
         task_files.extend(list((WORK_DIR / "bugs").glob("OUT-*.md")))
 
-    print(f"📂 Scanning {len(task_files)} work items...")
+    print(f"📂 Scanning {len(task_files)} work items (no registry)...")
 
     for file_path in task_files:
         # Skip done items
@@ -68,28 +145,10 @@ def scan_work_items():
         if not frontmatter:
             continue
 
-        quadrant = frontmatter.get('eisenhower_quadrant', '')
-        if not quadrant or quadrant not in ['q1', 'q2', 'q3', 'q4']:
-            print(f"⚠️  Skipping {file_path.name} - no valid quadrant")
-            continue
-
-        # Build task object
-        task = {
-            "id": frontmatter.get('id', ''),
-            "title": frontmatter.get('title', ''),
-            "status": frontmatter.get('status', ''),
-            "priority": frontmatter.get('priority', ''),
-            "due_date": frontmatter.get('due_date', ''),
-            "source": frontmatter.get('source', 'manual'),
-            "reminder_list": frontmatter.get('reminder_list', ''),
-            "file_path": str(file_path.relative_to(WORK_DIR.parent)),
-            "description": frontmatter.get('description', ''),
-            "eisenhower_urgent": frontmatter.get('eisenhower_urgent', '') == 'true',
-            "eisenhower_important": frontmatter.get('eisenhower_important', '') == 'true',
-            "auto_classified": False  # Could add logic to detect auto-classification
-        }
-
-        tasks[quadrant].append(task)
+        result = _build_task(file_path, frontmatter)
+        if result:
+            quadrant, task = result
+            tasks[quadrant].append(task)
 
     return tasks
 
