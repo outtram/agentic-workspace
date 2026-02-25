@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eisenhower Matrix - Feb 25, 2026</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-task: #f1f5f9;
+            --bg-task-hover: #e2e8f0;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --badge-bg: #e2e8f0;
+            --badge-text: #334155;
+            --code-bg: #f1f5f9;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-task: #334155;
+            --bg-task-hover: #475569;
+            --text: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border: #334155;
+            --badge-bg: #334155;
+            --badge-text: #cbd5e1;
+            --code-bg: #1e293b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 24px;
+            line-height: 1.5;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 28px;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+
+        .total-count {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: var(--bg-task);
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            background: var(--bg-task-hover);
+        }
+
+        .btn.active {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .btn-toggle {
+            margin-left: auto;
+        }
+
+        /* Grid */
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .matrix { grid-template-columns: 1fr; }
+            body { padding: 16px; }
+        }
+
+        /* Quadrant */
+        .quadrant {
+            min-height: 300px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            background: var(--bg-card);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .quadrant.q1 { border-left: 5px solid #ef4444; }
+        .quadrant.q2 { border-left: 5px solid #3b82f6; }
+        .quadrant.q3 { border-left: 5px solid #f59e0b; }
+        .quadrant.q4 { border-left: 5px solid #6b7280; }
+
+        .quadrant-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .quadrant-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        .quadrant.q1 .quadrant-title { color: #ef4444; }
+        .quadrant.q2 .quadrant-title { color: #3b82f6; }
+        .quadrant.q3 .quadrant-title { color: #f59e0b; }
+        .quadrant.q4 .quadrant-title { color: #6b7280; }
+
+        .count-badge {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .quadrant-subtitle {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-bottom: 16px;
+        }
+
+        /* Task card */
+        .task-card {
+            margin: 8px 0;
+            padding: 14px;
+            background: var(--bg-task);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 4px solid transparent;
+        }
+
+        .task-card:hover {
+            background: var(--bg-task-hover);
+            transform: translateX(2px);
+        }
+
+        .task-card.q1-card { border-left-color: #ef4444; }
+        .task-card.q2-card { border-left-color: #3b82f6; }
+        .task-card.q3-card { border-left-color: #f59e0b; }
+        .task-card.q4-card { border-left-color: #6b7280; }
+
+        .task-card.done-card {
+            opacity: 0.5;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .task-meta {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+
+        .task-meta code {
+            background: var(--code-bg);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+        }
+
+        .overdue {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .due-today {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        /* Badges */
+        .badges {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+        }
+
+        .badge-high { background: #fecaca; color: #991b1b; }
+        .badge-medium { background: #fef3c7; color: #92400e; }
+        .badge-low { background: #dcfce7; color: #166534; }
+        .badge-reminder { background: #dbeafe; color: #1e40af; }
+        .badge-done { background: #d1fae5; color: #065f46; }
+
+        [data-theme="dark"] .badge-high { background: #7f1d1d; color: #fecaca; }
+        [data-theme="dark"] .badge-medium { background: #78350f; color: #fef3c7; }
+        [data-theme="dark"] .badge-low { background: #14532d; color: #dcfce7; }
+        [data-theme="dark"] .badge-reminder { background: #1e3a5f; color: #93c5fd; }
+        [data-theme="dark"] .badge-done { background: #064e3b; color: #a7f3d0; }
+
+        /* Details */
+        details { margin-top: 8px; }
+
+        summary {
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        summary:hover { color: #3b82f6; }
+
+        details[open] summary { margin-bottom: 6px; }
+
+        .detail-content {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .detail-content p { margin-top: 4px; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        footer code {
+            background: var(--code-bg);
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        /* Print */
+        @media print {
+            .no-print { display: none !important; }
+            .task-card { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-row">
+            <div>
+                <h1>Eisenhower Matrix</h1>
+                <p class="subtitle">Generated: 2026-02-25 02:40 PM</p>
+            </div>
+            <div class="total-count">
+                <span id="total-count">36</span> tasks
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar no-print">
+            <button onclick="setFilter('all')" class="btn active" id="btn-all">All</button>
+            <button onclick="setFilter('reminder')" class="btn" id="btn-reminders">Reminders</button>
+            <button onclick="setFilter('manual')" class="btn" id="btn-manual">Manual</button>
+            <button onclick="toggleDone()" class="btn btn-toggle" id="btn-done">Show Done</button>
+            <button onclick="toggleTheme()" class="btn btn-toggle" id="btn-theme">Dark Mode</button>
+        </div>
+    </header>
+
+    <!-- Matrix Grid -->
+    <div class="matrix">
+        <!-- Q1: Do First -->
+        <div class="quadrant q1">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Do First</span>
+                <span class="count-badge" id="q1-count">2</span>
+            </div>
+            <p class="quadrant-subtitle">Urgent & Important</p>
+            <div id="q1-tasks"></div>
+        </div>
+
+        <!-- Q2: Schedule -->
+        <div class="quadrant q2">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Schedule</span>
+                <span class="count-badge" id="q2-count">20</span>
+            </div>
+            <p class="quadrant-subtitle">Not Urgent but Important</p>
+            <div id="q2-tasks"></div>
+        </div>
+
+        <!-- Q3: Delegate -->
+        <div class="quadrant q3">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Delegate</span>
+                <span class="count-badge" id="q3-count">2</span>
+            </div>
+            <p class="quadrant-subtitle">Urgent but Not Important</p>
+            <div id="q3-tasks"></div>
+        </div>
+
+        <!-- Q4: Eliminate -->
+        <div class="quadrant q4">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Eliminate</span>
+                <span class="count-badge" id="q4-count">12</span>
+            </div>
+            <p class="quadrant-subtitle">Not Urgent & Not Important</p>
+            <div id="q4-tasks"></div>
+        </div>
+    </div>
+
+    <footer class="no-print">
+        <p>Source: <code>.claude/work/tasks/</code></p>
+    </footer>
+
+    <script>
+        const data = {
+  "metadata": {
+    "generated_at": "2026-02-25T14:40:40.933772",
+    "total_tasks": 36,
+    "q1_count": 2,
+    "q2_count": 20,
+    "q3_count": 2,
+    "q4_count": 12
+  },
+  "q1": [
+    {
+      "id": "OUT-242",
+      "title": "Kate \u2014 Continuous Delivery Meeting",
+      "status": "todo",
+      "priority": "medium",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-242-kate-continuous-delivery-meeting.md",
+      "description": "Meeting with Kate regarding the continuous delivery engagement. Prep materials and pitch points already drafted in `continuous-delivery.md` at repo root. Original reminder included a Copilot prompt to find the next meeting and summarise agenda.",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-308",
+      "title": "Baxter Dury gig 28 April - buy tickets",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-02-27",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-308-baxter-dury-gig-28-april-buy-tickets.md",
+      "description": "Buy before Friday 27 Feb. Ticketek link in outbot email.",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    }
+  ],
+  "q2": [
+    {
+      "id": "OUT-245",
+      "title": "AI Presentation (PowerPoint)",
+      "status": "todo",
+      "priority": "medium",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-245-ai-ppt.md",
+      "description": "Create a PowerPoint presentation about AI. Likely for client or internal Deloitte use \u2014 related to the AI roadmap work (OUT-278) covering SDLC, digital websites/portals, impact measurement, and trusted AI frameworks.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-247",
+      "title": "AustralianSuper Storefront",
+      "status": "todo",
+      "priority": "medium",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-247-aus-super-store-front.md",
+      "description": "Task related to the AustralianSuper digital storefront / member-facing portal. Likely relates to the continuous delivery engagement (Sitecore, Member Portal, Public Website, Member App, Advisor Portal).",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-260",
+      "title": "Melbourne Hosting \u2014 check into what's possible",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-260-mel-hosting-check-into-lok-at-whats-possiblel.md",
+      "description": "Research Melbourne hosting options. Troy confirmed this still needs to happen. Context unclear \u2014 could be event hosting, client hosting/entertainment, or infrastructure hosting.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-277",
+      "title": "GLM-5 \u2014 research and understand what it is",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-277-glm-5-research-and-understand-what-it-is.md",
+      "description": "Research GLM-5 (likely a large language model from Zhipu AI / THUDM). Understand what it is, key capabilities, how it compares to other models, and whether it's relevant to Troy's AI work.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-278",
+      "title": "AI Roadmap",
+      "status": "todo",
+      "priority": "medium",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-278-ai-roadmap.md",
+      "description": "How to use AI across the SDLC for digital websites and portals. How to measure its impact. What needs to be connected and true to get this humming. What matters to a CTO? Quality, speed, risk, safety, cyber security. Trusted AI framework \u2014 how to apply things like transparency.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-280",
+      "title": "Memory Upgrade Idea",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-280-memory-upgrade-idea.md",
+      "description": "Get the transcript for this YouTube video and understand what it's trying to do. Likely related to improving the AAGLOBAL memory system or OutBot's memory capabilities.\n\nVideo: https://youtu.be/pAIF7vZm5k0?si=aw8j1gC0cFyAfnpV",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-286",
+      "title": "Personal website idea - Kev",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-286-personal-website-idea-kev.md",
+      "description": "Look into personal website for Kev. From Deloitte email 22 Feb.\n\nUse the **Cinematic Landing Page Builder** skill (`/cinematic-landing-page`) to build Kev's site.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-287",
+      "title": "Paint brackets",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-287-paint-brackets.md",
+      "description": "From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-288",
+      "title": "Swap laptop",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-288-swap-laptop.md",
+      "description": "From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-289",
+      "title": "Old laptop DNS setup",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-289-old-laptop-dns-setup.md",
+      "description": "Set up DNS on old laptop. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-290",
+      "title": "Kents website",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-290-kents-website.md",
+      "description": "Work on Kents website. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-291",
+      "title": "Kev website",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-291-kev-website.md",
+      "description": "Work on Kevs website. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-292",
+      "title": "Tent poles",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-292-tent-poles.md",
+      "description": "Sort out tent poles. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-293",
+      "title": "Dan",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-293-dan.md",
+      "description": "Follow up with Dan. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-294",
+      "title": "Music",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-294-music.md",
+      "description": "Music task. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-295",
+      "title": "Van handles",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-295-van-handles.md",
+      "description": "Fix or replace van handles. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-296",
+      "title": "Car board ends",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-296-car-board-ends.md",
+      "description": "Sort out car board ends. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-297",
+      "title": "Van stopper",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-297-van-stopper.md",
+      "description": "Fix or get van stopper. From whiteboard photo 22 Feb.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-299",
+      "title": "50 days of openclaw learning",
+      "status": "doing",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-299-50-days-of-openclaw-learning.md",
+      "description": "Go and read transcripts and get the link to the file that has 20 top tips and look at what we can use please\n\nhttps://youtu.be/NZ1mKAWJPr4?si=C4eO7ozy8oNR99tP\n\nGet this\nhttps://gist.github.com/velvet-shark/b4c6724c391f612c4de4e9a07b0a74b6",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-307",
+      "title": "GitHub PR - project automation agents",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-307-github-pr-project-automation-agents.md",
+      "description": "Review and merge the project automation agents PR from outbot email.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    }
+  ],
+  "q3": [
+    {
+      "id": "OUT-256",
+      "title": "Morgan LinkedIn Post \u2014 copy Morgan's and tweak",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-256-morgain-linked-in-post-copy-morgans-and-tweak-its.md",
+      "description": "Write a LinkedIn post by referencing/adapting Morgan's existing post. Already discussed in a Claude conversation. Could also get Tom to help with this. This is a personal branding / thought leadership task.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-257",
+      "title": "Purchase Cursor",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-257-purchase-cursor.md",
+      "description": "Purchase a Cursor IDE subscription. Cursor is an AI-powered code editor (fork of VS Code). Consider whether this is still needed given heavy use of Claude Code CLI.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    }
+  ],
+  "q4": [
+    {
+      "id": "OUT-223",
+      "title": "Fire place fix",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-223-fire-place-fix.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-226",
+      "title": "Tech Roadmap",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-226-tech-roadmap.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-228",
+      "title": "AusSuper marketing team one pager - current Deloitte work + future opportunities",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-228-aussuper-marketing-team-one-pager-current-deloitte.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-282",
+      "title": "Contact Centre - Jen, Simon, AMy",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-282-contact-centre-jen-simon-amy.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-283",
+      "title": "Tech Roadmap - Chase Kate",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-283-tech-roadmap-chase-kate.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-300",
+      "title": "Meeting Setup - Once every two months with - Mark C",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-300-meeting-setup-once-every-two-months-with-mark.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-301",
+      "title": "Meeting Setup - Once every month with RossA",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-301-meeting-setup-once-every-month-with-rossa.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-302",
+      "title": "do calendar integration",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-302-do-calendar-integration.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-303",
+      "title": "https://skills.sh/ explore this for inovative skills",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-303-httpsskillssh-explore-this-for-inovative-skil.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-304",
+      "title": "Sujatha",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-304-sujatha.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-305",
+      "title": "1 Image",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-305-1-image.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-306",
+      "title": "Get these skills please",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-306-get-these-skills-please.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    }
+  ]
+};
+        let currentFilter = 'all';
+        let showDone = false;
+
+        function renderTasks() {
+            ['q1', 'q2', 'q3', 'q4'].forEach(q => {
+                const container = document.getElementById(`${q}-tasks`);
+                const tasks = (data[q] || []).filter(t => shouldShow(t));
+
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No tasks</div>';
+                } else {
+                    container.innerHTML = tasks.map(t => renderCard(t, q)).join('');
+                }
+
+                // Update count
+                document.getElementById(`${q}-count`).textContent = tasks.length;
+            });
+
+            // Update total
+            const total = ['q1','q2','q3','q4'].reduce((sum, q) =>
+                sum + (data[q] || []).filter(t => shouldShow(t)).length, 0);
+            document.getElementById('total-count').textContent = total;
+        }
+
+        function shouldShow(task) {
+            const isDone = task.status === 'done' || task.status === 'completed';
+            if (isDone && !showDone) return false;
+            if (currentFilter === 'reminder' && task.source !== 'reminder') return false;
+            if (currentFilter === 'manual' && task.source === 'reminder') return false;
+            return true;
+        }
+
+        function renderCard(task, quadrant) {
+            const isDone = task.status === 'done' || task.status === 'completed';
+            const doneClass = isDone ? ' done-card' : '';
+
+            const due = formatDate(task.due_date);
+            const badges = [];
+            if (task.priority) badges.push(`<span class="badge badge-${task.priority}">${task.priority}</span>`);
+            if (task.source === 'reminder') badges.push('<span class="badge badge-reminder">reminder</span>');
+            if (isDone) badges.push('<span class="badge badge-done">done</span>');
+
+            const desc = task.description || '';
+            const detailHtml = desc ? `
+                <details>
+                    <summary>details</summary>
+                    <div class="detail-content">
+                        <p>${desc}</p>
+                        <p><code>${task.file_path}</code></p>
+                    </div>
+                </details>` : '';
+
+            return `
+                <div class="task-card ${quadrant}-card${doneClass}" data-source="${task.source}" data-status="${task.status}">
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-meta">
+                        <code>${task.id}</code> &middot; ${due}
+                    </div>
+                    ${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}
+                    ${detailHtml}
+                </div>`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'No due date';
+            try {
+                const date = new Date(dateStr + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const diff = Math.round((date - today) / 86400000);
+                if (diff < 0) return `<span class="overdue">${dateStr} (${Math.abs(diff)}d overdue)</span>`;
+                if (diff === 0) return `<span class="due-today">${dateStr} (today)</span>`;
+                if (diff === 1) return `${dateStr} (tomorrow)`;
+                if (diff <= 7) return `${dateStr} (${diff}d)`;
+                return dateStr;
+            } catch (e) { return dateStr; }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.toolbar .btn:not(.btn-toggle)').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${filter === 'all' ? 'all' : filter === 'reminder' ? 'reminders' : 'manual'}`).classList.add('active');
+            renderTasks();
+        }
+
+        function toggleDone() {
+            showDone = !showDone;
+            const btn = document.getElementById('btn-done');
+            btn.textContent = showDone ? 'Hide Done' : 'Show Done';
+            btn.classList.toggle('active', showDone);
+            renderTasks();
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            const btn = document.getElementById('btn-theme');
+            btn.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            btn.classList.toggle('active', !isDark);
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            // Restore theme
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.setAttribute('data-theme', 'dark');
+                document.getElementById('btn-theme').textContent = 'Light Mode';
+                document.getElementById('btn-theme').classList.add('active');
+            }
+            renderTasks();
+        });
+    </script>
+</body>
+</html>

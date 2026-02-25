@@ -298,6 +298,16 @@ class TaskRegistry:
 
         self._git_push(changed_files)
 
+    def active_entries_with_reminder_id(self) -> dict[str, str]:
+        """Return {reminder_id: out_id} for non-done entries with a reminder_id."""
+        self._git_pull()
+        entries = self._data.get("entries", {})
+        return {
+            entry["reminder_id"]: out_id
+            for out_id, entry in entries.items()
+            if entry.get("reminder_id") and entry.get("status") not in ("done", "cancelled")
+        }
+
     def list_tasks(self, status: Optional[str] = None) -> dict:
         """
         Return registry entries, optionally filtered by status.

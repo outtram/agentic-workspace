@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-First Team Model</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d12;
+  --surface: #13161e;
+  --surface2: #1a1e28;
+  --border: #222632;
+  --border2: #2e3445;
+  --blue: #4f8ef7;
+  --blue-dim: rgba(79,142,247,0.12);
+  --amber: #f5a623;
+  --amber-dim: rgba(245,166,35,0.12);
+  --green: #2dd4a0;
+  --green-dim: rgba(45,212,160,0.1);
+  --red: #f46060;
+  --text: #dde1ed;
+  --muted: #5a6178;
+  --muted2: #7c85a0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width: 1280px; height: 720px;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+}
+
+/* ── LAYOUT ── */
+.shell {
+  display: grid;
+  grid-template-rows: 52px 1fr 96px;
+  grid-template-columns: 280px 1fr 1fr;
+  width: 1280px; height: 720px;
+  gap: 1px;
+  background: var(--border);
+}
+
+/* ── HEADER ── */
+.header {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.header-eyebrow {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,166,35,.2);
+  padding: 3px 10px; border-radius: 3px;
+}
+.header-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--text);
+}
+.header-insight {
+  margin-left: auto;
+  font-size: 10px; color: var(--muted2);
+  font-style: italic;
+  max-width: 480px; text-align: right;
+  line-height: 1.5;
+}
+.header-insight strong { color: var(--amber); font-style: normal; }
+
+/* ── CONTROLS ── */
+.controls {
+  grid-row: 2 / 3;
+  grid-column: 1 / 2;
+  background: var(--surface);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+.controls-title {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.ctrl-group {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 9px 11px;
+  margin-bottom: 3px;
+}
+.ctrl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.ctrl-label {
+  font-size: 10px; color: var(--muted2);
+}
+.ctrl-value {
+  font-size: 13px; font-weight: 500;
+  color: var(--text);
+}
+.ctrl-value span { font-size: 9px; color: var(--muted); font-weight: 400; }
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%; height: 3px;
+  border-radius: 2px;
+  outline: none; cursor: pointer;
+}
+input[type=range].blue-track { background: linear-gradient(to right, var(--blue) var(--pct, 50%), var(--border2) var(--pct, 50%)); }
+input[type=range].amber-track { background: linear-gradient(to right, var(--amber) var(--pct, 50%), var(--border2) var(--pct, 50%)); }
+input[type=range].green-track { background: linear-gradient(to right, var(--green) var(--pct, 50%), var(--border2) var(--pct, 50%)); }
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 4px rgba(0,0,0,.5);
+}
+.ctrl-subrow {
+  display: flex; gap: 8px; margin-top: 2px;
+}
+.ctrl-sub { font-size: 9px; color: var(--muted); }
+
+.section-divider {
+  font-size: 9px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 0 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+/* ── CHARTS ── */
+.chart-panel {
+  background: var(--bg);
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.chart-panel-title {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.chart-wrap { flex: 1; position: relative; min-height: 0; }
+.legend-row {
+  display: flex; gap: 16px; margin-top: 8px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 9px; color: var(--muted);
+}
+.legend-swatch {
+  width: 18px; height: 2px; border-radius: 1px;
+}
+.legend-swatch.dashed {
+  background: transparent;
+  border-top: 2px dashed currentColor;
+  height: 0;
+}
+.crossover-badge {
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border2);
+  color: var(--muted2);
+}
+.crossover-badge.hit {
+  background: var(--green-dim);
+  border-color: rgba(45,212,160,.3);
+  color: var(--green);
+}
+
+/* ── FOOTER STATS ── */
+.footer {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid var(--border);
+}
+.stat {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid var(--border);
+}
+.stat:last-child { border-right: none; }
+.stat-label {
+  font-size: 8px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 4px;
+}
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 800;
+  line-height: 1;
+}
+.stat-value.green { color: var(--green); }
+.stat-value.amber { color: var(--amber); }
+.stat-value.blue  { color: var(--blue); }
+.stat-value.red   { color: var(--red); }
+.stat-sub {
+  font-size: 9px; color: var(--muted);
+  margin-top: 3px; line-height: 1.4;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span class="header-eyebrow">Scenario Model</span>
+    <span class="header-title">AI-First Team: Cost vs Output</span>
+    <span class="header-insight">
+      <strong>Core thesis:</strong> half the team starts slower, then AI lifts velocity — adjust variables to find the crossover
+    </span>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="controls-title">Variables</div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-header">
+        <span class="ctrl-label">Current team size</span>
+        <span class="ctrl-value" id="val-current-team">11 <span>FTEs</span></span>
+      </div>
+      <input type="range" id="current-team" class="blue-track" min="4" max="20" value="11">
+      <div class="ctrl-subrow">
+        <span class="ctrl-sub">4</span>
+        <span class="ctrl-sub" style="margin-left:auto">20 FTEs</span>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-header">
+        <span class="ctrl-label">AI team size</span>
+        <span class="ctrl-value" id="val-ai-team">6 <span>FTEs</span></span>
+      </div>
+      <input type="range" id="ai-team" class="amber-track" min="1" max="20" value="6">
+      <div class="ctrl-subrow">
+        <span class="ctrl-sub">1</span>
+        <span class="ctrl-sub" style="margin-left:auto">20 FTEs</span>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-header">
+        <span class="ctrl-label">Cost per FTE / quarter</span>
+        <span class="ctrl-value" id="val-fte-cost">$50k <span>/ qtr</span></span>
+      </div>
+      <input type="range" id="fte-cost" class="blue-track" min="10" max="150" value="50" step="5">
+      <div class="ctrl-subrow">
+        <span class="ctrl-sub">$10k</span>
+        <span class="ctrl-sub" style="margin-left:auto">$150k</span>
+      </div>
+    </div>
+
+    <div class="section-divider">AI Output Model</div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-header">
+        <span class="ctrl-label">Starting velocity</span>
+        <span class="ctrl-value" id="val-start-vel">55 <span>% of current</span></span>
+      </div>
+      <input type="range" id="start-vel" class="amber-track" min="20" max="90" value="55">
+      <div class="ctrl-subrow">
+        <span class="ctrl-sub">20%</span>
+        <span class="ctrl-sub" style="margin-left:auto">90%</span>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-header">
+        <span class="ctrl-label">AI peak velocity</span>
+        <span class="ctrl-value" id="val-peak-vel">130 <span>% of current</span></span>
+      </div>
+      <input type="range" id="peak-vel" class="green-track" min="80" max="200" value="130">
+      <div class="ctrl-subrow">
+        <span class="ctrl-sub">80%</span>
+        <span class="ctrl-sub" style="margin-left:auto">200%</span>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-header">
+        <span class="ctrl-label">Ramp speed</span>
+        <span class="ctrl-value" id="val-ramp">Medium</span>
+      </div>
+      <input type="range" id="ramp" class="amber-track" min="1" max="5" value="3" step="1">
+      <div class="ctrl-subrow">
+        <span class="ctrl-sub">Slow</span>
+        <span class="ctrl-sub" style="margin-left:auto">Fast</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VELOCITY CHART -->
+  <div class="chart-panel">
+    <div class="chart-panel-title">
+      <span>Output Velocity <span style="color:var(--muted2)">(% of current baseline)</span></span>
+      <span class="crossover-badge" id="crossover-badge">Crossover: —</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="velocityChart"></canvas>
+    </div>
+    <div class="legend-row">
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:var(--blue)"></div>
+        <span>Current team (flat baseline)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch dashed" style="color:var(--amber)"></div>
+        <span>AI-first team (projected)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COST CHART -->
+  <div class="chart-panel" style="border-left:1px solid var(--border)">
+    <div class="chart-panel-title">
+      <span>Team Cost <span style="color:var(--muted2)">($ per quarter)</span></span>
+      <span id="cost-saving-badge" class="crossover-badge hit">Saving: —</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="costChart"></canvas>
+    </div>
+    <div class="legend-row">
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:var(--blue)"></div>
+        <span>Current team cost</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch dashed" style="color:var(--amber)"></div>
+        <span>AI-first team cost</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER STATS -->
+  <div class="footer">
+    <div class="stat">
+      <div class="stat-label">Team reduction</div>
+      <div class="stat-value amber" id="stat-reduction">—</div>
+      <div class="stat-sub" id="stat-reduction-sub">FTEs saved</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Cost saving / quarter</div>
+      <div class="stat-value green" id="stat-qtr-saving">—</div>
+      <div class="stat-sub" id="stat-qtr-saving-sub">vs current run rate</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Cumulative saving (8 qtrs)</div>
+      <div class="stat-value green" id="stat-cum-saving">—</div>
+      <div class="stat-sub" id="stat-cum-saving-sub">total cost delta</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Velocity crossover</div>
+      <div class="stat-value blue" id="stat-crossover">—</div>
+      <div class="stat-sub" id="stat-crossover-sub">when AI matches current</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Peak AI advantage</div>
+      <div class="stat-value amber" id="stat-peak">—</div>
+      <div class="stat-sub" id="stat-peak-sub">above current at Q8</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUARTERS = ['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8'];
+
+// ── Chart setup ──
+const velCtx = document.getElementById('velocityChart').getContext('2d');
+const costCtx = document.getElementById('costChart').getContext('2d');
+
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 300, easing: 'easeInOutQuad' },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#13161e',
+      borderColor: '#2e3445',
+      borderWidth: 1,
+      titleColor: '#dde1ed',
+      bodyColor: '#7c85a0',
+      titleFont: { family: 'DM Mono', size: 10 },
+      bodyFont: { family: 'DM Mono', size: 10 },
+      padding: 10,
+    }
+  },
+  scales: {
+    x: {
+      grid: { color: 'rgba(255,255,255,0.04)' },
+      ticks: { color: '#5a6178', font: { family: 'DM Mono', size: 10 } },
+      border: { color: '#222632' }
+    },
+    y: {
+      grid: { color: 'rgba(255,255,255,0.04)' },
+      ticks: { color: '#5a6178', font: { family: 'DM Mono', size: 10 } },
+      border: { color: '#222632' }
+    }
+  }
+};
+
+const velChart = new Chart(velCtx, {
+  type: 'line',
+  data: { labels: QUARTERS, datasets: [
+    {
+      label: 'Current team',
+      data: Array(8).fill(100),
+      borderColor: '#4f8ef7',
+      backgroundColor: 'rgba(79,142,247,0.06)',
+      borderWidth: 2,
+      pointRadius: 4, pointBackgroundColor: '#4f8ef7',
+      tension: 0.4, fill: true,
+    },
+    {
+      label: 'AI-first team',
+      data: [],
+      borderColor: '#f5a623',
+      backgroundColor: 'rgba(245,166,35,0.06)',
+      borderWidth: 2,
+      borderDash: [6,4],
+      pointRadius: 4, pointBackgroundColor: '#f5a623',
+      tension: 0.4, fill: true,
+    }
+  ]},
+  options: {
+    ...chartDefaults,
+    plugins: {
+      ...chartDefaults.plugins,
+      tooltip: {
+        ...chartDefaults.plugins.tooltip,
+        callbacks: { label: ctx => `  ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(0)}%` }
+      }
+    },
+    scales: {
+      ...chartDefaults.scales,
+      y: {
+        ...chartDefaults.scales.y,
+        min: 0,
+        ticks: { ...chartDefaults.scales.y.ticks, callback: v => v + '%' }
+      }
+    }
+  }
+});
+
+const costChart = new Chart(costCtx, {
+  type: 'line',
+  data: { labels: QUARTERS, datasets: [
+    {
+      label: 'Current team cost',
+      data: [],
+      borderColor: '#4f8ef7',
+      backgroundColor: 'rgba(79,142,247,0.06)',
+      borderWidth: 2,
+      pointRadius: 4, pointBackgroundColor: '#4f8ef7',
+      tension: 0, fill: true,
+    },
+    {
+      label: 'AI-first team cost',
+      data: [],
+      borderColor: '#f5a623',
+      backgroundColor: 'rgba(245,166,35,0.06)',
+      borderWidth: 2,
+      borderDash: [6,4],
+      pointRadius: 4, pointBackgroundColor: '#f5a623',
+      tension: 0, fill: true,
+    }
+  ]},
+  options: {
+    ...chartDefaults,
+    plugins: {
+      ...chartDefaults.plugins,
+      tooltip: {
+        ...chartDefaults.plugins.tooltip,
+        callbacks: { label: ctx => `  ${ctx.dataset.label}: $${ctx.parsed.y.toFixed(0)}k` }
+      }
+    },
+    scales: {
+      ...chartDefaults.scales,
+      y: {
+        ...chartDefaults.scales.y,
+        min: 0,
+        ticks: { ...chartDefaults.scales.y.ticks, callback: v => `$${v}k` }
+      }
+    }
+  }
+});
+
+// ── Model ──
+const rampLabels = {1:'Slow',2:'Moderate–Slow',3:'Medium',4:'Moderate–Fast',5:'Fast'};
+
+function calcAiVelocity(q, startPct, peakPct, rampSpeed) {
+  // q is 0-indexed (0=Q1)
+  // rampSpeed 1=slow, 5=fast → exponent: slow=3, fast=0.5
+  const exponent = 3.5 - (rampSpeed - 1) * 0.625; // maps 1→3.5, 5→0.5
+  const t = (q + 1) / 8; // 0.125 to 1
+  const progress = Math.pow(t, exponent);
+  return startPct + (peakPct - startPct) * progress;
+}
+
+function getValues() {
+  return {
+    currentTeam: +document.getElementById('current-team').value,
+    aiTeam:       +document.getElementById('ai-team').value,
+    fteCost:      +document.getElementById('fte-cost').value,
+    startVel:     +document.getElementById('start-vel').value,
+    peakVel:      +document.getElementById('peak-vel').value,
+    ramp:         +document.getElementById('ramp').value,
+  };
+}
+
+function fmt(n) {
+  if (n >= 1000) return `$${(n/1000).toFixed(1)}M`;
+  return `$${n.toFixed(0)}k`;
+}
+
+function update() {
+  const v = getValues();
+
+  // Velocity data
+  const aiVelData = QUARTERS.map((_, i) => calcAiVelocity(i, v.startVel, v.peakVel, v.ramp));
+
+  // Cost data
+  const currentCostPerQtr = v.currentTeam * v.fteCost;
+  const aiCostPerQtr      = v.aiTeam * v.fteCost;
+  const currentCostData   = Array(8).fill(currentCostPerQtr);
+  const aiCostData        = Array(8).fill(aiCostPerQtr);
+
+  // Crossover
+  const crossoverQ = aiVelData.findIndex(vel => vel >= 100);
+  const crossoverLabel = crossoverQ === -1 ? 'Beyond Q8' : QUARTERS[crossoverQ];
+  const crossoverBadge = document.getElementById('crossover-badge');
+  crossoverBadge.textContent = `Crossover: ${crossoverLabel}`;
+  crossoverBadge.className = 'crossover-badge' + (crossoverQ !== -1 ? ' hit' : '');
+
+  // Stats
+  const ftesSaved       = v.currentTeam - v.aiTeam;
+  const qtrSaving       = currentCostPerQtr - aiCostPerQtr;
+  const cumSaving       = qtrSaving * 8;
+  const peakAdvantage   = aiVelData[7] - 100;
+
+  document.getElementById('stat-reduction').textContent    = `${ftesSaved > 0 ? '+' : ''}${ftesSaved}`;
+  document.getElementById('stat-reduction-sub').textContent = ftesSaved > 0 ? `${v.currentTeam} → ${v.aiTeam} FTEs` : `${v.currentTeam} → ${v.aiTeam} FTEs`;
+  document.getElementById('stat-qtr-saving').textContent   = qtrSaving >= 0 ? fmt(qtrSaving) : `-${fmt(Math.abs(qtrSaving))}`;
+  document.getElementById('stat-qtr-saving').className     = `stat-value ${qtrSaving >= 0 ? 'green' : 'red'}`;
+  document.getElementById('stat-cum-saving').textContent   = cumSaving >= 0 ? fmt(cumSaving) : `-${fmt(Math.abs(cumSaving))}`;
+  document.getElementById('stat-cum-saving').className     = `stat-value ${cumSaving >= 0 ? 'green' : 'red'}`;
+  document.getElementById('stat-crossover').textContent    = crossoverLabel;
+  document.getElementById('stat-peak').textContent         = `${peakAdvantage > 0 ? '+' : ''}${peakAdvantage.toFixed(0)}%`;
+  document.getElementById('stat-peak').className           = `stat-value ${peakAdvantage >= 0 ? 'amber' : 'red'}`;
+  document.getElementById('stat-peak-sub').textContent     = peakAdvantage >= 0 ? `${v.peakVel}% peak velocity` : 'below current at Q8';
+
+  // Saving badge
+  document.getElementById('cost-saving-badge').textContent = `Saving: ${fmt(qtrSaving)}/qtr`;
+
+  // Update charts
+  velChart.data.datasets[1].data = aiVelData;
+  velChart.update();
+
+  costChart.data.datasets[0].data = currentCostData;
+  costChart.data.datasets[1].data = aiCostData;
+  costChart.update();
+}
+
+// ── Slider display + track fill ──
+function updateSlider(id, displayId, format) {
+  const el = document.getElementById(id);
+  const val = +el.value;
+  const min = +el.min, max = +el.max;
+  const pct = ((val - min) / (max - min)) * 100;
+  el.style.setProperty('--pct', pct + '%');
+  document.getElementById(displayId).innerHTML = format(val);
+}
+
+function setupSlider(id, displayId, format) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => {
+    updateSlider(id, displayId, format);
+    update();
+  });
+  updateSlider(id, displayId, format);
+}
+
+setupSlider('current-team', 'val-current-team', v => `${v} <span>FTEs</span>`);
+setupSlider('ai-team',       'val-ai-team',       v => `${v} <span>FTEs</span>`);
+setupSlider('fte-cost',      'val-fte-cost',       v => `$${v}k <span>/ qtr</span>`);
+setupSlider('start-vel',     'val-start-vel',      v => `${v} <span>% of current</span>`);
+setupSlider('peak-vel',      'val-peak-vel',       v => `${v} <span>% of current</span>`);
+setupSlider('ramp',          'val-ramp',           v => rampLabels[v]);
+
+update();
+</script>
+</body>
+</html>

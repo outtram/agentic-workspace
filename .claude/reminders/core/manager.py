@@ -172,6 +172,18 @@ class RemindersManager:
 
         self.event_bus.publish(WorkItemCompleted(work_item_id=work_item_id))
 
+    def reverse_sync(self, active_ios_reminder_ids: set[str], dry_run: bool = False) -> list[str]:
+        """Mark local tasks as done if their iOS reminder is no longer active."""
+        local_map = self.registry.active_entries_with_reminder_id()
+        stale_ids = []
+        for reminder_id, out_id in local_map.items():
+            if reminder_id not in active_ios_reminder_ids:
+                stale_ids.append(out_id)
+                if not dry_run:
+                    self.registry.update_status(out_id, "done")
+                    self.event_bus.publish(WorkItemCompleted(work_item_id=out_id))
+        return stale_ids
+
     def delete_reminder(self, work_item_id: str):
         """Delete reminder from both systems"""
         work_item = self.workitems.read(work_item_id)

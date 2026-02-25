@@ -242,12 +242,28 @@ def sync(ctx, dry_run, enrich):
                 vague_count += 1
                 vague_tasks.append((work_item.id, enrichment))
 
+    # Reverse sync: detect iOS completions/deletions
+    active_ios_ids = {r["id"] for r in reminders}
+    stale_ids = manager.reverse_sync(active_ios_ids, dry_run=dry_run)
+    stale_count = len(stale_ids)
+
+    if stale_count > 0:
+        if dry_run:
+            click.echo(f"\nWould mark {stale_count} stale task(s) as done:")
+        else:
+            click.echo(f"\nMarked {stale_count} stale task(s) as done (completed/deleted in iOS):")
+        for out_id in stale_ids[:10]:
+            click.echo(f"  - {out_id}")
+        if stale_count > 10:
+            click.echo(f"  ... and {stale_count - 10} more")
+
     # Report stats
     click.echo(f"\n{'='*60}")
     click.echo(f"Sync complete!")
     click.echo(f"{'='*60}")
     click.echo(f"New reminders imported: {new_count}")
     click.echo(f"Duplicates skipped: {skipped_count}")
+    click.echo(f"Stale tasks resolved: {stale_count}")
     if new_count > 0:
         click.echo(f"\nBy quadrant:")
         click.echo(f"  🔥 Q1 (Do First): {quadrant_counts['q1']}")

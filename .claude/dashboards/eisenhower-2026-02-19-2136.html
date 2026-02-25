@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eisenhower Matrix - Feb 19, 2026</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-task: #f1f5f9;
+            --bg-task-hover: #e2e8f0;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --badge-bg: #e2e8f0;
+            --badge-text: #334155;
+            --code-bg: #f1f5f9;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-task: #334155;
+            --bg-task-hover: #475569;
+            --text: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border: #334155;
+            --badge-bg: #334155;
+            --badge-text: #cbd5e1;
+            --code-bg: #1e293b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 24px;
+            line-height: 1.5;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 28px;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+
+        .total-count {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: var(--bg-task);
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            background: var(--bg-task-hover);
+        }
+
+        .btn.active {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .btn-toggle {
+            margin-left: auto;
+        }
+
+        /* Grid */
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .matrix { grid-template-columns: 1fr; }
+            body { padding: 16px; }
+        }
+
+        /* Quadrant */
+        .quadrant {
+            min-height: 300px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            background: var(--bg-card);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .quadrant.q1 { border-left: 5px solid #ef4444; }
+        .quadrant.q2 { border-left: 5px solid #3b82f6; }
+        .quadrant.q3 { border-left: 5px solid #f59e0b; }
+        .quadrant.q4 { border-left: 5px solid #6b7280; }
+
+        .quadrant-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .quadrant-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        .quadrant.q1 .quadrant-title { color: #ef4444; }
+        .quadrant.q2 .quadrant-title { color: #3b82f6; }
+        .quadrant.q3 .quadrant-title { color: #f59e0b; }
+        .quadrant.q4 .quadrant-title { color: #6b7280; }
+
+        .count-badge {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .quadrant-subtitle {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-bottom: 16px;
+        }
+
+        /* Task card */
+        .task-card {
+            margin: 8px 0;
+            padding: 14px;
+            background: var(--bg-task);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 4px solid transparent;
+        }
+
+        .task-card:hover {
+            background: var(--bg-task-hover);
+            transform: translateX(2px);
+        }
+
+        .task-card.q1-card { border-left-color: #ef4444; }
+        .task-card.q2-card { border-left-color: #3b82f6; }
+        .task-card.q3-card { border-left-color: #f59e0b; }
+        .task-card.q4-card { border-left-color: #6b7280; }
+
+        .task-card.done-card {
+            opacity: 0.5;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .task-meta {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+
+        .task-meta code {
+            background: var(--code-bg);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+        }
+
+        .overdue {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .due-today {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        /* Badges */
+        .badges {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+        }
+
+        .badge-high { background: #fecaca; color: #991b1b; }
+        .badge-medium { background: #fef3c7; color: #92400e; }
+        .badge-low { background: #dcfce7; color: #166534; }
+        .badge-reminder { background: #dbeafe; color: #1e40af; }
+        .badge-done { background: #d1fae5; color: #065f46; }
+
+        [data-theme="dark"] .badge-high { background: #7f1d1d; color: #fecaca; }
+        [data-theme="dark"] .badge-medium { background: #78350f; color: #fef3c7; }
+        [data-theme="dark"] .badge-low { background: #14532d; color: #dcfce7; }
+        [data-theme="dark"] .badge-reminder { background: #1e3a5f; color: #93c5fd; }
+        [data-theme="dark"] .badge-done { background: #064e3b; color: #a7f3d0; }
+
+        /* Details */
+        details { margin-top: 8px; }
+
+        summary {
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        summary:hover { color: #3b82f6; }
+
+        details[open] summary { margin-bottom: 6px; }
+
+        .detail-content {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .detail-content p { margin-top: 4px; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        footer code {
+            background: var(--code-bg);
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        /* Print */
+        @media print {
+            .no-print { display: none !important; }
+            .task-card { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-row">
+            <div>
+                <h1>Eisenhower Matrix</h1>
+                <p class="subtitle">Generated: 2026-02-19 09:36 PM</p>
+            </div>
+            <div class="total-count">
+                <span id="total-count">24</span> tasks
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar no-print">
+            <button onclick="setFilter('all')" class="btn active" id="btn-all">All</button>
+            <button onclick="setFilter('reminder')" class="btn" id="btn-reminders">Reminders</button>
+            <button onclick="setFilter('manual')" class="btn" id="btn-manual">Manual</button>
+            <button onclick="toggleDone()" class="btn btn-toggle" id="btn-done">Show Done</button>
+            <button onclick="toggleTheme()" class="btn btn-toggle" id="btn-theme">Dark Mode</button>
+        </div>
+    </header>
+
+    <!-- Matrix Grid -->
+    <div class="matrix">
+        <!-- Q1: Do First -->
+        <div class="quadrant q1">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Do First</span>
+                <span class="count-badge" id="q1-count">5</span>
+            </div>
+            <p class="quadrant-subtitle">Urgent & Important</p>
+            <div id="q1-tasks"></div>
+        </div>
+
+        <!-- Q2: Schedule -->
+        <div class="quadrant q2">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Schedule</span>
+                <span class="count-badge" id="q2-count">13</span>
+            </div>
+            <p class="quadrant-subtitle">Not Urgent but Important</p>
+            <div id="q2-tasks"></div>
+        </div>
+
+        <!-- Q3: Delegate -->
+        <div class="quadrant q3">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Delegate</span>
+                <span class="count-badge" id="q3-count">0</span>
+            </div>
+            <p class="quadrant-subtitle">Urgent but Not Important</p>
+            <div id="q3-tasks"></div>
+        </div>
+
+        <!-- Q4: Eliminate -->
+        <div class="quadrant q4">
+            <div class="quadrant-header">
+                <span class="quadrant-title">Eliminate</span>
+                <span class="count-badge" id="q4-count">6</span>
+            </div>
+            <p class="quadrant-subtitle">Not Urgent & Not Important</p>
+            <div id="q4-tasks"></div>
+        </div>
+    </div>
+
+    <footer class="no-print">
+        <p>Source: <code>.claude/work/tasks/</code></p>
+    </footer>
+
+    <script>
+        const data = {
+  "metadata": {
+    "generated_at": "2026-02-19T21:36:24.850971",
+    "total_tasks": 24,
+    "q1_count": 5,
+    "q2_count": 13,
+    "q3_count": 0,
+    "q4_count": 6
+  },
+  "q1": [
+    {
+      "id": "OUT-256",
+      "title": "morgain linked in post copy morgans and tweak its already in claude as a discussion maybe get tom to help",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-256-morgain-linked-in-post-copy-morgans-and-tweak-its.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-242",
+      "title": "Kate - Continuous Delivery Meeting",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-242-kate-continuous-delivery-meeting.md",
+      "description": "Copilot prompt: Find my next meeting with Kate and summarise the agenda, attendees, and any attached documents or previous meeting notes.",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-234",
+      "title": "bowel screen test order",
+      "status": "done",
+      "priority": "low",
+      "due_date": "2026-01-14",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-234-bowel-screen-test-order.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-257",
+      "title": "purchase cursor",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-257-purchase-cursor.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-260",
+      "title": "mel hosting check into lok at whats possiblel",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-30",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-260-mel-hosting-check-into-lok-at-whats-possiblel.md",
+      "description": "No description provided",
+      "eisenhower_urgent": true,
+      "eisenhower_important": true,
+      "auto_classified": false
+    }
+  ],
+  "q2": [
+    {
+      "id": "OUT-271",
+      "title": "renae DD meetings book in",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-271-renae-dd-meetings-book-in.md",
+      "description": "missing value",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-241",
+      "title": "equity partner nomiation form is due 20th feb.",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-02-20",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-241-equity-partner-nomiation-form-is-due-20th-feb.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-277",
+      "title": "GLM-5 research and understand what it is",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-277-glm-5-research-and-understand-what-it-is.md",
+      "description": "missing value",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-274",
+      "title": "OutBot: Memory recall from past conversations",
+      "status": "done",
+      "priority": "medium",
+      "due_date": "",
+      "source": "outbot-backlog",
+      "reminder_list": "",
+      "file_path": "work/tasks/OUT-274-outbot-memory-recall.md",
+      "description": "",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-270",
+      "title": "book a doctor appointment with the east bentleigh medical group for friday",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-02-20",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-270-book-a-doctor-appointment-with-the-east-bentleigh.md",
+      "description": "missing value",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-276",
+      "title": "OutBot: Terminal-native formatting for CLI mode",
+      "status": "done",
+      "priority": "medium",
+      "due_date": "",
+      "source": "outbot-backlog",
+      "reminder_list": "",
+      "file_path": "work/tasks/OUT-276-outbot-fix-cli-terminal-formatting.md",
+      "description": "",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-269",
+      "title": "Buy 30mm Conduit electrical van need at least 20 meters.",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-269-buy-30mm-conduit-electrical-van-need-at-least-20-m.md",
+      "description": "missing value",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-279",
+      "title": "bowel screen test order",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "2026-01-14",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-279-bowel-screen-test-order.md",
+      "description": "missing value",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-278",
+      "title": "Ai roadmap",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-278-ai-roadmap.md",
+      "description": "How to use across for sdlc for digital websites and portals. How measure its impact. What needs to be connected and true to get this humming. What matters to a CTO? Quality, speed, risk, safety cyber security. Trusted ai framework how to apply things like transparency.",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-272",
+      "title": "OutBot: Remember This handler",
+      "status": "done",
+      "priority": "high",
+      "due_date": "",
+      "source": "outbot-backlog",
+      "reminder_list": "",
+      "file_path": "work/tasks/OUT-272-outbot-remember-this-handler.md",
+      "description": "",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-275",
+      "title": "OutBot: Periodic reflection and memory evolution",
+      "status": "done",
+      "priority": "medium",
+      "due_date": "",
+      "source": "outbot-backlog",
+      "reminder_list": "",
+      "file_path": "work/tasks/OUT-275-outbot-periodic-reflection.md",
+      "description": "",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-280",
+      "title": "Memory upgrade idea",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminders_import",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-280-memory-upgrade-idea.md",
+      "description": "Get the transcript for this and understand what it\u2019s trying to do please\n\nhttps://youtu.be/pAIF7vZm5k0?si=aw8j1gC0cFyAfnpV",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-273",
+      "title": "OutBot: Conversation archiving",
+      "status": "done",
+      "priority": "high",
+      "due_date": "",
+      "source": "outbot-backlog",
+      "reminder_list": "",
+      "file_path": "work/tasks/OUT-273-outbot-conversation-archiving.md",
+      "description": "",
+      "eisenhower_urgent": false,
+      "eisenhower_important": true,
+      "auto_classified": false
+    }
+  ],
+  "q3": [],
+  "q4": [
+    {
+      "id": "OUT-226",
+      "title": "Tech Roadmap",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-226-tech-roadmap.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-228",
+      "title": "AusSuper marketing team one pager - current Deloitte work + future opportunities",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-228-aussuper-marketing-team-one-pager-current-deloitte.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-245",
+      "title": "Ai ppt",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-245-ai-ppt.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-225",
+      "title": "Contact Centre",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-225-contact-centre.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-223",
+      "title": "Fire place fix",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-223-fire-place-fix.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    },
+    {
+      "id": "OUT-247",
+      "title": "Aus super store front",
+      "status": "todo",
+      "priority": "low",
+      "due_date": "",
+      "source": "reminder",
+      "reminder_list": "Reminders",
+      "file_path": "work/tasks/OUT-247-aus-super-store-front.md",
+      "description": "No description provided",
+      "eisenhower_urgent": false,
+      "eisenhower_important": false,
+      "auto_classified": false
+    }
+  ]
+};
+        let currentFilter = 'all';
+        let showDone = false;
+
+        function renderTasks() {
+            ['q1', 'q2', 'q3', 'q4'].forEach(q => {
+                const container = document.getElementById(`${q}-tasks`);
+                const tasks = (data[q] || []).filter(t => shouldShow(t));
+
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No tasks</div>';
+                } else {
+                    container.innerHTML = tasks.map(t => renderCard(t, q)).join('');
+                }
+
+                // Update count
+                document.getElementById(`${q}-count`).textContent = tasks.length;
+            });
+
+            // Update total
+            const total = ['q1','q2','q3','q4'].reduce((sum, q) =>
+                sum + (data[q] || []).filter(t => shouldShow(t)).length, 0);
+            document.getElementById('total-count').textContent = total;
+        }
+
+        function shouldShow(task) {
+            const isDone = task.status === 'done' || task.status === 'completed';
+            if (isDone && !showDone) return false;
+            if (currentFilter === 'reminder' && task.source !== 'reminder') return false;
+            if (currentFilter === 'manual' && task.source === 'reminder') return false;
+            return true;
+        }
+
+        function renderCard(task, quadrant) {
+            const isDone = task.status === 'done' || task.status === 'completed';
+            const doneClass = isDone ? ' done-card' : '';
+
+            const due = formatDate(task.due_date);
+            const badges = [];
+            if (task.priority) badges.push(`<span class="badge badge-${task.priority}">${task.priority}</span>`);
+            if (task.source === 'reminder') badges.push('<span class="badge badge-reminder">reminder</span>');
+            if (isDone) badges.push('<span class="badge badge-done">done</span>');
+
+            const desc = task.description || '';
+            const detailHtml = desc ? `
+                <details>
+                    <summary>details</summary>
+                    <div class="detail-content">
+                        <p>${desc}</p>
+                        <p><code>${task.file_path}</code></p>
+                    </div>
+                </details>` : '';
+
+            return `
+                <div class="task-card ${quadrant}-card${doneClass}" data-source="${task.source}" data-status="${task.status}">
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-meta">
+                        <code>${task.id}</code> &middot; ${due}
+                    </div>
+                    ${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}
+                    ${detailHtml}
+                </div>`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'No due date';
+            try {
+                const date = new Date(dateStr + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const diff = Math.round((date - today) / 86400000);
+                if (diff < 0) return `<span class="overdue">${dateStr} (${Math.abs(diff)}d overdue)</span>`;
+                if (diff === 0) return `<span class="due-today">${dateStr} (today)</span>`;
+                if (diff === 1) return `${dateStr} (tomorrow)`;
+                if (diff <= 7) return `${dateStr} (${diff}d)`;
+                return dateStr;
+            } catch (e) { return dateStr; }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.toolbar .btn:not(.btn-toggle)').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${filter === 'all' ? 'all' : filter === 'reminder' ? 'reminders' : 'manual'}`).classList.add('active');
+            renderTasks();
+        }
+
+        function toggleDone() {
+            showDone = !showDone;
+            const btn = document.getElementById('btn-done');
+            btn.textContent = showDone ? 'Hide Done' : 'Show Done';
+            btn.classList.toggle('active', showDone);
+            renderTasks();
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            const btn = document.getElementById('btn-theme');
+            btn.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            btn.classList.toggle('active', !isDark);
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            // Restore theme
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.setAttribute('data-theme', 'dark');
+                document.getElementById('btn-theme').textContent = 'Light Mode';
+                document.getElementById('btn-theme').classList.add('active');
+            }
+            renderTasks();
+        });
+    </script>
+</body>
+</html>

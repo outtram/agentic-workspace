@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Contract Renewal — Three Strategic Models</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #09101f;
+      --bg2: #0d1829;
+      --surface: #111d30;
+      --surface2: #172240;
+      --border: rgba(100,140,200,0.10);
+      --border-bright: rgba(100,140,200,0.25);
+      --gold: #c9a53e;
+      --gold-light: #e8c46a;
+      --gold-dim: rgba(201,165,62,0.10);
+      --teal: #00bba3;
+      --teal-dim: rgba(0,187,163,0.10);
+      --blue: #4a8fe8;
+      --blue-dim: rgba(74,143,232,0.10);
+      --text: #dce6f4;
+      --text-muted: #7a8ea8;
+      --text-dim: #3e5068;
+    }
+    html { font-size: 18px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    .header {
+      padding: 3.5rem 3rem 2.5rem;
+      background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 50%; height: 100%;
+      background: radial-gradient(ellipse at 80% 40%, rgba(201,165,62,0.05) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .header-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    .header-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 4.5vw, 3.6rem);
+      font-weight: 400;
+      line-height: 1.1;
+      max-width: 820px;
+      margin-bottom: 1.25rem;
+    }
+    .header-title em { font-style: italic; color: var(--gold-light); }
+    .header-meta {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .hstat {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .hstat-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: 0.5;
+    }
+    .hstat span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* TABS */
+    .tab-nav {
+      display: flex;
+      padding: 0 3rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1.1rem 1.75rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+    .tab.active { color: var(--text); border-bottom-color: var(--gold); }
+    .tab-letter {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      line-height: 1;
+      color: var(--gold);
+      opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+    .tab.active .tab-letter, .tab:hover .tab-letter { opacity: 1; }
+    .tab-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: block;
+    }
+    .tab-sub {
+      font-size: 0.7rem;
+      font-weight: 300;
+      color: var(--text-dim);
+      display: block;
+    }
+    .tab.active .tab-sub { color: var(--text-muted); }
+
+    /* PANELS */
+    .panel {
+      display: none;
+      padding: 3rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      animation: fadeIn 0.3s ease;
+    }
+    .panel.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .panel-header { margin-bottom: 2.5rem; }
+    .panel-header h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      font-weight: 400;
+      margin-bottom: 0.4rem;
+    }
+    .panel-header p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: 300;
+      max-width: 700px;
+    }
+
+    /* LAYOUT */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .two-col { grid-template-columns: 1fr; }
+      .panel { padding: 1.5rem; }
+      .tab-nav, .header { padding: 1.5rem; }
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-bright), transparent);
+    }
+    .card-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.63rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    /* CHART WRAP */
+    .chart-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .chart-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.63rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    /* FINANCIAL PANEL */
+    .financial-panel { display: flex; flex-direction: column; gap: 1.25rem; }
+    .slider-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .slider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1rem;
+    }
+    .slider-label-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.63rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .slider-display {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      color: var(--gold-light);
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 2px;
+      background: var(--surface2);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-dim);
+      cursor: pointer;
+    }
+    .slider-hint {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 0.6rem;
+    }
+
+    .scenario-cards { display: flex; flex-direction: column; gap: 0.6rem; }
+    .scenario-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.2s;
+    }
+    .scenario-card:hover { border-color: var(--border-bright); }
+    .sc-left { display: flex; align-items: center; gap: 0.65rem; }
+    .sc-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .sc-name { font-size: 0.85rem; font-weight: 500; }
+    .sc-gain {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.67rem;
+      color: var(--text-muted);
+    }
+    .sc-right { text-align: right; }
+    .sc-val {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem;
+    }
+    .sc-sublabel {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text-dim);
+    }
+
+    .cumulative-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+    }
+    .cum-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+    .cum-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      color: var(--text);
+    }
+    .cum-sub { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.15rem; }
+
+    /* PITCH BOX */
+    .pitch-box {
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      border-left: 2px solid var(--gold);
+      background: var(--gold-dim);
+      border-radius: 0 8px 8px 0;
+    }
+    .pitch-box strong {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+    .pitch-box p {
+      font-size: 0.88rem;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    /* PROOF STATS */
+    .proof-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    @media (max-width: 960px) {
+      .proof-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.4rem;
+      color: var(--gold-light);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+    .stat-lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      line-height: 1.4;
+    }
+
+    /* SECTION DIVIDER */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2.5rem 0;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    /* TIMELINE */
+    .timeline { position: relative; padding: 2.5rem 0; }
+    .tl-track {
+      position: absolute;
+      top: 42px;
+      left: calc(12.5%);
+      right: calc(12.5%);
+      height: 1px;
+      background: var(--surface2);
+    }
+    .tl-progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      transition: width 1.2s ease;
+    }
+    .tl-nodes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 960px) {
+      .tl-nodes { grid-template-columns: 1fr; }
+      .tl-track { display: none; }
+    }
+    .tl-node { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .tl-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--border-bright);
+      background: var(--bg);
+      position: relative;
+      z-index: 2;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .tl-dot.lit {
+      background: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(201,165,62,0.45);
+    }
+    .tl-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+      width: 100%;
+    }
+    .tl-time {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.35rem;
+    }
+    .tl-ttl {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .tl-list { list-style: none; }
+    .tl-list li {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      padding: 0.18rem 0 0.18rem 1rem;
+      position: relative;
+    }
+    .tl-list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--teal);
+      font-size: 0.68rem;
+    }
+    .tl-badge {
+      display: inline-block;
+      margin-top: 0.7rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      background: var(--teal-dim);
+      color: var(--teal);
+      border: 1px solid rgba(0,187,163,0.18);
+    }
+
+    /* DIVIDEND CARDS */
+    .dividend-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    @media (max-width: 960px) {
+      .dividend-cards { grid-template-columns: 1fr; }
+    }
+    .div-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .div-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+    .div-card.rec { border-color: rgba(201,165,62,0.35); }
+    .rec-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold);
+      color: var(--bg);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.18rem 0.65rem;
+      border-radius: 20px;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .div-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .div-sub { font-size: 0.73rem; color: var(--text-muted); margin-bottom: 1.1rem; }
+    .donut-wrap {
+      position: relative;
+      width: 100px; height: 100px;
+      margin: 0 auto 1.25rem;
+    }
+    .donut-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'DM Serif Display', serif;
+      font-size: 0.8rem;
+      color: var(--text);
+      white-space: nowrap;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .split-bars { text-align: left; }
+    .split-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+    .split-lbl {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      width: 95px;
+      flex-shrink: 0;
+    }
+    .split-track {
+      flex: 1;
+      height: 3px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .split-fill { height: 100%; border-radius: 2px; }
+    .split-pct {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text);
+      width: 30px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* CONTRACT TABLE */
+    .contract-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    table.ct {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .ct th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 0.8rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .ct td {
+      font-size: 0.8rem;
+      padding: 0.9rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+      line-height: 1.55;
+    }
+    .ct tr:last-child td { border-bottom: none; }
+    .ct tbody tr:hover td { background: rgba(255,255,255,0.015); }
+    .yr-badge {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 4px;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+    .yr1 { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(74,143,232,0.18); }
+    .yr2 { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(0,187,163,0.18); }
+    .yr3 { background: var(--gold-dim); color: var(--gold-light); border: 1px solid rgba(201,165,62,0.18); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <p class="header-label">// AI Contract Renewal Strategy · 2026</p>
+  <h1 class="header-title">Three Models for the <em>AI Dividend</em></h1>
+  <div class="header-meta">
+    <div class="hstat"><div class="hstat-dot"></div><span>130 people · 30 AUS + 100 Offshore</span></div>
+    <div class="hstat"><div class="hstat-dot"></div><span>5 Channels · 6+ Squads</span></div>
+    <div class="hstat"><div class="hstat-dot"></div><span>3-Year Renewal · T&amp;M Contract</span></div>
+    <div class="hstat"><div class="hstat-dot"></div><span>The question: who gets the AI upside?</span></div>
+  </div>
+</header>
+
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <button class="tab active" data-tab="a">
+    <span class="tab-letter">A</span>
+    <div><span class="tab-title">Throughput Engine</span><span class="tab-sub">Same team · More delivered</span></div>
+  </button>
+  <button class="tab" data-tab="b">
+    <span class="tab-letter">B</span>
+    <div><span class="tab-title">Prove Today · Promise Tomorrow</span><span class="tab-sub">Track record + AI roadmap</span></div>
+  </button>
+  <button class="tab" data-tab="c">
+    <span class="tab-letter">C</span>
+    <div><span class="tab-title">Mutual Investment</span><span class="tab-sub">How we share the gains</span></div>
+  </button>
+</nav>
+
+<!-- ===== PANEL A ===== -->
+<div class="panel active" id="panel-a">
+  <div class="panel-header">
+    <h2>The Throughput Engine</h2>
+    <p>AI doesn't change your invoice — it changes how much moves through the team. Here's what three years of AI adoption looks like in initiatives delivered per quarter.</p>
+  </div>
+
+  <div class="two-col">
+    <div class="chart-wrap">
+      <p class="chart-title">Initiatives delivered per quarter — 3 AI scenarios vs baseline</p>
+      <canvas id="throughputChart" height="290"></canvas>
+    </div>
+
+    <div class="financial-panel">
+      <div class="slider-wrap">
+        <div class="slider-top">
+          <span class="slider-label-text">Annual Contract Value</span>
+          <span class="slider-display" id="contractDisplay">$20M</span>
+        </div>
+        <input type="range" id="contractSlider" min="5" max="60" value="20" step="0.5">
+        <p class="slider-hint">Drag to model your contract size · values are indicative</p>
+      </div>
+
+      <div class="cumulative-card" style="border-color:rgba(201,165,62,0.2)">
+        <div class="cum-label">Squad Economics · Current Baseline</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.5rem;">
+          <div>
+            <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--gold-light)">$1.9M</div>
+            <div style="font-size:0.7rem;color:var(--text-dim)">per squad / year</div>
+          </div>
+          <div>
+            <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--text)" id="squad-count">~10</div>
+            <div style="font-size:0.7rem;color:var(--text-dim)">squads at this value</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scenario-cards">
+        <div class="scenario-card">
+          <div class="sc-left">
+            <div class="sc-dot" style="background:#4a8fe8"></div>
+            <div>
+              <div class="sc-name">Conservative</div>
+              <div class="sc-gain">+5% capacity · Year 1 (AI adoption phase)</div>
+            </div>
+          </div>
+          <div class="sc-right">
+            <div class="sc-val" style="color:var(--blue)" id="cons-val">$1.0M</div>
+            <div class="sc-sublabel">equivalent capacity unlocked/yr</div>
+          </div>
+        </div>
+
+        <div class="scenario-card">
+          <div class="sc-left">
+            <div class="sc-dot" style="background:#00bba3"></div>
+            <div>
+              <div class="sc-name">Moderate</div>
+              <div class="sc-gain">+10% capacity · Year 2 (AI embedded)</div>
+            </div>
+          </div>
+          <div class="sc-right">
+            <div class="sc-val" style="color:var(--teal)" id="mod-val">$2.0M</div>
+            <div class="sc-sublabel">equivalent capacity unlocked/yr</div>
+          </div>
+        </div>
+
+        <div class="scenario-card">
+          <div class="sc-left">
+            <div class="sc-dot" style="background:#c9a53e"></div>
+            <div>
+              <div class="sc-name">Optimistic</div>
+              <div class="sc-gain">+20% capacity · Year 3 (AI-native)</div>
+            </div>
+          </div>
+          <div class="sc-right">
+            <div class="sc-val" style="color:var(--gold-light)" id="opt-val">$4.0M</div>
+            <div class="sc-sublabel">equivalent capacity unlocked/yr</div>
+          </div>
+        </div>
+
+        <div class="cumulative-card">
+          <div class="cum-label">3-Year Capacity Unlocked (Y1 + Y2 + Y3)</div>
+          <div class="cum-value" id="cum-val">$7.0M</div>
+          <div class="cum-sub">Equivalent initiative throughput at current squad rates · indicative</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pitch-box">
+    <strong>The Pitch</strong>
+    <p>"These are conservative, credible numbers — not hype. A 5% capacity gain in Year 1 is 0.5 squads worth of throughput at no additional cost. By Year 3 at 20%, that's 2 squads' worth of extra capacity that didn't exist before. The question is what we do with it together."</p>
+  </div>
+</div>
+
+<!-- ===== PANEL B ===== -->
+<div class="panel" id="panel-b">
+  <div class="panel-header">
+    <h2>Prove Today. Promise Tomorrow.</h2>
+    <p>Earn the renewal on track record. Win the 3 years on the AI journey. Two parts to the same story.</p>
+  </div>
+
+  <div class="proof-stats">
+    <div class="stat-card">
+      <div class="stat-num">130</div>
+      <div class="stat-lbl">30 Onshore · 100 Offshore</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">5</div>
+      <div class="stat-lbl">Digital channels managed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">10+</div>
+      <div class="stat-lbl">Years institutional knowledge</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">80%</div>
+      <div class="stat-lbl">Initiative delivery rate (committed)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">24/7</div>
+      <div class="stat-lbl">Managed services &amp; support</div>
+    </div>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">The AI Journey — 36 Months</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-track"><div class="tl-progress" id="tl-progress"></div></div>
+    <div class="tl-nodes">
+      <div class="tl-node">
+        <div class="tl-dot lit"></div>
+        <div class="tl-card">
+          <div class="tl-time">Now · 2026</div>
+          <div class="tl-ttl">Foundation</div>
+          <ul class="tl-list">
+            <li>AI tool assessment across all squads</li>
+            <li>GitHub Copilot pilot — Microservices</li>
+            <li>Automated QA framework rollout</li>
+            <li>Baseline throughput metrics set</li>
+          </ul>
+          <span class="tl-badge">Baseline established</span>
+        </div>
+      </div>
+      <div class="tl-node">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-time">6–12 Months</div>
+          <div class="tl-ttl">Acceleration</div>
+          <ul class="tl-list">
+            <li>Copilot across all dev squads</li>
+            <li>AI-assisted Sitecore content builds</li>
+            <li>Smart QA: AI test generation</li>
+            <li>Mobile: AI-assisted UX testing</li>
+          </ul>
+          <span class="tl-badge">+5% throughput</span>
+        </div>
+      </div>
+      <div class="tl-node">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-time">12–24 Months</div>
+          <div class="tl-ttl">Optimisation</div>
+          <ul class="tl-list">
+            <li>AI-native sprint ceremonies</li>
+            <li>Automated PR review + code assist</li>
+            <li>Shared AI ROI dashboard (client visible)</li>
+            <li>Gain-sharing model activated</li>
+          </ul>
+          <span class="tl-badge">+10% throughput</span>
+        </div>
+      </div>
+      <div class="tl-node">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-time">24–36 Months</div>
+          <div class="tl-ttl">New Model</div>
+          <ul class="tl-list">
+            <li>AI-first delivery methodology</li>
+            <li>Predictive initiative modelling</li>
+            <li>Renegotiate on 24-month data</li>
+            <li>Co-invest in next-gen tooling</li>
+          </ul>
+          <span class="tl-badge">+20% throughput</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pitch-box">
+    <strong>The Pitch</strong>
+    <p>"We've earned trust through a decade of delivery. Now we're asking you to invest in the next chapter together. Sign the 3 years — not just because of what we've done, but because of what we've committed to building with you."</p>
+  </div>
+</div>
+
+<!-- ===== PANEL C ===== -->
+<div class="panel" id="panel-c">
+  <div class="panel-header">
+    <h2>What AI Acceleration Makes Possible</h2>
+    <p>We're investing in AI capability on our side. As capacity unlocks, there's a conversation to be had about how to use it. These are three ways that conversation could go — not a commitment, a starting point.</p>
+  </div>
+
+  <!-- Context note -->
+  <div class="card" style="margin-bottom:2rem;border-color:rgba(201,165,62,0.18);">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;">
+      <div style="text-align:center;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.35rem;">Already in place</div>
+        <div style="font-size:0.82rem;color:var(--text);line-height:1.5;">Existing SLAs govern delivery accountability. Penalties apply if we miss. That framework stays.</div>
+      </div>
+      <div style="text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 1.5rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.35rem;">The AI opportunity</div>
+        <div style="font-size:0.82rem;color:var(--text);line-height:1.5;">AI creates additional capacity beyond what's contracted. We bring the IP and the acceleration. What we do with the upside is a shared conversation.</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.35rem;">Our position</div>
+        <div style="font-size:0.82rem;color:var(--text);line-height:1.5;">If we deliver more, let's split it. We're not handing it all over — and we're not keeping it all. A fair split incentivises both sides to keep pushing.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem;">How additional AI capacity could be used — 3 options to discuss</div>
+
+  <div class="dividend-cards">
+    <div class="div-card">
+      <div class="div-title">More Throughput</div>
+      <div class="div-sub">Use the capacity to move faster. Backlog shrinks.</div>
+      <div class="donut-wrap">
+        <canvas id="donut1"></canvas>
+        <div class="donut-center">More<br>done</div>
+      </div>
+      <div class="split-bars">
+        <div class="split-row">
+          <span class="split-lbl">More throughput</span>
+          <div class="split-track"><div class="split-fill" style="width:80%;background:var(--blue)"></div></div>
+          <span class="split-pct">80%</span>
+        </div>
+        <div class="split-row">
+          <span class="split-lbl">Cost credit</span>
+          <div class="split-track"><div class="split-fill" style="width:20%;background:var(--teal)"></div></div>
+          <span class="split-pct">20%</span>
+        </div>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.7rem;color:var(--text-dim);line-height:1.5;">Best fit when the client has a large backlog and speed is the priority over cost.</div>
+    </div>
+
+    <div class="div-card rec">
+      <div class="rec-badge">Suggested Starting Point</div>
+      <div class="div-title">Split the Gain</div>
+      <div class="div-sub">Half goes to more throughput. Half creates cost efficiency.</div>
+      <div class="donut-wrap">
+        <canvas id="donut2"></canvas>
+        <div class="donut-center">Balanced</div>
+      </div>
+      <div class="split-bars">
+        <div class="split-row">
+          <span class="split-lbl">More throughput</span>
+          <div class="split-track"><div class="split-fill" style="width:50%;background:var(--blue)"></div></div>
+          <span class="split-pct">50%</span>
+        </div>
+        <div class="split-row">
+          <span class="split-lbl">Cost credit</span>
+          <div class="split-track"><div class="split-fill" style="width:50%;background:var(--teal)"></div></div>
+          <span class="split-pct">50%</span>
+        </div>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.7rem;color:var(--text-dim);line-height:1.5;">A fair starting point for the conversation. Both parties see a tangible benefit from AI adoption.</div>
+    </div>
+
+    <div class="div-card">
+      <div class="div-title">Cost Efficiency</div>
+      <div class="div-sub">Use the capacity to reduce the overall cost base.</div>
+      <div class="donut-wrap">
+        <canvas id="donut3"></canvas>
+        <div class="donut-center">Lower<br>bill</div>
+      </div>
+      <div class="split-bars">
+        <div class="split-row">
+          <span class="split-lbl">More throughput</span>
+          <div class="split-track"><div class="split-fill" style="width:20%;background:var(--blue)"></div></div>
+          <span class="split-pct">20%</span>
+        </div>
+        <div class="split-row">
+          <span class="split-lbl">Cost credit</span>
+          <div class="split-track"><div class="split-fill" style="width:80%;background:var(--teal)"></div></div>
+          <span class="split-pct">80%</span>
+        </div>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.7rem;color:var(--text-dim);line-height:1.5;">Works if the client's primary driver is budget. Worth understanding their priorities before offering this.</div>
+    </div>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">The 3-Year Contract Model</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="contract-wrap">
+    <table class="ct">
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Contract Structure</th>
+          <th>Client Gets</th>
+          <th>We Commit To</th>
+          <th>Review Trigger</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="yr-badge yr1">Year 1</span></td>
+          <td>Existing T&amp;M structure. Baseline metrics agreed &amp; tracked jointly.</td>
+          <td>Current delivery quality + transparency on AI adoption progress.</td>
+          <td>AI tooling rollout across squads. Shared metrics dashboard live by Q3.</td>
+          <td>Quarterly joint reviews. Agree AI KPIs &amp; gain-share formula before Year 2.</td>
+        </tr>
+        <tr>
+          <td><span class="yr-badge yr2">Year 2</span></td>
+          <td>Gain-sharing model activated based on measured throughput uplift.</td>
+          <td>Throughput gains or cost credits per agreed formula (A, B, or C above).</td>
+          <td>Minimum 20% productivity improvement — or credit applied to invoice.</td>
+          <td>Mid-year data review. Apply dividend formula. Adjust squad mix if needed.</td>
+        </tr>
+        <tr>
+          <td><span class="yr-badge yr3">Year 3</span></td>
+          <td>Renegotiate model using 24 months of real data as the basis.</td>
+          <td>Optimised cost/throughput model tailored to what actually happened.</td>
+          <td>AI-native delivery methodology. Propose next contract terms proactively.</td>
+          <td>Full renewal negotiation with evidence. Both parties armed with real numbers.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pitch-box">
+    <strong>The Pitch</strong>
+    <p>"We're bringing AI as a capability investment — the IP, the tooling, the methodology. As that creates additional capacity beyond what's contracted today, let's have a conversation about how to use it. The existing SLAs govern delivery. This is about what happens when we deliver <em>more</em>."</p>
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Chart.js global defaults
+  Chart.defaults.color = '#7a8ea8';
+  Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+  Chart.defaults.font.size = 11;
+
+  // Throughput line chart
+  const quarters = ['Now','Q2','Q3','Q4',"Q1 '27",'Q2','Q3','Q4',"Q1 '28",'Q2','Q3','Q4'];
+  const baseline = Array(12).fill(10);
+  const lerp = (a, b, t) => Math.round((a + (b - a) * t) * 10) / 10;
+  const conservative = quarters.map((_, i) => lerp(10, 10.5, i / 11));  // +5%
+  const moderate     = quarters.map((_, i) => lerp(10, 11,   i / 11));  // +10%
+  const optimistic   = quarters.map((_, i) => lerp(10, 12,   i / 11));  // +20%
+
+  new Chart(document.getElementById('throughputChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: quarters,
+      datasets: [
+        {
+          label: 'Baseline (no AI)',
+          data: baseline,
+          borderColor: 'rgba(255,255,255,0.12)',
+          borderDash: [4,4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          tension: 0
+        },
+        {
+          label: 'Conservative (+5%)',
+          data: conservative,
+          borderColor: '#4a8fe8',
+          backgroundColor: 'rgba(74,143,232,0.06)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#4a8fe8',
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'Moderate (+10%)',
+          data: moderate,
+          borderColor: '#00bba3',
+          backgroundColor: 'rgba(0,187,163,0.06)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#00bba3',
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'Optimistic (+20%)',
+          data: optimistic,
+          borderColor: '#c9a53e',
+          backgroundColor: 'rgba(201,165,62,0.07)',
+          borderWidth: 2.5,
+          pointRadius: 3,
+          pointBackgroundColor: '#c9a53e',
+          fill: false,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { boxWidth: 10, padding: 16, color: '#7a8ea8', font: { size: 11 } }
+        },
+        tooltip: {
+          backgroundColor: '#111d30',
+          borderColor: 'rgba(100,140,200,0.2)',
+          borderWidth: 1,
+          padding: 12,
+          titleColor: '#dce6f4',
+          bodyColor: '#7a8ea8',
+          callbacks: {
+            label: c => ` ${c.dataset.label}: ${c.parsed.y} initiatives/qtr`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#3e5068' } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#3e5068' },
+          min: 8, max: 15,
+          title: { display: true, text: 'Initiatives / Quarter', color: '#3e5068', font: { size: 10 } }
+        }
+      }
+    }
+  });
+
+  // Financial slider
+  function updateFinancials(val) {
+    document.getElementById('contractDisplay').textContent = `$${val}M`;
+    document.getElementById('cons-val').textContent = `$${(val * 0.05).toFixed(1)}M`;
+    document.getElementById('mod-val').textContent  = `$${(val * 0.10).toFixed(1)}M`;
+    document.getElementById('opt-val').textContent  = `$${(val * 0.20).toFixed(1)}M`;
+    const cum = (val * 0.05 + val * 0.10 + val * 0.20).toFixed(1);
+    document.getElementById('cum-val').textContent = `$${cum}M`;
+    const squads = document.getElementById('squad-count');
+    if (squads) squads.textContent = `~${Math.round(val / 1.9)}`;
+  }
+  const slider = document.getElementById('contractSlider');
+  slider.addEventListener('input', e => updateFinancials(parseFloat(e.target.value)));
+  updateFinancials(20);
+
+  // Timeline animation
+  setTimeout(() => {
+    const p = document.getElementById('tl-progress');
+    if (p) p.style.width = '8%';
+  }, 400);
+
+  // Donut charts
+  function makeDonut(id, data, colors) {
+    new Chart(document.getElementById(id).getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderWidth: 0,
+          hoverOffset: 3
+        }]
+      },
+      options: {
+        cutout: '74%',
+        responsive: true,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } }
+      }
+    });
+  }
+
+  // Client's 50%: how it's split between throughput and cost credit
+  makeDonut('donut1', [80, 20], ['#4a8fe8', '#00bba3']);
+  makeDonut('donut2', [50, 50], ['#4a8fe8', '#00bba3']);
+  makeDonut('donut3', [20, 80], ['#4a8fe8', '#00bba3']);
+</script>
+</body>
+</html>
