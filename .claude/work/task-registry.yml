@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:49.710571'
+last_synced: '2026-02-25T21:07:51.792911'
 entries:
   OUT-223:
     title: Fire place fix
@@ -209,7 +209,7 @@ entries:
     title: Van stopper
     file: OUT-297-van-stopper.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://8DAED61B-B473-4190-BD8E-020E69A9A2FC
   OUT-299:
