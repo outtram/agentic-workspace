@@ -25,7 +25,13 @@ class RemindersManager:
             applescript_adapter = AppleScriptAdapter()
         self.applescript = applescript_adapter
         self.workitems = WorkItemFileAdapter(work_dir=work_dir)
-        self.registry = TaskRegistry()
+        if work_dir:
+            self.registry = TaskRegistry(
+                work_dir=work_dir.parent,
+                task_dir=work_dir,
+            )
+        else:
+            self.registry = TaskRegistry()
 
     def create_reminder(
         self,
@@ -152,11 +158,7 @@ class RemindersManager:
         if not work_item:
             raise ValueError(f"Work item {work_item_id} not found")
 
-        work_item.status = "done"
-        work_item.updated = datetime.now()
-        self.workitems.update(work_item)
-
-        # Update registry so it stays in sync
+        # Registry handles both YAML and file update
         self.registry.update_status(work_item_id, "done")
 
         if work_item.reminder_id:

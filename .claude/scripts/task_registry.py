@@ -55,6 +55,7 @@ class TaskRegistry:
             registry_file or (self.work_dir / "task-registry.yml")
         )
 
+        self._adapter = WorkItemFileAdapter(work_dir=self.task_dir)
         self._data: dict = {}
         self._load()
 
@@ -99,20 +100,26 @@ class TaskRegistry:
         except ValueError:
             return False
 
-        rel_str = str(rel) + "/"  # ensure trailing slash for prefix check
-        return any(rel_str.startswith(prefix) for prefix in AUTO_SYNC_PREFIXES)
+        rel_str = str(rel)
+        return any(
+            rel_str == prefix.rstrip("/") or rel_str.startswith(prefix)
+            for prefix in AUTO_SYNC_PREFIXES
+        )
 
     def _git_pull(self):
         """Run git pull --rebase before reads. Fails silently if offline."""
         try:
-            subprocess.run(
+            result = subprocess.run(
                 ["git", "pull", "--rebase"],
                 cwd=str(self.project_root),
                 capture_output=True,
                 text=True,
                 timeout=30,
             )
-            self._load()
+            if result.returncode == 0:
+                self._load()
+            else:
+                logger.warning("git pull returned %d: %s", result.returncode, result.stderr[:100])
         except Exception as exc:
             logger.warning("git pull failed (offline?): %s", exc)
 
@@ -246,8 +253,7 @@ class TaskRegistry:
         )
 
         # Write file
-        adapter = WorkItemFileAdapter(work_dir=self.task_dir)
-        file_path = adapter.create(work_item)
+        file_path = self._adapter.create(work_item)
 
         # Update registry entries
         self._data.setdefault("entries", {})[out_id] = {
@@ -280,13 +286,13 @@ class TaskRegistry:
 
         # Update file via adapter
         changed_files = [self.registry_file]
-        adapter = WorkItemFileAdapter(work_dir=self.task_dir)
-        work_item = adapter.read(out_id)
+        work_item = self._adapter.read(out_id)
         if work_item:
             work_item.status = status
-            adapter.update(work_item)
+            work_item.updated = datetime.now()
+            self._adapter.update(work_item)
             # Resolve the task file path for git push
-            task_file = adapter._find_file(out_id)
+            task_file = self._adapter._find_file(out_id)
             if task_file:
                 changed_files.append(task_file)
 
