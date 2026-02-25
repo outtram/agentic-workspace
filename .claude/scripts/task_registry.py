@@ -112,6 +112,7 @@ class TaskRegistry:
                 text=True,
                 timeout=30,
             )
+            self._load()
         except Exception as exc:
             logger.warning("git pull failed (offline?): %s", exc)
 
@@ -266,6 +267,8 @@ class TaskRegistry:
 
     def update_status(self, out_id: str, status: str):
         """Update the status of a task in both the registry and the file."""
+        self._git_pull()
+
         entries = self._data.get("entries", {})
         if out_id not in entries:
             logger.warning("update_status: %s not found in registry", out_id)
@@ -276,11 +279,18 @@ class TaskRegistry:
         self._save()
 
         # Update file via adapter
+        changed_files = [self.registry_file]
         adapter = WorkItemFileAdapter(work_dir=self.task_dir)
         work_item = adapter.read(out_id)
         if work_item:
             work_item.status = status
             adapter.update(work_item)
+            # Resolve the task file path for git push
+            task_file = adapter._find_file(out_id)
+            if task_file:
+                changed_files.append(task_file)
+
+        self._git_push(changed_files)
 
     def list_tasks(self, status: Optional[str] = None) -> dict:
         """
@@ -288,6 +298,7 @@ class TaskRegistry:
 
         Returns dict of {OUT-ID: entry_dict}.
         """
+        self._git_pull()
         entries = self._data.get("entries", {})
         if status is None:
             return dict(entries)

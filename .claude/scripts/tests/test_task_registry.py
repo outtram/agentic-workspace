@@ -112,6 +112,22 @@ class TestGitPull:
         # Should NOT raise
         registry._git_pull()
 
+    @patch("task_registry.subprocess.run")
+    def test_calls_load_after_pull(self, mock_run, registry):
+        """_git_pull must call self._load() after a successful pull to refresh in-memory data."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="Already up to date.")
+        with patch.object(registry, "_load") as mock_load:
+            registry._git_pull()
+            mock_load.assert_called_once()
+
+    @patch("task_registry.subprocess.run")
+    def test_does_not_call_load_on_failure(self, mock_run, registry):
+        """If git pull raises, _load should NOT be called."""
+        mock_run.side_effect = Exception("Network unreachable")
+        with patch.object(registry, "_load") as mock_load:
+            registry._git_pull()
+            mock_load.assert_not_called()
+
 
 class TestGitPush:
     @patch("task_registry.subprocess.run")
@@ -262,15 +278,75 @@ class TestUpdateStatus:
         seeded_registry.update_status(out_id, "done")
         assert seeded_registry._data["entries"][out_id]["status"] == "done"
 
+    @patch.object(TaskRegistry, "_git_push")
+    @patch.object(TaskRegistry, "_git_pull")
+    def test_calls_git_pull_and_push(self, mock_pull, mock_push, seeded_registry):
+        """update_status must git pull at start and git push at end."""
+        # Create a task first so update_status has something to update
+        seeded_registry.create_task(
+            title="Git sync status test",
+            source="manual",
+        )
+        out_id = "OUT-102"
+        mock_pull.reset_mock()
+        mock_push.reset_mock()
+
+        seeded_registry.update_status(out_id, "done")
+        mock_pull.assert_called_once()
+        mock_push.assert_called_once()
+
+    @patch.object(TaskRegistry, "_git_push")
+    @patch.object(TaskRegistry, "_git_pull")
+    def test_nonexistent_id_does_not_raise_or_corrupt(self, mock_pull, mock_push, seeded_registry):
+        """update_status with a nonexistent ID should silently return without corruption."""
+        entries_before = dict(seeded_registry._data.get("entries", {}))
+
+        # Should not raise
+        seeded_registry.update_status("OUT-999", "done")
+
+        # Data should be unchanged
+        entries_after = seeded_registry._data.get("entries", {})
+        assert entries_before == entries_after
+
 
 class TestListTasks:
-    def test_list_all(self, seeded_registry):
+    @patch.object(TaskRegistry, "_git_pull")
+    def test_list_all(self, mock_pull, seeded_registry):
         entries = seeded_registry.list_tasks()
         assert len(entries) == 2
 
-    def test_filter_by_status(self, seeded_registry):
+    @patch.object(TaskRegistry, "_git_pull")
+    def test_filter_by_status(self, mock_pull, seeded_registry):
         entries = seeded_registry.list_tasks(status="todo")
         assert len(entries) == 2
 
         entries = seeded_registry.list_tasks(status="done")
         assert len(entries) == 0
+
+    @patch.object(TaskRegistry, "_git_pull")
+    def test_calls_git_pull(self, mock_pull, seeded_registry):
+        """list_tasks must call _git_pull at the start to get fresh data."""
+        seeded_registry.list_tasks()
+        mock_pull.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# Dedup via reminder_id test
+# ---------------------------------------------------------------------------
+
+class TestCreateTaskDedupByReminderId:
+    @patch.object(TaskRegistry, "_git_push")
+    @patch.object(TaskRegistry, "_git_pull")
+    def test_dedup_by_reminder_id_not_title(self, mock_pull, mock_push, seeded_registry):
+        """
+        create_task dedup must work via reminder_id even when titles differ.
+
+        OUT-100 has reminder_id='apple-rem-abc'. A new task with a completely
+        different title but the same reminder_id should be detected as a duplicate.
+        """
+        result = seeded_registry.create_task(
+            title="Totally different title that won't fuzzy-match",
+            source="reminders",
+            reminder_id="apple-rem-abc",
+        )
+        assert result is None  # duplicate detected via reminder_id
