@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 308
-last_synced: '2026-02-25T13:49:33.238794'
+next_id: 309
+last_synced: '2026-02-25T13:49:33.441316'
 entries:
   OUT-223:
     title: Fire place fix
@@ -282,3 +282,10 @@ entries:
     reminder_id: x-apple-reminder://32EB3097-98F5-4F6C-AFD9-00F97D074A6B
     status: todo
     created: '2026-02-25T13:49:33.237413'
+  OUT-308:
+    title: Baxter Dury gig 28 April - buy tickets
+    file: OUT-308-baxter-dury-gig-28-april-buy-tickets.md
+    source: reminder
+    reminder_id: x-apple-reminder://06080DF7-913B-401D-BC4A-2EB89B73F797
+    status: todo
+    created: '2026-02-25T13:49:33.440624'
