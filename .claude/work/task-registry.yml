@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:53.810368'
+last_synced: '2026-02-25T21:07:56.058093'
 entries:
   OUT-223:
     title: Fire place fix
@@ -265,7 +265,7 @@ entries:
     title: Get these skills please
     file: OUT-306-get-these-skills-please.md
     source: reminders_import
-    status: todo
+    status: done
     created: '2026-02-23T21:03:47.293947'
     reminder_id: x-apple-reminder://6287E086-38AB-40A1-9B6C-4750E80601D8
   OUT-307:
