@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:43.327591'
+last_synced: '2026-02-25T21:07:45.401970'
 entries:
   OUT-223:
     title: Fire place fix
@@ -188,7 +188,7 @@ entries:
     title: Music
     file: OUT-294-music.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://BBB540D7-F1CA-4B05-B8E4-5860035A58A5
   OUT-295:
