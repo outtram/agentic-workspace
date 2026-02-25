@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T13:49:33.441316'
+last_synced: '2026-02-25T21:07:29.596034'
 entries:
   OUT-223:
     title: Fire place fix
@@ -128,18 +128,11 @@ entries:
     status: todo
     created: '2026-02-22'
     reminder_id: x-apple-reminder://81C2E508-64F5-4873-B026-CC6BF0529E37
-  OUT-283:
-    title: Tech Roadmap - Chase Kate
-    file: OUT-283-tech-roadmap-chase-kate.md
-    source: reminder
-    status: todo
-    created: '2026-02-22'
-    reminder_id: x-apple-reminder://10004C8C-5257-4330-AD18-B5D15CD76D83
   OUT-286:
     title: Personal website idea - Kev
     file: OUT-286-personal-website-idea-kev.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://E52E1133-FE13-49C5-B71C-9ED8C6DA492C
   OUT-287:
