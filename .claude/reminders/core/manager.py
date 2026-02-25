@@ -1,9 +1,13 @@
+import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
 from reminders.core.events import EventBus, WorkItemCreated, WorkItemUpdated, WorkItemCompleted, WorkItemDeleted
 from reminders.core.models import WorkItem
 from reminders.adapters.workitems import WorkItemFileAdapter
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
+from task_registry import TaskRegistry
 
 
 class RemindersManager:
@@ -21,7 +25,7 @@ class RemindersManager:
             applescript_adapter = AppleScriptAdapter()
         self.applescript = applescript_adapter
         self.workitems = WorkItemFileAdapter(work_dir=work_dir)
-        self._next_id = self._get_next_work_item_id()
+        self.registry = TaskRegistry()
 
     def create_reminder(
         self,
@@ -31,11 +35,8 @@ class RemindersManager:
         priority: str = "low",
         description: str = "",
         list_name: str = "Reminders"
-    ) -> WorkItem:
+    ) -> Optional[WorkItem]:
         """Create a new reminder (work item + Reminders.app sync)"""
-        work_item_id = f"OUT-{self._next_id}"
-        self._next_id += 1
-
         # Classify into Eisenhower quadrant
         urgent = due_date is not None and priority in ["high", "urgent"]
         important = priority in ["high", "medium"] or bool(description)
@@ -49,25 +50,25 @@ class RemindersManager:
         else:
             quadrant = "q4"
 
-        now = datetime.now()
-        work_item = WorkItem(
-            id=work_item_id,
+        # Registry handles dedup, ID assignment, and file creation
+        work_item_id = self.registry.create_task(
             title=title,
-            status="todo",
+            source="manual",
+            description=description,
             priority=priority,
             due_date=due_date,
-            tags=tags or [],
+            tags=tags,
+            list_name=list_name,
             eisenhower_quadrant=quadrant,
             eisenhower_urgent=urgent,
             eisenhower_important=important,
-            source="manual",
-            description=description,
-            created=now,
-            updated=now
         )
 
-        # Save work item file
-        self.workitems.create(work_item)
+        if work_item_id is None:
+            return None  # Duplicate detected
+
+        # Read back the work item created by the registry
+        work_item = self.workitems.read(work_item_id)
 
         # Push to Reminders.app
         reminder_id = self.applescript.create_reminder(
@@ -101,11 +102,8 @@ class RemindersManager:
         priority: str = "low",
         description: str = "",
         list_name: str = "Reminders"
-    ) -> WorkItem:
+    ) -> Optional[WorkItem]:
         """Import an existing reminder from Reminders.app (creates work item only, no sync back)"""
-        work_item_id = f"OUT-{self._next_id}"
-        self._next_id += 1
-
         # Classify into Eisenhower quadrant
         urgent = due_date is not None and priority in ["high", "urgent"]
         important = priority in ["high", "medium"] or bool(description)
@@ -119,27 +117,26 @@ class RemindersManager:
         else:
             quadrant = "q4"
 
-        now = datetime.now()
-        work_item = WorkItem(
-            id=work_item_id,
+        # Registry handles dedup (by reminder_id and fuzzy title), ID assignment, and file creation
+        work_item_id = self.registry.create_task(
             title=title,
-            status="todo",
+            source="reminders_import",
+            reminder_id=reminder_id,
+            description=description,
             priority=priority,
             due_date=due_date,
-            tags=tags or [],
+            tags=tags,
+            list_name=list_name,
             eisenhower_quadrant=quadrant,
             eisenhower_urgent=urgent,
             eisenhower_important=important,
-            source="reminders_import",
-            description=description,
-            created=now,
-            updated=now,
-            reminder_id=reminder_id,
-            reminder_list=list_name
         )
 
-        # Save work item file only (no push to Reminders.app)
-        self.workitems.create(work_item)
+        if work_item_id is None:
+            return None  # Duplicate detected — already imported
+
+        # Read back the work item created by the registry
+        work_item = self.workitems.read(work_item_id)
 
         # Emit event
         self.event_bus.publish(WorkItemCreated(
@@ -158,6 +155,9 @@ class RemindersManager:
         work_item.status = "done"
         work_item.updated = datetime.now()
         self.workitems.update(work_item)
+
+        # Update registry so it stays in sync
+        self.registry.update_status(work_item_id, "done")
 
         if work_item.reminder_id:
             try:
@@ -211,24 +211,6 @@ class RemindersManager:
     def get_reminder(self, work_item_id: str) -> Optional[WorkItem]:
         """Get single reminder by ID"""
         return self.workitems.read(work_item_id)
-
-    def _get_next_work_item_id(self) -> int:
-        """Find highest OUT-2XX ID and increment"""
-        all_items = self.workitems.list_all()
-        if not all_items:
-            return 220
-
-        highest = 220
-        for item in all_items:
-            if item.id.startswith("OUT-"):
-                try:
-                    num = int(item.id.split("-")[1])
-                    if 200 <= num < 300:
-                        highest = max(highest, num)
-                except (ValueError, IndexError):
-                    pass
-
-        return highest + 1
 
     def _build_reminder_body(self, work_item: WorkItem) -> str:
         """Build reminder body with embedded metadata"""
