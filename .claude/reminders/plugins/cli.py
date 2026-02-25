@@ -224,6 +224,10 @@ def sync(ctx, dry_run, enrich):
             list_name=reminder["list"]
         )
 
+        if work_item is None:
+            skipped_count += 1
+            continue
+
         quadrant_counts[work_item.eisenhower_quadrant] += 1
         new_count += 1
 
