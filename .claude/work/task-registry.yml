@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:39.289492'
+last_synced: '2026-02-25T21:07:41.287351'
 entries:
   OUT-223:
     title: Fire place fix
@@ -167,7 +167,7 @@ entries:
     title: Kev website
     file: OUT-291-kev-website.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://718D5DF7-9C40-472B-8898-A7E68ACA5686
   OUT-292:
