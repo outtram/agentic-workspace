@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:34.506988'
+last_synced: '2026-02-25T21:07:37.115267'
 entries:
   OUT-223:
     title: Fire place fix
@@ -153,7 +153,7 @@ entries:
     title: Old laptop DNS setup
     file: OUT-289-old-laptop-dns-setup.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://81D46939-445F-4730-B63D-77B5AAE6B5E2
   OUT-290:
