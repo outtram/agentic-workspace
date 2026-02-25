@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 307
-last_synced: '2026-02-25T02:46:11.083176+00:00'
+next_id: 308
+last_synced: '2026-02-25T13:49:33.238794'
 entries:
   OUT-223:
     title: Fire place fix
@@ -31,14 +31,14 @@ entries:
     created: '2026-02-12'
     reminder_id: x-apple-reminder://A2C91FC2-1817-4983-A35E-A1B9618A20B5
   OUT-241:
-    title: Equity Partner Nomination Form — due 20th Feb
+    title: "Equity Partner Nomination Form \u2014 due 20th Feb"
     file: OUT-241-equity-partner-nomiation-form-is-due-20th-feb.md
     source: reminder
     status: done
     created: '2026-02-12T00:00:00'
     reminder_id: x-apple-reminder://F0D3088C-B7A6-44E6-B565-A252ED9582BB
   OUT-242:
-    title: Kate — Continuous Delivery Meeting
+    title: "Kate \u2014 Continuous Delivery Meeting"
     file: OUT-242-kate-continuous-delivery-meeting.md
     source: reminder
     status: todo
@@ -59,7 +59,7 @@ entries:
     created: '2026-02-12'
     reminder_id: x-apple-reminder://9C3D0648-574D-42A5-8F3B-9A33486A6DB4
   OUT-256:
-    title: Morgan LinkedIn Post — copy Morgan's and tweak
+    title: "Morgan LinkedIn Post \u2014 copy Morgan's and tweak"
     file: OUT-256-morgain-linked-in-post-copy-morgans-and-tweak-its.md
     source: reminder
     status: todo
@@ -73,35 +73,35 @@ entries:
     created: '2026-02-12'
     reminder_id: x-apple-reminder://2DC6F9B8-193F-417E-95E2-263A134B5D25
   OUT-260:
-    title: Melbourne Hosting — check into what's possible
+    title: "Melbourne Hosting \u2014 check into what's possible"
     file: OUT-260-mel-hosting-check-into-lok-at-whats-possiblel.md
     source: reminder
     status: todo
     created: '2026-02-12'
     reminder_id: x-apple-reminder://9472AF02-410D-4544-9723-F81108F1363F
   OUT-269:
-    title: Buy 30mm Conduit — electrical, van, need at least 20 metres
+    title: "Buy 30mm Conduit \u2014 electrical, van, need at least 20 metres"
     file: OUT-269-buy-30mm-conduit-electrical-van-need-at-least-20-m.md
     source: reminders_import
     status: done
     created: '2026-02-15T20:13:22.597559'
     reminder_id: x-apple-reminder://AF361DB1-ED08-42BD-9E8C-FEBAED07C158
   OUT-270:
-    title: Book Doctor Appointment — East Bentleigh Medical Group
+    title: "Book Doctor Appointment \u2014 East Bentleigh Medical Group"
     file: OUT-270-book-a-doctor-appointment-with-the-east-bentleigh.md
     source: reminders_import
     status: done
     created: '2026-02-15T20:13:22.598559'
     reminder_id: x-apple-reminder://9C7D686D-517C-4843-8A78-B4B9C1B212BE
   OUT-271:
-    title: Renae DD Meetings — book in
+    title: "Renae DD Meetings \u2014 book in"
     file: OUT-271-renae-dd-meetings-book-in.md
     source: reminders_import
     status: done
     created: '2026-02-16T22:27:17.895857'
     reminder_id: x-apple-reminder://4166DCF8-2A7A-414F-A484-1A4EAB982190
   OUT-277:
-    title: GLM-5 — research and understand what it is
+    title: "GLM-5 \u2014 research and understand what it is"
     file: OUT-277-glm-5-research-and-understand-what-it-is.md
     source: reminders_import
     status: todo
@@ -275,3 +275,10 @@ entries:
     status: todo
     created: '2026-02-23T21:03:47.293947'
     reminder_id: x-apple-reminder://6287E086-38AB-40A1-9B6C-4750E80601D8
+  OUT-307:
+    title: GitHub PR - project automation agents
+    file: OUT-307-github-pr-project-automation-agents.md
+    source: reminder
+    reminder_id: x-apple-reminder://32EB3097-98F5-4F6C-AFD9-00F97D074A6B
+    status: todo
+    created: '2026-02-25T13:49:33.237413'
