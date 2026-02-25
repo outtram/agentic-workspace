@@ -1,0 +1,277 @@
+schema_version: 1
+next_id: 307
+last_synced: '2026-02-25T02:46:11.083176+00:00'
+entries:
+  OUT-223:
+    title: Fire place fix
+    file: OUT-223-fire-place-fix.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://E5F58C27-0C6A-4920-A52D-6643B8E6B852
+  OUT-226:
+    title: Tech Roadmap
+    file: OUT-226-tech-roadmap.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://10004C8C-5257-4330-AD18-B5D15CD76D83
+  OUT-228:
+    title: AusSuper marketing team one pager - current Deloitte work + future opportunities
+    file: OUT-228-aussuper-marketing-team-one-pager-current-deloitte.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://7AEDC110-1D5C-413F-99E1-76D56D6DE35C
+  OUT-234:
+    title: bowel screen test order
+    file: OUT-234-bowel-screen-test-order.md
+    source: reminder
+    status: done
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://A2C91FC2-1817-4983-A35E-A1B9618A20B5
+  OUT-241:
+    title: Equity Partner Nomination Form — due 20th Feb
+    file: OUT-241-equity-partner-nomiation-form-is-due-20th-feb.md
+    source: reminder
+    status: done
+    created: '2026-02-12T00:00:00'
+    reminder_id: x-apple-reminder://F0D3088C-B7A6-44E6-B565-A252ED9582BB
+  OUT-242:
+    title: Kate — Continuous Delivery Meeting
+    file: OUT-242-kate-continuous-delivery-meeting.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://59EC9829-7B7D-483D-B275-7E579A8A5A64
+  OUT-245:
+    title: AI Presentation (PowerPoint)
+    file: OUT-245-ai-ppt.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://9BC75E4C-69AF-4F86-93EF-B7A2383E824B
+  OUT-247:
+    title: AustralianSuper Storefront
+    file: OUT-247-aus-super-store-front.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://9C3D0648-574D-42A5-8F3B-9A33486A6DB4
+  OUT-256:
+    title: Morgan LinkedIn Post — copy Morgan's and tweak
+    file: OUT-256-morgain-linked-in-post-copy-morgans-and-tweak-its.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://E96A9EB1-482A-4112-B5F9-DEE7905CE4F8
+  OUT-257:
+    title: Purchase Cursor
+    file: OUT-257-purchase-cursor.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://2DC6F9B8-193F-417E-95E2-263A134B5D25
+  OUT-260:
+    title: Melbourne Hosting — check into what's possible
+    file: OUT-260-mel-hosting-check-into-lok-at-whats-possiblel.md
+    source: reminder
+    status: todo
+    created: '2026-02-12'
+    reminder_id: x-apple-reminder://9472AF02-410D-4544-9723-F81108F1363F
+  OUT-269:
+    title: Buy 30mm Conduit — electrical, van, need at least 20 metres
+    file: OUT-269-buy-30mm-conduit-electrical-van-need-at-least-20-m.md
+    source: reminders_import
+    status: done
+    created: '2026-02-15T20:13:22.597559'
+    reminder_id: x-apple-reminder://AF361DB1-ED08-42BD-9E8C-FEBAED07C158
+  OUT-270:
+    title: Book Doctor Appointment — East Bentleigh Medical Group
+    file: OUT-270-book-a-doctor-appointment-with-the-east-bentleigh.md
+    source: reminders_import
+    status: done
+    created: '2026-02-15T20:13:22.598559'
+    reminder_id: x-apple-reminder://9C7D686D-517C-4843-8A78-B4B9C1B212BE
+  OUT-271:
+    title: Renae DD Meetings — book in
+    file: OUT-271-renae-dd-meetings-book-in.md
+    source: reminders_import
+    status: done
+    created: '2026-02-16T22:27:17.895857'
+    reminder_id: x-apple-reminder://4166DCF8-2A7A-414F-A484-1A4EAB982190
+  OUT-277:
+    title: GLM-5 — research and understand what it is
+    file: OUT-277-glm-5-research-and-understand-what-it-is.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-19T13:18:05.732061'
+    reminder_id: x-apple-reminder://9CEC46D6-61EF-47B5-8A5E-002396513A1C
+  OUT-278:
+    title: AI Roadmap
+    file: OUT-278-ai-roadmap.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-19T13:18:05.733973'
+    reminder_id: x-apple-reminder://A00E0277-E99D-4C21-A40E-1464F645DE7E
+  OUT-280:
+    title: Memory Upgrade Idea
+    file: OUT-280-memory-upgrade-idea.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-19T21:31:12.383301'
+    reminder_id: x-apple-reminder://564B5F6B-3BB7-4BD7-8005-DC85A6769755
+  OUT-282:
+    title: Contact Centre - Jen, Simon, AMy
+    file: OUT-282-contact-centre-jen-simon-amy.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://81C2E508-64F5-4873-B026-CC6BF0529E37
+  OUT-283:
+    title: Tech Roadmap - Chase Kate
+    file: OUT-283-tech-roadmap-chase-kate.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://10004C8C-5257-4330-AD18-B5D15CD76D83
+  OUT-286:
+    title: Personal website idea - Kev
+    file: OUT-286-personal-website-idea-kev.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://E52E1133-FE13-49C5-B71C-9ED8C6DA492C
+  OUT-287:
+    title: Paint brackets
+    file: OUT-287-paint-brackets.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://A579C54A-E7FE-4A48-A1C0-42D934E6CB74
+  OUT-288:
+    title: Swap laptop
+    file: OUT-288-swap-laptop.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://E66B737D-7676-434E-A39C-5827D1C6E8FE
+  OUT-289:
+    title: Old laptop DNS setup
+    file: OUT-289-old-laptop-dns-setup.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://81D46939-445F-4730-B63D-77B5AAE6B5E2
+  OUT-290:
+    title: Kents website
+    file: OUT-290-kents-website.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://D5E535AA-D5C4-471D-A35F-E03DD2482E20
+  OUT-291:
+    title: Kev website
+    file: OUT-291-kev-website.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://718D5DF7-9C40-472B-8898-A7E68ACA5686
+  OUT-292:
+    title: Tent poles
+    file: OUT-292-tent-poles.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://A4B21595-C0B1-44CE-8125-27E8015981DC
+  OUT-293:
+    title: Dan
+    file: OUT-293-dan.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://1940F558-AD07-480B-AACB-96FBE15C40CA
+  OUT-294:
+    title: Music
+    file: OUT-294-music.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://BBB540D7-F1CA-4B05-B8E4-5860035A58A5
+  OUT-295:
+    title: Van handles
+    file: OUT-295-van-handles.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://AA53EC50-9F4E-488B-96F3-FF8D0CDD7C90
+  OUT-296:
+    title: Car board ends
+    file: OUT-296-car-board-ends.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://797837AB-C1A2-48DC-9A16-B6DC466A5571
+  OUT-297:
+    title: Van stopper
+    file: OUT-297-van-stopper.md
+    source: reminder
+    status: todo
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://8DAED61B-B473-4190-BD8E-020E69A9A2FC
+  OUT-299:
+    title: 50 days of openclaw learning
+    file: OUT-299-50-days-of-openclaw-learning.md
+    source: reminder
+    status: doing
+    created: '2026-02-22'
+    reminder_id: x-apple-reminder://B97811A4-CFBE-4120-87C8-875A1A1BB6B1
+  OUT-300:
+    title: Meeting Setup - Once every two months with - Mark C
+    file: OUT-300-meeting-setup-once-every-two-months-with-mark.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-23T21:03:47.290772'
+    reminder_id: x-apple-reminder://97D6B6DF-03A5-475A-9D6E-35CC13F34598
+  OUT-301:
+    title: Meeting Setup - Once every month with RossA
+    file: OUT-301-meeting-setup-once-every-month-with-rossa.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-23T21:03:47.291622'
+    reminder_id: x-apple-reminder://6079A149-E9E2-4630-8E1B-3EF2CA305E65
+  OUT-302:
+    title: do calendar integration
+    file: OUT-302-do-calendar-integration.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-23T21:03:47.292133'
+    reminder_id: x-apple-reminder://1039DAD4-5F82-4D5C-A3F5-3CA08109457B
+  OUT-303:
+    title: https://skills.sh/ explore this for inovative skills
+    file: OUT-303-httpsskillssh-explore-this-for-inovative-skil.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-23T21:03:47.292597'
+    reminder_id: x-apple-reminder://5CFE6FF9-E2AF-4CDF-A999-5921C1AAB3F8
+  OUT-304:
+    title: Sujatha
+    file: OUT-304-sujatha.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-23T21:03:47.293080'
+    reminder_id: x-apple-reminder://FEBD6715-CBBB-437F-ABB6-1087216A4138
+  OUT-305:
+    title: 1 Image
+    file: OUT-305-1-image.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-23T21:03:47.293519'
+    reminder_id: x-apple-reminder://4C3C35EE-AEFC-41B6-8062-98CE6360CE2B
+  OUT-306:
+    title: Get these skills please
+    file: OUT-306-get-these-skills-please.md
+    source: reminders_import
+    status: todo
+    created: '2026-02-23T21:03:47.293947'
+    reminder_id: x-apple-reminder://6287E086-38AB-40A1-9B6C-4750E80601D8
