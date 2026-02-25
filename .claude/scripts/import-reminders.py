@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """Import reminders from AppleScript output into file-native task system"""
 
-import os
-import re
 import sys
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
-# Add .claude dir to path so we can import reminders.core.paths
+# Add scripts dir to path so we can import task_registry
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+# Add .claude dir to path so we can import reminders packages
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from reminders.core.paths import TASK_DIR
-START_ID = 220
+from task_registry import TaskRegistry
 TODAY = datetime.now().date()
 URGENT_THRESHOLD_DAYS = 3
 
@@ -89,24 +88,6 @@ def parse_due_date(date_str):
         return None
 
 
-def clean_filename(title, max_length=50):
-    """Generate clean filename from reminder title"""
-    # Remove emojis
-    title_clean = re.sub(r'[^\x00-\x7F]+', '', title)
-    # Lowercase
-    title_clean = title_clean.lower().strip()
-    # Remove special chars except spaces and hyphens
-    title_clean = re.sub(r'[^\w\s-]', '', title_clean)
-    # Replace spaces with hyphens
-    title_clean = re.sub(r'[\s_]+', '-', title_clean)
-    # Remove multiple hyphens
-    title_clean = re.sub(r'-+', '-', title_clean)
-    # Truncate
-    if len(title_clean) > max_length:
-        title_clean = title_clean[:max_length].rstrip('-')
-    return title_clean
-
-
 def classify_reminder(priority, due_date, has_body):
     """Classify reminder into Eisenhower quadrant"""
     # Determine urgent
@@ -138,41 +119,15 @@ def classify_reminder(priority, due_date, has_body):
         return "q4", urgent, important
 
 
-def check_duplicate(reminder_id):
-    """Check if reminder was already imported"""
-    try:
-        result = subprocess.run(
-            ['grep', '-l', f'reminder_id: "{reminder_id}"', *TASK_DIR.glob('OUT-*.md')],
-            capture_output=True,
-            text=True
-        )
-        return result.returncode == 0  # Found = duplicate
-    except:
-        return False
+def parse_reminder(line):
+    """Parse a pipe-delimited reminder line into structured data.
 
-
-def get_next_task_id():
-    """Find the highest OUT-2XX and increment"""
-    existing = list(TASK_DIR.glob('OUT-2*.md'))
-    if not existing:
-        return START_ID
-
-    highest = START_ID - 1
-    for f in existing:
-        match = re.match(r'OUT-(\d+)', f.name)
-        if match:
-            num = int(match.group(1))
-            if 200 <= num < 300:
-                highest = max(highest, num)
-
-    return highest + 1
-
-
-def create_task_file(task_id, reminder):
-    """Create task file from reminder data"""
-    parts = reminder.split('|')
+    Returns a dict with all fields needed by TaskRegistry.create_task(),
+    or None if the line is malformed.
+    """
+    parts = line.split('|')
     if len(parts) != 6:
-        print(f"⚠️  Skipping malformed reminder: {reminder[:50]}...")
+        print(f"⚠️  Skipping malformed reminder: {line[:50]}...")
         return None
 
     list_name, reminder_id, name, body, due_date_str, priority_str = parts
@@ -180,71 +135,25 @@ def create_task_file(task_id, reminder):
     priority_num = int(priority_str)
     priority = PRIORITY_MAP.get(priority_num, "low")
     due_date = parse_due_date(due_date_str)
-    due_date_formatted = due_date.isoformat() if due_date else ""
+    due_date_formatted = due_date.isoformat() if due_date else None
     has_body = body != "missing value" and body != "" and body
     description = body if has_body else "No description provided"
 
-    # Check for duplicate
-    if check_duplicate(reminder_id):
-        print(f"⏭️  Skipping duplicate: {name}")
-        return None
-
-    # Classify
+    # Classify into Eisenhower quadrant
     quadrant, is_urgent, is_important = classify_reminder(priority_num, due_date, has_body)
 
-    # Generate filename
-    filename = clean_filename(name)
-    filepath = TASK_DIR / f"OUT-{task_id}-{filename}.md"
-
-    # Create branch name
-    branch_name = f"task/OUT-{task_id}-{filename}"
-
-    # Create task content
-    today_str = TODAY.isoformat()
-
-    content = f"""---
-id: OUT-{task_id}
-title: {name}
-type: task
-status: todo
-priority: {priority}
-created: {today_str}
-updated: {today_str}
-assignee: Troy
-branch: {branch_name}
-source: reminder
-reminder_id: "{reminder_id}"
-reminder_list: "{list_name}"
-due_date: "{due_date_formatted}"
-eisenhower_quadrant: "{quadrant}"
-eisenhower_urgent: {str(is_urgent).lower()}
-eisenhower_important: {str(is_important).lower()}
----
-
-# {name}
-
-## Description
-{description}
-
-## Steps
-- [ ] Review task details
-- [ ] Complete task
-- [ ] Mark as done
-
-## Notes
-Context, references, considerations.
-
-## Source
-Imported from macOS Reminders
-- Original list: {list_name}
-- Due date: {due_date_formatted or "None"}
-- Priority: {priority_num} ({priority})
-
-## Progress Log
-- {today_str}: Imported from Reminders
-"""
-
-    return filepath, content, quadrant
+    return {
+        "title": name,
+        "source": "reminder",
+        "reminder_id": reminder_id,
+        "description": description,
+        "priority": priority,
+        "due_date": due_date_formatted,
+        "list_name": list_name,
+        "eisenhower_quadrant": quadrant,
+        "eisenhower_urgent": is_urgent,
+        "eisenhower_important": is_important,
+    }
 
 
 # Main execution
@@ -265,7 +174,7 @@ if not reminders_data:
 print("📊 Processing reminders...")
 print()
 
-task_id = get_next_task_id()
+registry = TaskRegistry()
 quadrant_counts = {"q1": 0, "q2": 0, "q3": 0, "q4": 0}
 created_tasks = []
 skipped = 0
@@ -274,21 +183,20 @@ for line in reminders_data.strip().split('\n'):
     if not line:
         continue
 
-    result = create_task_file(task_id, line)
-
-    if result is None:
+    data = parse_reminder(line)
+    if data is None:
         skipped += 1
         continue
 
-    filepath, content, quadrant = result
+    out_id = registry.create_task(**data)
 
-    # Write file
-    with open(filepath, 'w') as f:
-        f.write(content)
+    if out_id is None:
+        print(f"⏭️  Skipping duplicate: {data['title']}")
+        skipped += 1
+        continue
 
-    quadrant_counts[quadrant] += 1
-    created_tasks.append(filepath.name)
-    task_id += 1
+    quadrant_counts[data["eisenhower_quadrant"]] += 1
+    created_tasks.append(out_id)
 
 # Print summary
 print("✅ Reminders Import Complete")
