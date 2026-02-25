@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 309
-last_synced: '2026-02-25T21:07:45.401970'
+last_synced: '2026-02-25T21:07:47.434216'
 entries:
   OUT-223:
     title: Fire place fix
@@ -195,7 +195,7 @@ entries:
     title: Van handles
     file: OUT-295-van-handles.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://AA53EC50-9F4E-488B-96F3-FF8D0CDD7C90
   OUT-296:
