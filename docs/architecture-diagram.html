@@ -551,6 +551,92 @@
   }
 
   /* ═══════════════════════════════════════════
+     CAPABILITY SPLIT — "The Decision Guide"
+     ═══════════════════════════════════════════ */
+  .capability-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .capability-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .capability-col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .capability-col.cc { border-color: rgba(233, 69, 96, 0.2); }
+  .capability-col.ob { border-color: rgba(74, 158, 255, 0.2); }
+
+  .capability-col-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .capability-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .capability-list li {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .capability-list li:last-child {
+    border-bottom: none;
+  }
+
+  .capability-list li span {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .capability-insight {
+    margin-top: 2rem;
+    padding: 1.5rem 2rem;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .capability-insight-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .capability-insight-text strong {
+    color: var(--text);
+  }
+
+  @media (max-width: 768px) {
+    .capability-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ═══════════════════════════════════════════
      SHARED BRAIN — "The Manifesto"
      ═══════════════════════════════════════════ */
   .brain-section {
@@ -894,11 +980,12 @@
   <a href="#" class="nav-logo">AAGLOBAL</a>
   <ul class="nav-links">
     <li><a href="#systems">Systems</a></li>
+    <li><a href="#capabilities">Capabilities</a></li>
     <li><a href="#brain">The Brain</a></li>
     <li><a href="#services">Services</a></li>
     <li><a href="#progress">Progress</a></li>
   </ul>
-  <a href="#progress" class="nav-cta font-mono">~85% Complete</a>
+  <a href="#progress" class="nav-cta font-mono">~86% Complete</a>
 </nav>
 
 <!-- ═══════════════════════════════════════════
@@ -908,7 +995,7 @@
   <div class="hero-bg"></div>
   <div class="hero-glow"></div>
   <div class="container hero-content">
-    <div class="hero-label font-mono">System Architecture · 25 Feb 2026</div>
+    <div class="hero-label font-mono">System Architecture · 26 Feb 2026</div>
     <h1 class="hero-title-line1 font-heading">Architecture beyond</h1>
     <h1 class="hero-title-line2 font-drama">Complexity.</h1>
     <p class="hero-sub">Two interfaces, one shared brain. Claude Code agents and OutBot converge on a file-native memory system — zero external dependencies, pure signal.</p>
@@ -1065,8 +1152,9 @@
         <div class="tags-label">Capabilities</div>
         <div class="tags">
           <span class="tag green">Daily Review</span>
-          <span class="tag green">Remember</span>
+          <span class="tag green">Remember / Forget</span>
           <span class="tag green">Recall</span>
+          <span class="tag green">Task Creation</span>
           <span class="tag green">Reflection</span>
           <span class="tag green">Gmail Inbox</span>
           <span class="tag green">Gmail Outbox</span>
@@ -1077,6 +1165,61 @@
       </div>
     </div>
 
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CAPABILITY SPLIT
+     ═══════════════════════════════════════════ -->
+<section class="capability-section" id="capabilities">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Decision Guide</div>
+      <h2 class="section-title font-heading">Where to <span class="drama font-drama">build.</span></h2>
+    </div>
+
+    <div class="capability-grid">
+      <div class="capability-col cc">
+        <div class="capability-col-title" style="color: var(--pink);">
+          <span style="font-size: 1.2rem;">&#9881;</span> Claude Code
+        </div>
+        <ul class="capability-list">
+          <li><span>Write code</span> — edit files, run tests, build features</li>
+          <li><span>Structured memory</span> — YAML domains via memory-writer agent</li>
+          <li><span>Enrich tasks</span> — add steps, categories, Eisenhower classification</li>
+          <li><span>Wrangle overdue</span> — reschedule, archive, escalate</li>
+          <li><span>26 skills</span> — pptx, xlsx, TDD, design, cinematic, etc.</li>
+          <li><span>9 agents</span> — overseer-orchestrated pipelines</li>
+          <li><span>Git operations</span> — commits, PRs, branches</li>
+          <li><span>Plan mode</span> — explore, plan, approve, implement</li>
+          <li><span>MCP tools</span> — Playwright, desktop-commander, Pencil</li>
+        </ul>
+      </div>
+
+      <div class="capability-col ob">
+        <div class="capability-col-title" style="color: var(--blue);">
+          <span style="font-size: 1.2rem;">&#9993;</span> OutBot
+        </div>
+        <ul class="capability-list">
+          <li><span>Always-on Telegram</span> — 24/7 long-polling, responds anytime</li>
+          <li><span>Proactive heartbeat</span> — 60s checks, unprompted nudges</li>
+          <li><span>Email (read + send)</span> — Gmail IMAP/SMTP integration</li>
+          <li><span>Voice mode</span> — Whisper ASR + macOS TTS, hands-free</li>
+          <li><span>Task creation</span> — "create task" via Telegram chat</li>
+          <li><span>Remember / forget</span> — store facts to USER.md, LEARNED.md</li>
+          <li><span>Session continuity</span> — SQLite DB, 20-message context</li>
+          <li><span>Memory recall</span> — search past conversations</li>
+          <li><span>Quiet hours</span> — no notifications 10pm-7am</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="capability-insight">
+      <p class="capability-insight-text font-mono">
+        <strong>Claude Code</strong> = BUILD things (code, docs, dashboards, tasks) &nbsp;&middot;&nbsp;
+        <strong>OutBot</strong> = REACH you (notifications, email, voice, mobile)
+      </p>
+    </div>
   </div>
 </section>
 
@@ -1200,6 +1343,8 @@
       <div class="progress-item"><div class="progress-dot done"></div> Telegram Bot Adapter</div>
       <div class="progress-item"><div class="progress-dot done"></div> Shared Workflows (daily review)</div>
       <div class="progress-item"><div class="progress-dot done"></div> Portable Paths (auto-detected)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> OutBot Task Creation (via Telegram)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> OutBot Memory Writing (remember/forget)</div>
       <div class="progress-item"><div class="progress-dot not-started"></div> Calendar Integration (not started)</div>
       <div class="progress-item"><div class="progress-dot not-started"></div> Hybrid Search (correctly deferred)</div>
     </div>
@@ -1227,7 +1372,7 @@
       <span class="footer-status-text font-mono">System Operational</span>
     </div>
   </div>
-  <div class="footer-date font-mono">Last updated: 25 Feb 2026</div>
+  <div class="footer-date font-mono">Last updated: 26 Feb 2026</div>
 </footer>
 
 <!-- ═══════════════════════════════════════════
@@ -1287,6 +1432,30 @@
       });
     });
 
+    // ── Capability columns ──
+    gsap.to('.capability-col', {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      stagger: 0.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.capability-grid',
+        start: 'top 80%',
+      }
+    });
+
+    gsap.to('.capability-insight', {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.capability-insight',
+        start: 'top 90%',
+      }
+    });
+
     // ── Brain manifesto statements ──
     gsap.to('.brain-statement', {
       opacity: 1,
@@ -1344,16 +1513,16 @@
       trigger: '.progress-bar-track',
       start: 'top 80%',
       onEnter: () => {
-        document.getElementById('progressBar').style.width = '85%';
+        document.getElementById('progressBar').style.width = '86%';
 
         // Animate counter
         const target = { val: 0 };
         gsap.to(target, {
-          val: 85,
+          val: 86,
           duration: 1.5,
           ease: 'power2.out',
           onUpdate: () => {
-            document.getElementById('progressPct').textContent = '~' + Math.round(target.val) + '%';
+            document.getElementById('progressPct').textContent = '~' + Math.round(target.val) + '%'; // 12 of 14 items done
           }
         });
       },

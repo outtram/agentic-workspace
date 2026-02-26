@@ -22,6 +22,14 @@ from brain.heartbeat.judge import ImportanceJudge
 from brain.heartbeat.scheduler import HeartbeatScheduler
 from brain.mail.inbox import Inbox
 from brain.mail.outbox import Outbox
+from brain.memory.recall import format_recall_context, is_recall_trigger, search_memory
+from brain.memory.remember import (
+    extract_memory,
+    forget_memory,
+    is_forget_trigger,
+    is_remember_trigger,
+    write_memory,
+)
 from brain.personality.formatter import format_outbound
 from brain.personality.loader import PersonalityLoader
 from brain.session.context import format_catchup_summary
@@ -34,6 +42,9 @@ logger = logging.getLogger(__name__)
 _EMAIL_NOUNS = {"email", "emails", "mail", "inbox"}
 _CHECK_VERBS = {"check", "read", "show", "get", "fetch", "see", "list", "any", "new", "latest", "recent", "look", "open", "view", "pull"}
 _SEND_VERBS = {"send", "write", "compose", "draft", "fire"}
+
+_TASK_NOUNS = {"task", "todo", "reminder", "item"}
+_CREATE_VERBS = {"create", "add", "make", "new"}
 
 
 class Orchestrator:
@@ -188,6 +199,65 @@ class Orchestrator:
         }
         return any(phrase in lowered for phrase in phrases)
 
+    def _is_task_create(self, text: str) -> bool:
+        """Check if the user wants to create a new task."""
+        words = self._words(text)
+        return bool(words & _TASK_NOUNS) and bool(words & _CREATE_VERBS)
+
+    async def _create_task(self, text: str) -> str:
+        """Extract task details via Claude haiku and create via TaskRegistry."""
+        extraction = await self.claude.judge(
+            prompt=text,
+            system_prompt=(
+                "Extract task details from the user's message. "
+                "Reply in EXACTLY this format (one field per line):\n"
+                "TITLE: <concise task title>\n"
+                "PRIORITY: <low|medium|high>\n"
+                "DUE: <YYYY-MM-DD or none>\n\n"
+                "Examples:\n"
+                "'create task to fix the van door by friday' → "
+                "TITLE: Fix the van door / PRIORITY: medium / DUE: 2026-02-28\n"
+                "'add a todo: research solar panels' → "
+                "TITLE: Research solar panels / PRIORITY: low / DUE: none"
+            ),
+        )
+
+        title, priority, due_date = "", "low", None
+        for line in extraction.strip().splitlines():
+            val = line.split(":", 1)[1].strip() if ":" in line else ""
+            up = line.strip().upper()
+            if up.startswith("TITLE:"):
+                title = val
+            elif up.startswith("PRIORITY:"):
+                if val.lower() in ("low", "medium", "high"):
+                    priority = val.lower()
+            elif up.startswith("DUE:"):
+                if val.lower() not in ("none", ""):
+                    due_date = val
+
+        if not title:
+            return "[Could not extract task title from message]"
+
+        try:
+            import sys as _sys
+            from pathlib import Path as _Path
+
+            _scripts = _Path(__file__).resolve().parent.parent / ".claude" / "scripts"
+            if str(_scripts) not in _sys.path:
+                _sys.path.insert(0, str(_scripts))
+            from task_registry import TaskRegistry
+
+            registry = TaskRegistry()
+            out_id = registry.create_task(
+                title=title, source="outbot", priority=priority, due_date=due_date,
+            )
+            if out_id:
+                return f'[TASK CREATED: {out_id} — "{title}" (priority: {priority})]'
+            return f'[Task not created — duplicate detected for "{title}"]'
+        except Exception as e:
+            logger.error("Task creation failed: %s", e)
+            return f"[Task creation failed: {e}]"
+
     def _build_conversation_history(self, chat_id: str, current_msg: Message) -> str:
         """Build multi-turn context from recent messages stored in the DB."""
         recent = self.db.get_recent_messages(chat_id, limit=20)
@@ -233,6 +303,45 @@ class Orchestrator:
             elif not review_context and self._is_email_send(msg.content):
                 email_context = await self._send_email(msg.content)
 
+            # Memory: remember / forget
+            memory_context = ""
+            if is_remember_trigger(msg.content):
+                try:
+                    entry = await extract_memory(msg.content, self.claude)
+                    saved = write_memory(entry, str(self.config.memory_dir))
+                    memory_context = f"\n\n[MEMORY SAVED: {saved}]"
+                except Exception as e:
+                    memory_context = f"\n\n[Memory save failed: {e}]"
+                    logger.error("Memory save failed: %s", e)
+            elif is_forget_trigger(msg.content):
+                try:
+                    removed = await forget_memory(
+                        msg.content, str(self.config.memory_dir), self.claude
+                    )
+                    if removed:
+                        memory_context = "\n\n[Memory removed]"
+                    else:
+                        memory_context = "\n\n[No matching memory found]"
+                except Exception as e:
+                    memory_context = f"\n\n[Memory forget failed: {e}]"
+                    logger.error("Memory forget failed: %s", e)
+
+            # Recall: search past conversations
+            recall_context = ""
+            if is_recall_trigger(msg.content):
+                try:
+                    results = search_memory(
+                        msg.content, str(self.config.memory_dir)
+                    )
+                    recall_context = format_recall_context(results)
+                except Exception as e:
+                    logger.warning("Recall search failed: %s", e)
+
+            # Task creation
+            task_context = ""
+            if self._is_task_create(msg.content):
+                task_context = await self._create_task(msg.content)
+
             personality = self.personality.load_personality()
 
             email_status = ""
@@ -259,6 +368,12 @@ class Orchestrator:
                 user_content += review_context
             if email_context:
                 user_content += f"\n\n{email_context}"
+            if memory_context:
+                user_content += memory_context
+            if recall_context:
+                user_content += f"\n\n{recall_context}"
+            if task_context:
+                user_content += f"\n\n{task_context}"
 
             reply_text = await self.claude.ask(
                 prompt=user_content,

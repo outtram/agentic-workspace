@@ -33,10 +33,20 @@ grep "decision:" .claude/memory/decisions/*.yml
 - **Branching:** main (prod), dev (staging), feature/OUT-XX-description
 - **Commits:** Prefix with work item ID: `OUT-XX: description`
 
+## Shared Memory (OutBot + Claude Code)
+When Troy says "remember X" or "don't forget X", write to the **shared** memory files so OutBot can see it too:
+```bash
+python3 .claude/scripts/shared_memory.py write "content here" user_pref|personality|fact
+python3 .claude/scripts/shared_memory.py forget "search term"
+python3 .claude/scripts/shared_memory.py search "query"
+```
+This writes to `.claude/memory/USER.md` (preferences) or `.claude/memory/LEARNED.md` (facts) — the same files OutBot reads via its personality loader. Use this **in addition to** auto-memory for cross-system visibility.
+
 ## Workflow Commands
 - Start session: `/using-superpowers`
 - Create work item: Ask work-tracker agent
 - Update memory: Ask memory-writer agent
+- **Remember something:** `python3 .claude/scripts/shared_memory.py write "content" category`
 - Find information: Check NAVIGATOR.md for grep patterns
 - **Daily review:** `/daily-review` or say "do my daily review"
 - **Import reminders:** Say "import my reminders" or "sync reminders"
