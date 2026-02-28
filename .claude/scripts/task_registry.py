@@ -181,10 +181,12 @@ class TaskRegistry:
                 if entry.get("reminder_id") == reminder_id:
                     return out_id
 
-        # 2. Fuzzy title match
-        normalised_title = title.strip().lower()
+        # 2. Fuzzy title match (strip [OUT-XXX] prefix for comparison)
+        import re
+        prefix_re = re.compile(r'^\[OUT-\d+\]\s*')
+        normalised_title = prefix_re.sub('', title).strip().lower()
         for out_id, entry in entries.items():
-            existing = entry.get("title", "").strip().lower()
+            existing = prefix_re.sub('', entry.get("title", "")).strip().lower()
             ratio = SequenceMatcher(None, normalised_title, existing).ratio()
             if ratio >= FUZZY_THRESHOLD:
                 return out_id

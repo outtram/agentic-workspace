@@ -1,3 +1,4 @@
+import re
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -5,6 +6,18 @@ from typing import Optional
 from reminders.core.events import EventBus, WorkItemCreated, WorkItemUpdated, WorkItemCompleted, WorkItemDeleted
 from reminders.core.models import WorkItem
 from reminders.adapters.workitems import WorkItemFileAdapter
+
+_OUT_PREFIX_RE = re.compile(r'^\[OUT-\d+\]\s*')
+
+
+def _prefixed_title(out_id: str, title: str) -> str:
+    """Add [OUT-XXX] prefix, stripping any existing prefix first."""
+    return f"[{out_id}] {_OUT_PREFIX_RE.sub('', title)}"
+
+
+def _strip_prefix(title: str) -> str:
+    """Remove [OUT-XXX] prefix from a title."""
+    return _OUT_PREFIX_RE.sub('', title).strip()
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
 from task_registry import TaskRegistry
@@ -40,7 +53,8 @@ class RemindersManager:
         tags: Optional[list[str]] = None,
         priority: str = "low",
         description: str = "",
-        list_name: str = "Reminders"
+        list_name: str = "Reminders",
+        source: str = "manual",
     ) -> Optional[WorkItem]:
         """Create a new reminder (work item + Reminders.app sync)"""
         # Classify into Eisenhower quadrant
@@ -59,7 +73,7 @@ class RemindersManager:
         # Registry handles dedup, ID assignment, and file creation
         work_item_id = self.registry.create_task(
             title=title,
-            source="manual",
+            source=source,
             description=description,
             priority=priority,
             due_date=due_date,
@@ -76,9 +90,9 @@ class RemindersManager:
         # Read back the work item created by the registry
         work_item = self.workitems.read(work_item_id)
 
-        # Push to Reminders.app
+        # Push to Reminders.app (with [OUT-XXX] prefix for visibility)
         reminder_id = self.applescript.create_reminder(
-            name=title,
+            name=_prefixed_title(work_item_id, title),
             body=self._build_reminder_body(work_item),
             tags=tags,
             due_date=due_date,
@@ -110,6 +124,9 @@ class RemindersManager:
         list_name: str = "Reminders"
     ) -> Optional[WorkItem]:
         """Import an existing reminder from Reminders.app (creates work item only, no sync back)"""
+        # Strip [OUT-XXX] prefix from incoming titles (round-trip protection)
+        title = _strip_prefix(title)
+
         # Classify into Eisenhower quadrant
         urgent = due_date is not None and priority in ["high", "urgent"]
         important = priority in ["high", "medium"] or bool(description)

@@ -45,6 +45,7 @@ _SEND_VERBS = {"send", "write", "compose", "draft", "fire"}
 
 _TASK_NOUNS = {"task", "todo", "reminder", "item"}
 _CREATE_VERBS = {"create", "add", "make", "new"}
+_COMPLETE_VERBS = {"done", "complete", "finish", "finished", "completed", "tick"}
 
 
 class Orchestrator:
@@ -204,6 +205,15 @@ class Orchestrator:
         words = self._words(text)
         return bool(words & _TASK_NOUNS) and bool(words & _CREATE_VERBS)
 
+    def _is_task_complete(self, text: str) -> bool:
+        """Check if the user wants to mark a task done."""
+        words = self._words(text)
+        # Match "OUT-123 done", "complete OUT-123", "mark task 305 done"
+        has_out_id = bool(re.search(r"OUT-\d+", text, re.IGNORECASE))
+        has_complete = bool(words & _COMPLETE_VERBS)
+        has_task = bool(words & _TASK_NOUNS)
+        return has_out_id and (has_complete or has_task)
+
     async def _create_task(self, text: str) -> str:
         """Extract task details via Claude haiku and create via TaskRegistry."""
         extraction = await self.claude.judge(
@@ -239,24 +249,41 @@ class Orchestrator:
             return "[Could not extract task title from message]"
 
         try:
-            import sys as _sys
-            from pathlib import Path as _Path
+            from reminders.core.manager import RemindersManager
 
-            _scripts = _Path(__file__).resolve().parent.parent / ".claude" / "scripts"
-            if str(_scripts) not in _sys.path:
-                _sys.path.insert(0, str(_scripts))
-            from task_registry import TaskRegistry
-
-            registry = TaskRegistry()
-            out_id = registry.create_task(
-                title=title, source="outbot", priority=priority, due_date=due_date,
+            manager = RemindersManager()
+            work_item = manager.create_reminder(
+                title=title, priority=priority, due_date=due_date,
+                source="outbot",
             )
-            if out_id:
-                return f'[TASK CREATED: {out_id} — "{title}" (priority: {priority})]'
+            if work_item:
+                return (
+                    f'[TASK CREATED: {work_item.id} — "{title}" '
+                    f"(priority: {priority}, synced to Reminders.app)]"
+                )
             return f'[Task not created — duplicate detected for "{title}"]'
         except Exception as e:
             logger.error("Task creation failed: %s", e)
             return f"[Task creation failed: {e}]"
+
+    async def _complete_task(self, text: str) -> str:
+        """Mark a task as done in both local files and Reminders.app."""
+        match = re.search(r"OUT-(\d+)", text, re.IGNORECASE)
+        if not match:
+            return "[Could not find OUT-XXX task ID in message]"
+
+        out_id = f"OUT-{match.group(1)}"
+        try:
+            from reminders.core.manager import RemindersManager
+
+            manager = RemindersManager()
+            manager.complete_reminder(out_id)
+            return f"[TASK COMPLETED: {out_id} (marked done in local files + Reminders.app)]"
+        except ValueError:
+            return f"[Task {out_id} not found]"
+        except Exception as e:
+            logger.error("Task completion failed: %s", e)
+            return f"[Task completion failed: {e}]"
 
     def _build_conversation_history(self, chat_id: str, current_msg: Message) -> str:
         """Build multi-turn context from recent messages stored in the DB."""
@@ -337,9 +364,11 @@ class Orchestrator:
                 except Exception as e:
                     logger.warning("Recall search failed: %s", e)
 
-            # Task creation
+            # Task creation / completion
             task_context = ""
-            if self._is_task_create(msg.content):
+            if self._is_task_complete(msg.content):
+                task_context = await self._complete_task(msg.content)
+            elif self._is_task_create(msg.content):
                 task_context = await self._create_task(msg.content)
 
             personality = self.personality.load_personality()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Import reminders from AppleScript output into file-native task system"""
 
+import re
 import sys
 import subprocess
 from datetime import datetime
@@ -141,6 +142,9 @@ def parse_reminder(line):
 
     # Classify into Eisenhower quadrant
     quadrant, is_urgent, is_important = classify_reminder(priority_num, due_date, has_body)
+
+    # Strip [OUT-XXX] prefix from round-tripped titles
+    name = re.sub(r'^\[OUT-\d+\]\s*', '', name)
 
     return {
         "title": name,

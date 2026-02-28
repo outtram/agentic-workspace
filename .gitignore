@@ -61,3 +61,4 @@ brain/.env
 
 # IDE
 .windsurf/
+.worktrees/
