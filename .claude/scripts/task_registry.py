@@ -208,6 +208,8 @@ class TaskRegistry:
         eisenhower_quadrant: str = "q4",
         eisenhower_urgent: bool = False,
         eisenhower_important: bool = False,
+        parent: Optional[str] = None,
+        prd: Optional[str] = None,
     ) -> Optional[str]:
         """
         Create a new task. Returns OUT-ID or None if duplicate detected.
@@ -217,7 +219,8 @@ class TaskRegistry:
         3. Assigns next_id
         4. Writes file via WorkItemFileAdapter
         5. Updates registry
-        6. Pushes changes
+        6. If parent specified, updates parent's children list
+        7. Pushes changes
         """
         self._git_pull()
 
@@ -226,6 +229,13 @@ class TaskRegistry:
         if existing:
             logger.info("Duplicate detected: %s matches %s", title, existing)
             return None
+
+        # Validate parent exists if specified
+        if parent:
+            entries = self._data.get("entries", {})
+            if parent not in entries:
+                logger.warning("create_task: parent %s not found in registry", parent)
+                return None
 
         # Assign ID
         next_num = self._data.get("next_id", 300)
@@ -248,15 +258,18 @@ class TaskRegistry:
             reminder_id=reminder_id,
             reminder_list=list_name,
             description=description or "",
+            parent=parent,
+            prd=prd,
             created=now,
             updated=now,
         )
 
         # Write file
         file_path = self._adapter.create(work_item)
+        changed_files = [file_path, self.registry_file]
 
         # Update registry entries
-        self._data.setdefault("entries", {})[out_id] = {
+        entry = {
             "title": title,
             "file": file_path.name,
             "source": source,
@@ -264,12 +277,81 @@ class TaskRegistry:
             "status": "todo",
             "created": now.isoformat(),
         }
+        if parent:
+            entry["parent"] = parent
+        if prd:
+            entry["prd"] = prd
+        self._data.setdefault("entries", {})[out_id] = entry
         self._save()
 
+        # Bidirectional link: update parent's children list
+        if parent:
+            parent_files = self._link_child_to_parent(parent, out_id)
+            changed_files.extend(parent_files)
+
         # Push changed files
-        self._git_push([file_path, self.registry_file])
+        self._git_push(changed_files)
 
         return out_id
+
+    def add_child(self, parent_id: str, child_id: str):
+        """Link an existing task as a child of a parent (bidirectional)."""
+        self._git_pull()
+
+        entries = self._data.get("entries", {})
+        if parent_id not in entries:
+            logger.warning("add_child: parent %s not found", parent_id)
+            return
+        if child_id not in entries:
+            logger.warning("add_child: child %s not found", child_id)
+            return
+
+        changed_files = [self.registry_file]
+
+        # Update registry
+        entries[child_id].setdefault("parent", parent_id)
+        entries[parent_id].setdefault("children", [])
+        if child_id not in entries[parent_id]["children"]:
+            entries[parent_id]["children"].append(child_id)
+        self._save()
+
+        # Update child file: set parent
+        child_item = self._adapter.read(child_id)
+        if child_item:
+            child_item.parent = parent_id
+            child_item.updated = datetime.now()
+            self._adapter.update(child_item)
+            child_file = self._adapter._find_file(child_id)
+            if child_file:
+                changed_files.append(child_file)
+
+        # Update parent file: add to children list
+        parent_files = self._link_child_to_parent(parent_id, child_id)
+        changed_files.extend(parent_files)
+
+        self._git_push(changed_files)
+
+    def _link_child_to_parent(self, parent_id: str, child_id: str) -> list[Path]:
+        """Add child_id to parent's children list in file. Returns changed file paths."""
+        changed = []
+        parent_item = self._adapter.read(parent_id)
+        if parent_item:
+            if child_id not in parent_item.children:
+                parent_item.children.append(child_id)
+            parent_item.updated = datetime.now()
+            self._adapter.update(parent_item)
+            parent_file = self._adapter._find_file(parent_id)
+            if parent_file:
+                changed.append(parent_file)
+
+            # Also update registry entry
+            entries = self._data.get("entries", {})
+            if parent_id in entries:
+                entries[parent_id].setdefault("children", [])
+                if child_id not in entries[parent_id]["children"]:
+                    entries[parent_id]["children"].append(child_id)
+                self._save()
+        return changed
 
     def update_status(self, out_id: str, status: str):
         """Update the status of a task in both the registry and the file."""

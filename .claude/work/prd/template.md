@@ -31,6 +31,8 @@ Any design decisions, mockups, or technical approaches.
 - [ ] Criterion 2
 
 ## Related
+- Parent task: OUT-XXX
+- Child tasks: OUT-XXX, OUT-XXX
 - Depends on: OUT-XXX
 - Blocks: OUT-XXX
 - Related: OUT-XXX

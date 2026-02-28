@@ -53,6 +53,9 @@ class WorkItemFileAdapter:
             reminder_list=frontmatter.get("reminder_list"),
             branch=frontmatter.get("branch"),
             description=description,
+            parent=frontmatter.get("parent"),
+            children=frontmatter.get("children", []),
+            prd=frontmatter.get("prd"),
             created=self._parse_datetime(frontmatter.get("created")),
             updated=self._parse_datetime(frontmatter.get("updated"))
         )
@@ -128,6 +131,15 @@ class WorkItemFileAdapter:
 
         if work_item.reminder_list:
             frontmatter["reminder_list"] = work_item.reminder_list
+
+        if work_item.parent:
+            frontmatter["parent"] = work_item.parent
+
+        if work_item.children:
+            frontmatter["children"] = work_item.children
+
+        if work_item.prd:
+            frontmatter["prd"] = work_item.prd
 
         content = "---\n"
         content += yaml.dump(frontmatter, default_flow_style=False, sort_keys=False)

@@ -21,6 +21,9 @@ class WorkItem:
     branch: Optional[str] = None
     description: str = ""
     steps: list[str] = field(default_factory=list)
+    parent: Optional[str] = None
+    children: list[str] = field(default_factory=list)
+    prd: Optional[str] = None
     created: Optional[datetime] = None
     updated: Optional[datetime] = None
 
