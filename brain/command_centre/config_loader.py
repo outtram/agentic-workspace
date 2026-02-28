@@ -16,6 +16,8 @@ _DEFAULTS = {
         "select_all": "a",
         "deselect_all": "n",
         "help": "?",
+        "command_bar": "/",
+        "filter_mode": ":",
     },
     "display": {
         "tiles_per_row": 3,

@@ -21,6 +21,7 @@ class StatusBarWidget(Static):
         selected: int = 0,
         page: int = 1,
         total_pages: int = 1,
+        filter_label: str = "",
     ):
         parts = [
             f"{total} tasks",
@@ -28,5 +29,7 @@ class StatusBarWidget(Static):
         ]
         if selected:
             parts.append(f"[#00D4AA]{selected} selected[/]")
+        if filter_label:
+            parts.append(f"[#FF6B35]filter: {filter_label}[/]")
         parts.append(f"Page {page} of {total_pages}")
         self.update(" \u2502 ".join(parts))

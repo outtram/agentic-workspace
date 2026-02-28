@@ -1,4 +1,4 @@
-"""Right-side context panel — today shortlist + focused task detail."""
+"""Right-side context panel — today shortlist + detail/response."""
 from textual.widgets import Static
 
 from .sanitiser import sanitise
@@ -6,7 +6,7 @@ from .task_loader import QUADRANT_COLOURS, QUADRANT_LABELS
 
 
 class ContextPanel(Static):
-    """Shows today shortlist and focused task detail."""
+    """Shows today shortlist, task detail, and OutBot responses."""
 
     DEFAULT_CSS = """
     ContextPanel {
@@ -14,6 +14,7 @@ class ContextPanel(Static):
         min-width: 28;
         border-left: solid #333333;
         padding: 1 2;
+        overflow-y: auto;
     }
     """
 
@@ -22,10 +23,13 @@ class ContextPanel(Static):
         today_ids: list[str],
         all_tasks: list[dict],
         focused_task: dict | None = None,
+        response: str = "",
     ):
         """Refresh panel content."""
         content = self._render_today(today_ids, all_tasks)
-        if focused_task:
+        if response:
+            content += "\n" + self._render_response(response)
+        elif focused_task:
             content += "\n" + self._render_detail(focused_task)
         self.update(content)
 
@@ -52,6 +56,13 @@ class ContextPanel(Static):
                 else:
                     lines += f"[dim]\u25cb {tid}[/]\n"
 
+        return lines
+
+    def _render_response(self, response: str) -> str:
+        """Render OutBot response."""
+        lines = "\n[bold #FF6B35]OUTBOT[/]\n"
+        lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
+        lines += response
         return lines
 
     def _render_detail(self, task: dict) -> str:
