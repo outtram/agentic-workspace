@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 313
-last_synced: '2026-02-28T21:16:04.851767'
+next_id: 323
+last_synced: '2026-02-28T21:48:50.879162'
 entries:
   OUT-223:
     title: Fire place fix
@@ -310,3 +310,92 @@ entries:
     reminder_id: x-apple-reminder://C72D36F6-CD2D-4C18-B0BE-7651F6300C58
     status: todo
     created: '2026-02-28T21:16:04.850887'
+  OUT-313:
+    title: Task System Enhancements
+    file: OUT-313-task-system-enhancements.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.748996'
+    children:
+    - OUT-314
+    - OUT-315
+    - OUT-316
+    - OUT-317
+    - OUT-318
+    - OUT-319
+    - OUT-320
+    - OUT-321
+    - OUT-322
+  OUT-314:
+    title: Full tab system in picker
+    file: OUT-314-full-tab-system-in-picker.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.756736'
+    parent: OUT-313
+  OUT-315:
+    title: Delegation tracking
+    file: OUT-315-delegation-tracking.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.770443'
+    parent: OUT-313
+  OUT-316:
+    title: Email templates for delegation
+    file: OUT-316-email-templates-for-delegation.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.783874'
+    parent: OUT-313
+  OUT-317:
+    title: Follow-up scheduling via OutBot heartbeat
+    file: OUT-317-follow-up-scheduling-via-outbot-heartbeat.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.797365'
+    parent: OUT-313
+  OUT-318:
+    title: PPT routines for task ideas
+    file: OUT-318-ppt-routines-for-task-ideas.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.810976'
+    parent: OUT-313
+  OUT-319:
+    title: Web companion picker
+    file: OUT-319-web-companion-picker.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.824524'
+    parent: OUT-313
+  OUT-320:
+    title: PRD-to-task creation flow
+    file: OUT-320-prd-to-task-creation-flow.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.838557'
+    parent: OUT-313
+  OUT-321:
+    title: Parent completion hint in picker
+    file: OUT-321-parent-completion-hint-in-picker.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.854104'
+    parent: OUT-313
+  OUT-322:
+    title: Skill review system
+    file: OUT-322-skill-review-system.md
+    source: manual
+    reminder_id: null
+    status: todo
+    created: '2026-02-28T21:48:50.869685'
+    parent: OUT-313
