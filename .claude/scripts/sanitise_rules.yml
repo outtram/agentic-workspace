@@ -1,0 +1,28 @@
+# Sanitisation Rules for PPTX files
+# Add client/company names here to strip them from decks before storage.
+# Patterns are regex (case-insensitive by default).
+# Order matters — more specific patterns should come first.
+
+replacements:
+  # Client names (most specific first)
+  - pattern: "Australian Super"
+    replacement: "[Client]"
+    case_insensitive: true
+
+  - pattern: "Aus ?Super"
+    replacement: "[Client]"
+    case_insensitive: true
+
+  # Deloitte names (most specific first)
+  - pattern: "Deloitte Digital"
+    replacement: "[Consultant]"
+    case_insensitive: true
+
+  - pattern: "Deloitte"
+    replacement: "[Consultant]"
+    case_insensitive: true
+
+  # Vendor names
+  - pattern: "Braze"
+    replacement: "[Vendor]"
+    case_insensitive: true

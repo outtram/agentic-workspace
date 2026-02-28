@@ -1,0 +1,97 @@
+"""Right-side context panel — today shortlist + focused task detail."""
+from textual.widgets import Static
+
+from .sanitiser import sanitise
+from .task_loader import QUADRANT_COLOURS, QUADRANT_LABELS
+
+
+class ContextPanel(Static):
+    """Shows today shortlist and focused task detail."""
+
+    DEFAULT_CSS = """
+    ContextPanel {
+        width: 1fr;
+        min-width: 28;
+        border-left: solid #333333;
+        padding: 1 2;
+    }
+    """
+
+    def update_content(
+        self,
+        today_ids: list[str],
+        all_tasks: list[dict],
+        focused_task: dict | None = None,
+    ):
+        """Refresh panel content."""
+        content = self._render_today(today_ids, all_tasks)
+        if focused_task:
+            content += "\n" + self._render_detail(focused_task)
+        self.update(content)
+
+    def _render_today(self, today_ids: list[str], all_tasks: list[dict]) -> str:
+        """Render the today shortlist."""
+        count = len(today_ids)
+        lines = f"[bold #00D4AA]TODAY[/] [dim]({count} task{'s' if count != 1 else ''})[/]\n"
+        lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
+
+        if not today_ids:
+            lines += "[dim](none yet)[/]\n"
+            lines += "[dim]Press t to add tasks[/]\n"
+        else:
+            task_map = {t["id"]: t for t in all_tasks if "id" in t}
+            for tid in today_ids:
+                t = task_map.get(tid)
+                if t:
+                    q = t.get("eisenhower_quadrant", "q4")
+                    colour = QUADRANT_COLOURS.get(q, "#3D3D3D")
+                    name = sanitise(t.get("title", tid)).replace("[", r"\[")
+                    if len(name) > 24:
+                        name = name[:21] + "..."
+                    lines += f"[{colour}]\u25cf[/] {name}\n"
+                else:
+                    lines += f"[dim]\u25cb {tid}[/]\n"
+
+        return lines
+
+    def _render_detail(self, task: dict) -> str:
+        """Render focused task detail."""
+        lines = "\n[bold]DETAIL[/]\n"
+        lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
+
+        title = sanitise(task.get("title", "Untitled")).replace("[", r"\[")
+        out_id = task.get("id", "???")
+        q = task.get("eisenhower_quadrant", "q4")
+        colour = QUADRANT_COLOURS.get(q, "#3D3D3D")
+        label = QUADRANT_LABELS.get(q, "Q4")
+
+        lines += f"[{colour}]{label}[/]\n"
+        lines += f"[bold]{title}[/]\n"
+        lines += f"[dim]{out_id}[/]\n"
+
+        if "_due_date" in task:
+            due_str = task["_due_date"].strftime("%d %b %Y")
+            if task.get("_overdue"):
+                lines += f"[bold red]OVERDUE: {due_str}[/]\n"
+            else:
+                lines += f"[dim]Due: {due_str}[/]\n"
+
+        priority = task.get("priority", "low")
+        if priority != "low":
+            lines += f"[dim]Priority: {priority}[/]\n"
+
+        parent = task.get("parent")
+        if parent:
+            lines += f"[dim]Parent: {parent}[/]\n"
+
+        children = task.get("children", [])
+        if children:
+            lines += f"[dim]Children: {len(children)}[/]\n"
+
+        desc = sanitise(task.get("_description", "")).replace("[", r"\[")
+        if desc:
+            lines += f"\n{desc[:300]}\n"
+            if len(desc) > 300:
+                lines += "[dim]...[/]\n"
+
+        return lines

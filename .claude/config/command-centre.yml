@@ -1,0 +1,24 @@
+# Command Centre Configuration
+# Change settings here — restart app to apply.
+
+hotkeys:
+  add_to_today: "t"
+  mark_done: "d"
+  page_left: "["
+  page_right: "]"
+  select_all: "a"
+  deselect_all: "n"
+  help: "?"
+
+display:
+  tiles_per_row: 3
+  rows: 3
+  colour_q1: "#FF6B35"
+  colour_q2: "#00D4AA"
+  colour_q3: "#777777"
+  colour_q4: "#3D3D3D"
+  colour_focused: "#FF6B35"
+  colour_selected: "#00D4AA"
+
+behaviour:
+  sanitise_output: true

@@ -4,6 +4,7 @@
 
 | Command | What it does |
 |---------|-------------|
+| `cc` | Command Centre TUI — 3x3 tile grid with multi-select, today list, pagination |
 | `picker` | Task picker TUI — Eisenhower triage with hierarchy drill-in |
 | `outbot` | OutBot text chat (Opus 4.6) |
 | `outbot voice` | OutBot voice chat |
@@ -14,6 +15,17 @@
 | `outbot debug` | OutBot with debug logging |
 | `claude` | Claude Code CLI |
 | `cursor-agent` | Cursor agent CLI |
+
+## Command Centre Keybindings (inside `cc`)
+
+| Key | Action |
+|-----|--------|
+| Arrow keys | Move focus between tiles |
+| 1-9 | Jump to tile by position |
+| Space / Enter | Toggle select on focused tile |
+| t | Add selected (or focused) to today |
+| [ / ] | Page left / right |
+| Escape | Clear selection, then double-tap to quit |
 
 ## Picker Keybindings (inside the task picker TUI)
 
@@ -132,6 +144,7 @@
 
 ## Quick Start
 
-1. `picker` — triage your tasks
-2. `/daily-review` — full morning review (import, dashboard, priorities)
-3. `outbot` — chat with OutBot
+1. `cc` — Command Centre (spatial tile grid)
+2. `picker` — triage your tasks (card swiper)
+3. `/daily-review` — full morning review (import, dashboard, priorities)
+4. `outbot` — chat with OutBot
