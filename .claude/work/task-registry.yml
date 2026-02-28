@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 312
-last_synced: '2026-02-28T21:16:03.140184'
+next_id: 313
+last_synced: '2026-02-28T21:16:04.851767'
 entries:
   OUT-223:
     title: Fire place fix
@@ -303,3 +303,10 @@ entries:
     reminder_id: x-apple-reminder://E3D44F4E-13D4-4678-9AE0-7D91174F8809
     status: todo
     created: '2026-02-28T21:16:03.139244'
+  OUT-312:
+    title: Golden plains master task list
+    file: OUT-312-golden-plains-master-task-list.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://C72D36F6-CD2D-4C18-B0BE-7651F6300C58
+    status: todo
+    created: '2026-02-28T21:16:04.850887'
