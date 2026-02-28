@@ -55,8 +55,16 @@ class RemindersManager:
         description: str = "",
         list_name: str = "Reminders",
         source: str = "manual",
+        parent: Optional[str] = None,
+        prd: Optional[str] = None,
     ) -> Optional[WorkItem]:
-        """Create a new reminder (work item + Reminders.app sync)"""
+        """Create a new reminder (work item + iOS + git — the ONLY way to create tasks).
+
+        Always syncs to all three systems:
+        1. Local file + registry (via TaskRegistry)
+        2. iOS Reminders.app (via AppleScript)
+        3. Git push (via TaskRegistry auto-sync)
+        """
         # Classify into Eisenhower quadrant
         urgent = due_date is not None and priority in ["high", "urgent"]
         important = priority in ["high", "medium"] or bool(description)
@@ -82,6 +90,8 @@ class RemindersManager:
             eisenhower_quadrant=quadrant,
             eisenhower_urgent=urgent,
             eisenhower_important=important,
+            parent=parent,
+            prd=prd,
         )
 
         if work_item_id is None:
