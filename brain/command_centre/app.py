@@ -94,6 +94,8 @@ class HelpOverlay(ModalScreen):
 class CommandCentreApp(App):
     """Unified terminal TUI — keyboard-driven task command centre."""
 
+    AUTO_FOCUS = None  # Don't auto-focus the Input — grid keys must work first
+
     CSS = """
     Screen {
         background: #1a1a1a;

@@ -8,23 +8,25 @@ class CommandBarWidget(Horizontal):
 
     DEFAULT_CSS = """
     CommandBarWidget {
-        height: 3;
+        height: 2;
         background: #111111;
         border-top: solid #333333;
     }
     #cmd-label {
         width: auto;
-        padding: 1 1;
+        height: 1;
+        padding: 0 1;
         color: #777777;
     }
     #cmd-input {
         width: 1fr;
+        height: 1;
         background: #111111;
         border: none;
-        padding: 1 0;
     }
     #cmd-input:focus {
-        border: tall #FF6B35;
+        border: none;
+        background: #222222;
     }
     """
 
