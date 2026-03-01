@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 326
-last_synced: '2026-03-01T10:33:22.492475'
+last_synced: '2026-03-01T13:03:57.377502'
 entries:
   OUT-223:
     title: Fire place fix
@@ -418,5 +418,5 @@ entries:
     file: OUT-325-more-system-improvements.md
     source: reminders_import
     reminder_id: x-apple-reminder://778D8472-F090-4695-9225-13729BEFF7EF
-    status: todo
+    status: done
     created: '2026-03-01T10:33:22.491766'

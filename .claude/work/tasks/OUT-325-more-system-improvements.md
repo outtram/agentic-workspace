@@ -2,10 +2,10 @@
 id: OUT-325
 title: More system improvements
 type: task
-status: todo
+status: done
 priority: low
 created: '2026-03-01T10:33:22.491766'
-updated: '2026-03-01T10:33:22.491766'
+updated: '2026-03-01T13:03:57.386005'
 branch: task/OUT-325-more-system-improvements
 source: reminders_import
 eisenhower_quadrant: q2
@@ -18,7 +18,7 @@ reminder_list: Reminders
 # More system improvements
 
 ## Description
-Look at this image extract the text and see if you think it is worthwhile 
+Look at this image extract the text and see if you think it is worthwhile
 
 ## Steps
 - [ ] Review task details
