@@ -112,7 +112,7 @@ graph TB
         VoiceMode["Voice Mode<br/><i>record + transcribe</i>"]
         TGBridge["Telegram Bridge<br/><i>background connection</i>"]
         EmailHandler["Email Handler<br/><i>inbox + outbox</i>"]
-        ActionMenu["Action Menu<br/><i>agents + skills</i>"]
+        CommandPalette["Command Palette<br/><i>commands + agents + skills</i>"]
         Predictions["Predictions<br/><i>brain-log analysis</i>"]
     end
 
@@ -227,7 +227,6 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Status Bar** | `status_bar.py` | Hints + counts (tasks, today, overdue, telegram, voice) |
 | **Router** | `router.py` | Routes input to slash handlers or OutBot natural language |
 | **Task Editor** | `task_editor.py` | Modal for editing task fields (title, quadrant, due, etc.) |
-| **Action Menu** | `action_menu.py` | Quick actions (legacy, kept for compat) |
 | **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key) |
 | **Task Focus** | `task_focus.py` | Single-task control centre with field-by-field editing |
 | **Telegram Bridge** | `telegram_bridge.py` | Background Telegram connection + message forwarding |

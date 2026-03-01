@@ -28,6 +28,8 @@ _COMMANDS = [
     ("/import", "Import unread emails as tasks"),
     ("/email", "Send an email via OutBot"),
     ("/telegram", "Send a Telegram message"),
+    ("/import-emails", "Import unread emails as tasks"),
+    ("/help", "Show available commands"),
 ]
 
 # Available agents

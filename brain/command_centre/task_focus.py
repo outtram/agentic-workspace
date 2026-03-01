@@ -83,6 +83,7 @@ class TaskFocusView(VerticalScroll):
         self._editing: bool = False
         self._edit_field: str | None = None
         self._dirty: bool = False
+        self._save_timer = None
 
     def compose(self):
         yield Static(id="focus-content")
@@ -346,7 +347,7 @@ class TaskFocusView(VerticalScroll):
             self._task["eisenhower_important"] = new_val in ("q1", "q2")
 
         self._dirty = True
-        self._save_to_file()
+        self._debounced_save()
 
     def _show_input(self, key: str) -> None:
         """Show the inline input for a text field."""
@@ -399,8 +400,15 @@ class TaskFocusView(VerticalScroll):
         except Exception:
             return []
 
+    def _debounced_save(self) -> None:
+        """Debounce file writes — waits 0.5s after last change before saving."""
+        if self._save_timer is not None:
+            self._save_timer.stop()
+        self._save_timer = self.set_timer(0.5, self._save_to_file)
+
     def _save_to_file(self) -> None:
         """Persist changes back to the task's markdown file."""
+        self._save_timer = None
         if not self._task:
             return
         task_id = self._task.get("id", "")
@@ -455,8 +463,12 @@ class TaskFocusView(VerticalScroll):
                 meta, default_flow_style=False, sort_keys=False, allow_unicode=True
             )
             task_file.write_text(f"---\n{new_fm}---{body}")
-        except Exception:
-            pass
+        except Exception as e:
+            # Surface save errors via Textual notification
+            try:
+                self.app.notify(f"Save failed: {e}", severity="error")
+            except Exception:
+                pass
 
     @staticmethod
     def _update_description_section(body: str, new_desc: str) -> str:

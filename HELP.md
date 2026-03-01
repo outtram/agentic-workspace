@@ -27,7 +27,7 @@
 | 1-9 | Jump to tile by position |
 | a | Select all on page |
 | n | Deselect all |
-| / | **Command Palette** — navigate commands, agents, skills with arrow keys |
+| / | **Command Palette** — all commands, agents, and skills in a filterable list |
 | t | Add selected (or focused) to today |
 | d | Mark done (local + iOS) |
 | e | Edit focused task (modal) |
