@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 328
-last_synced: '2026-03-01T22:23:32.953941'
+last_synced: '2026-03-01T22:23:38.312101'
 entries:
   OUT-223:
     title: Fire place fix
@@ -404,7 +404,7 @@ entries:
     file: OUT-323-interesting-concept-for-claude-and-open-claw.md
     source: reminders_import
     reminder_id: x-apple-reminder://18284A8E-D478-48A5-B82D-29516AA22B7B
-    status: todo
+    status: done
     created: '2026-03-01T10:33:19.021793'
   OUT-324:
     title: System improvement idea
