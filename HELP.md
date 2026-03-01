@@ -54,6 +54,11 @@
 | `/enrich` | Improve task descriptions via Claude |
 | `/research` | Fetch URLs from tasks + summarise findings via Claude |
 | `/daily` | Run daily review pipeline |
+| `/inbox` | Check email inbox (Gmail) |
+| `/email <msg>` | Send an email via OutBot (Claude extracts details) |
+| `/agent` | List available agents (or `/agent <name>` for details) |
+| `/skill` | List available skills (or `/skill <name>` for details) |
+| `/telegram <msg>` | Send a Telegram message |
 | `/help` | Show available commands |
 
 ### Predictions (on launch)

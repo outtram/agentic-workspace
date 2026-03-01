@@ -1,13 +1,35 @@
 # System Architecture
 
-> Last updated: 2026-02-22 (Telegram replaces WhatsApp)
+> Last updated: 2026-03-01 (Command Centre TUI added)
 > This document describes the full AAGLOBAL system for Troy, Claude Code agents, Cursor, and OutBot.
 
 ## How to Use This System
 
-There are **two separate interfaces** into this system. They share files but run independently.
+There are **three interfaces** into this system. They share files but can run independently.
 
-### 1. Claude Code Agents (the task management system)
+### 1. Command Centre TUI (the unified hub)
+
+**How to start:** Run `cc` from any terminal.
+
+```bash
+cc
+```
+
+The Command Centre is a keyboard-driven terminal TUI (built with Textual) that unifies task management, OutBot chat, email, Telegram, and daily review into one interface.
+
+**Key features:**
+- 3x3 tile grid showing tasks with Eisenhower quadrant colours
+- Multi-select tasks + batch operations (done, move quadrant, enrich)
+- Context panel with task detail, actions menu, and OutBot responses
+- Voice mode — record audio, transcribe, route through OutBot
+- Brain predictions on launch (day-of-week patterns, incomplete yesterday)
+- Task editing modal (title, quadrant, priority, due date, description)
+- Action menu with quick actions + agent/skill suggestions
+- Telegram bridge — live connection status, incoming message notifications
+- Email inbox/outbox via Gmail
+- Slash commands: /done, /today, /enrich, /research, /daily, /inbox, /email, /agent, /skill, /telegram
+
+### 2. Claude Code Agents (the task management system)
 
 **How to start:** Open a terminal and run `claude` from the AAGLOBAL root directory.
 
@@ -32,7 +54,7 @@ Then speak naturally:
 
 Claude Code reads the agent definitions from `.claude/agents/` and follows their instructions. You don't need to reference the files — just describe what you want.
 
-### 2. OutBot (the conversational AI)
+### 3. OutBot (the conversational AI)
 
 **How to start:**
 
@@ -58,7 +80,7 @@ OutBot is a conversational assistant. It can:
 
 OutBot can now run the **daily review workflow** natively (sync reminders, generate dashboard, check overdue) via `brain/workflows/daily_review.py`. Say "daily review" or "start my day" in CLI chat or Telegram.
 
-### 3. Cursor IDE
+### 4. Cursor IDE
 
 Cursor can read all files in this workspace. It uses `CLAUDE.md` at the root and any `.cursor/rules/` for context. Cursor is for coding, editing files, and building features — not for running the agent pipelines.
 
@@ -68,11 +90,24 @@ Cursor can read all files in this workspace. It uses `CLAUDE.md` at the root and
 
 ```mermaid
 graph TB
-    subgraph USER["👤 Troy"]
+    subgraph USER["Troy"]
+        CC["Terminal<br/><code>cc</code>"]
         Terminal["Terminal<br/><code>claude</code>"]
         Chat["Terminal<br/><code>python brain/chat.py</code>"]
-        WhatsApp["WhatsApp<br/>(phone)"]
+        Telegram["Telegram<br/>(phone)"]
         CursorIDE["Cursor IDE"]
+    end
+
+    subgraph COMMAND_CENTRE["Command Centre TUI"]
+        direction TB
+        TileGrid["Tile Grid<br/><i>3x3 task tiles</i>"]
+        ContextPanel["Context Panel<br/><i>detail + responses</i>"]
+        CommandBar["Command Bar<br/><i>slash commands + OutBot</i>"]
+        VoiceMode["Voice Mode<br/><i>record + transcribe</i>"]
+        TGBridge["Telegram Bridge<br/><i>background connection</i>"]
+        EmailHandler["Email Handler<br/><i>inbox + outbox</i>"]
+        ActionMenu["Action Menu<br/><i>agents + skills</i>"]
+        Predictions["Predictions<br/><i>brain-log analysis</i>"]
     end
 
     subgraph CLAUDE_CODE["Claude Code (Agent System)"]
@@ -107,7 +142,7 @@ graph TB
         direction TB
         CLIChat["CLI Chat<br/><code>chat.py</code>"]
         Voice["Voice Mode<br/><code>voice.py</code>"]
-        WABot["WhatsApp Bot<br/><code>main.py</code>"]
+        TGBot["Telegram Bot<br/><code>main.py</code>"]
         Heartbeat["Heartbeat<br/>Scheduler"]
 
         subgraph CAPABILITIES["Capabilities"]
@@ -119,8 +154,8 @@ graph TB
 
         CLIChat --> CAPABILITIES
         Voice --> CAPABILITIES
-        WABot --> CAPABILITIES
-        WABot --> Heartbeat
+        TGBot --> CAPABILITIES
+        TGBot --> Heartbeat
     end
 
     subgraph SHARED["Shared File System"]
@@ -138,13 +173,19 @@ graph TB
         Gmail["Gmail<br/>IMAP/SMTP"]
         GitHub["GitHub<br/>outtram/agentic-workspace"]
         ClaudeCLI["Claude CLI<br/>(Max plan)"]
+        TelegramAPI["Telegram<br/>Bot API"]
     end
 
+    CC --> COMMAND_CENTRE
     Terminal --> CLAUDE_CODE
     Chat --> CLIChat
-    WhatsApp --> WABot
+    Telegram --> TGBot
     CursorIDE -.->|reads| SHARED
 
+    COMMAND_CENTRE -->|reads/writes| SHARED
+    COMMAND_CENTRE -->|routes through| OUTBOT
+    TGBridge -->|connects to| TelegramAPI
+    EmailHandler -->|reads/sends| Gmail
     CLAUDE_CODE -->|reads/writes| SHARED
     OUTBOT -->|reads/writes| SHARED
 
@@ -152,8 +193,10 @@ graph TB
     Mail -->|reads/sends| Gmail
     CLAUDE_CODE -->|powered by| ClaudeCLI
     OUTBOT -->|powered by| ClaudeCLI
+    COMMAND_CENTRE -->|powered by| ClaudeCLI
     Dashboard -->|publishes to| GitHub
 
+    style COMMAND_CENTRE fill:#1a1a2e,stroke:#FF6B35,color:#fff
     style CLAUDE_CODE fill:#1a1a2e,stroke:#e94560,color:#fff
     style OUTBOT fill:#1a1a2e,stroke:#0f3460,color:#fff
     style SHARED fill:#16213e,stroke:#533483,color:#fff
@@ -164,6 +207,25 @@ graph TB
 ---
 
 ## Component Details
+
+### Command Centre TUI
+
+The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI launched via `cc`.
+
+| Component | File | Purpose |
+|---|---|---|
+| **App** | `app.py` | Main Textual app — state, key handling, widget composition |
+| **Tile Grid** | `tile_grid.py` | 3x3 task tile grid with quadrant colours, hierarchy badges |
+| **Context Panel** | `context_panel.py` | Task detail, response display, action suggestions |
+| **Command Bar** | `command_bar.py` | Input for slash commands, filters, natural language |
+| **Status Bar** | `status_bar.py` | Hints + counts (tasks, today, overdue, telegram, voice) |
+| **Router** | `router.py` | Routes input to slash handlers or OutBot natural language |
+| **Task Editor** | `task_editor.py` | Modal for editing task fields (title, quadrant, due, etc.) |
+| **Action Menu** | `action_menu.py` | Quick actions + agent/skill suggestions per task |
+| **Telegram Bridge** | `telegram_bridge.py` | Background Telegram connection + message forwarding |
+| **Predictions** | `predictions.py` | Brain-log analysis for launch-time suggestions |
+| **Skill Matcher** | `skill_matcher.py` | Keyword matching for agent/skill suggestions |
+| **Handlers** | `handlers/` | Slash command implementations (triage, enrich, research, email, agents) |
 
 ### Claude Code Agents
 
@@ -268,37 +330,39 @@ Skills are specialised instructions Claude Code can follow for specific tasks:
 
 ---
 
-## How the Two Systems Connect
+## How the Three Systems Connect
 
 ```
                     ┌─────────────────────────────────┐
                     │     Shared File System           │
                     │  .claude/memory/  .claude/work/  │
-                    └──────────┬──────────┬────────────┘
-                               │          │
-                    ┌──────────┘          └──────────┐
-                    │                                │
-            ┌───────▼────────┐              ┌───────▼────────┐
-            │  Claude Code   │              │    OutBot       │
-            │  (Agents)      │              │  (Chat/WhatsApp)│
-            ├────────────────┤              ├─────────────────┤
-            │ Reads agents/  │              │ Reads memory/   │
-            │ Writes work/   │              │ Writes memory/  │
-            │ Writes memory/ │              │ Reads work/     │
-            │ Runs pipelines │              │ Chats, emails   │
-            ├────────────────┤              ├─────────────────┤
-            │ HOW: terminal  │              │ HOW: terminal   │
-            │ > claude       │              │ > python chat.py│
-            │ "daily review" │              │ or WhatsApp     │
-            └────────────────┘              └─────────────────┘
+                    └───────┬──────────┬──────────┬────┘
+                            │          │          │
+                 ┌──────────┘          │          └──────────┐
+                 │                     │                     │
+         ┌───────▼────────┐   ┌───────▼────────┐   ┌───────▼────────┐
+         │ Command Centre │   │  Claude Code   │   │    OutBot       │
+         │  (TUI hub)     │   │  (Agents)      │   │  (Chat/Telegram)│
+         ├────────────────┤   ├────────────────┤   ├─────────────────┤
+         │ Task tiles     │   │ Reads agents/  │   │ Reads memory/   │
+         │ Slash commands │   │ Writes work/   │   │ Writes memory/  │
+         │ OutBot chat    │   │ Writes memory/ │   │ Reads work/     │
+         │ Email in/out   │   │ Runs pipelines │   │ Chats, emails   │
+         │ Telegram bridge│   │                │   │ Heartbeat       │
+         │ Voice mode     │   │                │   │                 │
+         ├────────────────┤   ├────────────────┤   ├─────────────────┤
+         │ HOW: terminal  │   │ HOW: terminal  │   │ HOW: terminal   │
+         │ > cc           │   │ > claude       │   │ > outbot        │
+         └────────────────┘   └────────────────┘   └─────────────────┘
 ```
 
 **They are complementary:**
+- **Command Centre** is the unified hub — tasks, chat, email, telegram, voice in one TUI
 - Claude Code agents **manage your work** (import, enrich, prioritise, track)
-- OutBot **talks to you** (chat, remember, email, nudge via WhatsApp)
-- Both read and write to the same files, so changes from one are visible to the other
+- OutBot **talks to you** (chat, remember, email, nudge via Telegram)
+- All three read and write to the same files, so changes from one are visible to the others
 
-**Shared workflows:** The `brain/workflows/` module provides pure Python implementations of key pipelines (daily review, etc.) that both OutBot and Claude Code agents can call. No shell execution needed — they import the reminders manager and dashboard generator directly.
+**Shared workflows:** The `brain/workflows/` module provides pure Python implementations of key pipelines (daily review, etc.) that all three systems can call. No shell execution needed — they import the reminders manager and dashboard generator directly.
 
 ---
 

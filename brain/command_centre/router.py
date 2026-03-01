@@ -18,6 +18,7 @@ class Router:
     def __init__(self):
         self.claude = None
         self.personality = None
+        self._telegram_bridge = None
 
     def _ensure_brain(self):
         """Lazy-init Claude client and personality loader."""
@@ -61,9 +62,12 @@ class Router:
     ) -> str:
         """Route slash commands to handler functions."""
         from .handlers import triage, enrich, daily_review, research
+        from .handlers import email as email_handler
+        from .handlers import agent_runner
 
         parts = text.split(maxsplit=1)
         cmd = parts[0].lower()
+        args = parts[1] if len(parts) > 1 else ""
 
         if cmd == "/done":
             await progress("[dim]Marking done...[/]")
@@ -91,6 +95,32 @@ class Router:
         elif cmd == "/daily":
             await progress("[dim]Running daily review...[/]")
             return await daily_review.handle_daily()
+        elif cmd == "/inbox":
+            return await email_handler.handle_inbox(progress)
+        elif cmd == "/email":
+            if not args:
+                return (
+                    "[bold]Usage:[/] /email <message>\n"
+                    "Example: /email send Troy a summary of today's Q1 tasks"
+                )
+            await progress("[dim]Loading Claude...[/]")
+            self._ensure_brain()
+            return await email_handler.handle_email_send(
+                args, self.claude, progress
+            )
+        elif cmd == "/agent":
+            return agent_runner.handle_agents(args)
+        elif cmd == "/skill":
+            return agent_runner.handle_skills(args)
+        elif cmd == "/telegram":
+            if not args:
+                return (
+                    "[bold]Usage:[/] /telegram <message>\n"
+                    "Sends a message via Telegram to your chat"
+                )
+            if self._telegram_bridge:
+                return await self._telegram_bridge.send(args)
+            return "[red]Telegram bridge not running[/]"
         elif cmd == "/help":
             return (
                 "[bold]Slash Commands[/]\n"
@@ -101,6 +131,11 @@ class Router:
                 "  /enrich     Improve descriptions via Claude\n"
                 "  /research   Fetch URLs + summarise findings\n"
                 "  /daily      Run daily review pipeline\n"
+                "  /inbox      Check email inbox\n"
+                "  /email      Send an email via OutBot\n"
+                "  /agent      List available agents\n"
+                "  /skill      List available skills\n"
+                "  /telegram   Send a Telegram message\n"
                 "  /help       This help\n\n"
                 "[bold]Filters[/]\n"
                 "  :q1 :q2 :q3 :q4   Filter by quadrant\n"

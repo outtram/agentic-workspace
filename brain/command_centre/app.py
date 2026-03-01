@@ -22,6 +22,7 @@ from .task_editor import TaskEditScreen
 from .predictions import generate_predictions
 from .action_menu import ActionMenuScreen
 from .handlers.voice import VoiceHandler, VOICE_AVAILABLE
+from .telegram_bridge import TelegramBridge
 from .brain_logger import log_action
 
 
@@ -69,6 +70,11 @@ _HELP_TEXT = """\
   /enrich       Improve descriptions via Claude
   /research     Fetch URLs + summarise findings
   /daily        Run daily review pipeline
+  /inbox        Check email inbox
+  /email <msg>  Send an email via OutBot
+  /agent        List available agents
+  /skill        List available skills
+  /telegram     Send a Telegram message
   /help         Show available commands
 
 [bold]Quit[/]
@@ -142,6 +148,7 @@ class CommandCentreApp(App):
         self._filter_label: str = ""
         self.router = Router()
         self.voice = VoiceHandler()
+        self.telegram = TelegramBridge()
         self._predictions: list[dict] = []
         self._predictions_pending = False
 
@@ -181,6 +188,9 @@ class CommandCentreApp(App):
 
         self._refresh_all()
 
+        # Start Telegram bridge in background
+        asyncio.get_event_loop().create_task(self._init_telegram())
+
     def _refresh_all(self):
         """Update all widgets with current state."""
         grid = self.query_one("#tile-grid", TileGrid)
@@ -210,6 +220,7 @@ class CommandCentreApp(App):
         )
 
         status = self.query_one("#status-bar", StatusBarWidget)
+        overdue = sum(1 for t in self.all_tasks if t.get("_overdue"))
         status.update_counts(
             total=len(self.display_tasks),
             today=len(self.today_ids),
@@ -219,6 +230,8 @@ class CommandCentreApp(App):
             filter_label=self._filter_label,
             voice_active=self.voice.active,
             voice_recording=self.voice.recording,
+            overdue=overdue,
+            telegram_status=self.telegram.status_label,
         )
 
         # Update command bar label for voice mode
@@ -861,3 +874,39 @@ class CommandCentreApp(App):
             self.focus_index = 0
             self._escape_pending = False
             self._refresh_all()
+
+    # --- Telegram bridge ---
+
+    async def _init_telegram(self):
+        """Start Telegram bridge in background."""
+        try:
+            started = await self.telegram.start(
+                on_message=self._on_telegram_message
+            )
+            if started:
+                self.router._telegram_bridge = self.telegram
+                self._refresh_all()
+        except Exception:
+            pass
+
+    async def _on_telegram_message(self, msg):
+        """Handle incoming Telegram message — show notification + route."""
+        name = msg.sender_name or "Unknown"
+        preview = msg.content[:60] if msg.content else ""
+        self.notify(f"TG {name}: {preview}")
+
+        # Route through OutBot pipeline and reply via Telegram
+        try:
+            result = await self.router.route(
+                msg.content,
+                set(),
+                None,
+                self.all_tasks,
+                self.today_ids,
+            )
+            if result and self.telegram.available:
+                clean = re.sub(r"\[/?[^\]]*\]", "", result)
+                if clean.strip():
+                    await self.telegram.send(clean.strip())
+        except Exception:
+            pass

@@ -40,6 +40,8 @@ class StatusBarWidget(Static):
         filter_label: str = "",
         voice_active: bool = False,
         voice_recording: bool = False,
+        overdue: int = 0,
+        telegram_status: str = "",
     ):
         # Line 1: shortcut hints
         line1 = _HINTS
@@ -49,6 +51,8 @@ class StatusBarWidget(Static):
             f"{total} tasks",
             f"{today} today",
         ]
+        if overdue:
+            parts.append(f"[bold red]{overdue} overdue[/]")
         if selected:
             parts.append(f"[#00D4AA]{selected} selected[/]")
         if filter_label:
@@ -58,6 +62,8 @@ class StatusBarWidget(Static):
                 parts.append("[bold red]voice: RECORDING[/]")
             else:
                 parts.append("[bold #FF6B35]voice: ON[/]")
+        if telegram_status:
+            parts.append(f"[bold #00D4AA]{telegram_status}[/]")
         parts.append(f"Page {page} of {total_pages}")
         line2 = " \u2502 ".join(parts)
 
