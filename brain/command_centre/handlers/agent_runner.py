@@ -51,16 +51,17 @@ def handle_agents(args: str = "") -> str:
                 return (
                     f"[bold]{agent_name}[/]\n"
                     f"{desc}\n\n"
-                    f"[dim]Run in Claude Code:[/]\n"
-                    f"  Ask the [bold]{agent_name}[/] agent to help"
+                    f"[dim]To run, open a terminal and type:[/]\n"
+                    f"  [bold]claude[/] 'run the {agent_name} agent'\n\n"
+                    f"[dim]Agents run via Claude Code — not directly from CC (yet)[/]"
                 )
         return f"[red]Unknown agent: {args}[/]\nType /agent to see all agents"
 
     lines = ["[bold]Available Agents[/]\n"]
     for name, desc in _AGENTS.items():
-        lines.append(f"  [bold #FF6B35]{name}[/]")
-        lines.append(f"    {desc}")
-    lines.append("\n[dim]Usage: /agent <name> for details[/]")
+        lines.append(f"  [bold #FF6B35]{name}[/]  [dim]{desc}[/]")
+    lines.append("\n[dim]/agent <name> for details")
+    lines.append("Agents run via Claude Code — not directly from CC (yet)[/]")
     return "\n".join(lines)
 
 
@@ -73,14 +74,15 @@ def handle_skills(args: str = "") -> str:
                 return (
                     f"[bold]{skill_name}[/]\n"
                     f"{desc}\n\n"
-                    f"[dim]Run in Claude Code:[/]\n"
-                    f"  Use the [bold]{skill_name}[/] skill"
+                    f"[dim]To run, open a terminal and type:[/]\n"
+                    f"  [bold]claude[/] '/{skill_name}'\n\n"
+                    f"[dim]Skills run via Claude Code — not directly from CC (yet)[/]"
                 )
         return f"[red]Unknown skill: {args}[/]\nType /skill to see all skills"
 
     lines = ["[bold]Available Skills[/]\n"]
     for name, desc in _SKILLS.items():
-        lines.append(f"  [bold #00D4AA]{name}[/]")
-        lines.append(f"    {desc}")
-    lines.append("\n[dim]Usage: /skill <name> for details[/]")
+        lines.append(f"  [bold #00D4AA]{name}[/]  [dim]{desc}[/]")
+    lines.append("\n[dim]/skill <name> for details")
+    lines.append("Skills run via Claude Code — not directly from CC (yet)[/]")
     return "\n".join(lines)

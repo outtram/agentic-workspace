@@ -1,4 +1,5 @@
 """Right-side context panel — today shortlist + detail/response."""
+from textual.containers import VerticalScroll
 from textual.widgets import Static
 
 from .sanitiser import sanitise
@@ -6,7 +7,7 @@ from .skill_matcher import match_for_task
 from .task_loader import QUADRANT_COLOURS, QUADRANT_LABELS
 
 
-class ContextPanel(Static):
+class ContextPanel(VerticalScroll):
     """Shows today shortlist, task detail, and OutBot responses."""
 
     DEFAULT_CSS = """
@@ -15,9 +16,14 @@ class ContextPanel(Static):
         min-width: 28;
         border-left: solid #333333;
         padding: 1 2;
-        overflow-y: auto;
+    }
+    #panel-content {
+        width: 100%;
     }
     """
+
+    def compose(self):
+        yield Static(id="panel-content")
 
     def update_content(
         self,
@@ -32,7 +38,10 @@ class ContextPanel(Static):
             content += "\n" + self._render_response(response)
         elif focused_task:
             content += "\n" + self._render_detail(focused_task, all_tasks)
-        self.update(content)
+        try:
+            self.query_one("#panel-content", Static).update(content)
+        except Exception:
+            pass
 
     def _render_today(self, today_ids: list[str], all_tasks: list[dict]) -> str:
         """Render the today shortlist."""

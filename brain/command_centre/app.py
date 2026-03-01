@@ -220,7 +220,7 @@ class CommandCentreApp(App):
         self._refresh_all()
 
         # Start Telegram bridge in background
-        asyncio.get_event_loop().create_task(self._init_telegram())
+        asyncio.ensure_future(self._init_telegram())
 
     def _refresh_all(self):
         """Update all widgets with current state."""
@@ -288,6 +288,11 @@ class CommandCentreApp(App):
     # --- Key handling ---
 
     def on_key(self, event: events.Key):
+        # KEY DESIGN: Arrow keys, space, enter, and number keys are hardcoded
+        # because they're structural navigation — not user-configurable.
+        # The command-centre.yml hotkeys section controls action keys only
+        # (t, d, e, x, v, a, n, ?, [, ], /, :).
+
         # If command bar input is focused, don't handle grid keys
         try:
             cmd_input = self.query_one("#cmd-input", Input)
@@ -354,11 +359,8 @@ class CommandCentreApp(App):
             self._page_left()
         elif char == hk.get("page_right", "]"):
             self._page_right()
-        # / or : → focus command bar
+        # / or : → focus command bar (only these two keys, not arbitrary chars)
         elif char in (hk.get("command_bar", "/"), hk.get("filter_mode", ":")):
-            self._focus_command_bar(char)
-        # Any other printable char → focus command bar and start typing
-        elif char and char.isprintable():
             self._focus_command_bar(char)
 
     # --- Escape state machine (priority binding) ---
@@ -417,6 +419,9 @@ class CommandCentreApp(App):
             self._refresh_all()
         elif self._escape_pending:
             save_today_list(self.today_ids)
+            # Stop Telegram bridge before exiting
+            if self.telegram.available:
+                asyncio.ensure_future(self.telegram.stop())
             self.exit()
         else:
             self._escape_pending = True
@@ -546,7 +551,7 @@ class CommandCentreApp(App):
         if self.voice.active and VOICE_AVAILABLE and result:
             clean = re.sub(r"\[/?[^\]]*\]", "", result)
             if clean.strip():
-                asyncio.get_event_loop().run_in_executor(
+                asyncio.get_running_loop().run_in_executor(
                     None, self._speak_text, clean.strip()
                 )
 
@@ -760,13 +765,13 @@ class CommandCentreApp(App):
         self._refresh_all()
 
         # Run transcription and routing in background
-        asyncio.get_event_loop().create_task(self._voice_pipeline(audio))
+        asyncio.ensure_future(self._voice_pipeline(audio))
 
     async def _voice_pipeline(self, audio):
         """Async pipeline: transcribe → route → speak."""
         from brain.voice import transcribe, speak
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         # Transcribe in thread
         text = await loop.run_in_executor(None, transcribe, audio)
@@ -897,9 +902,7 @@ class CommandCentreApp(App):
                 self._add_note_to_task(task)
                 return
             # Route the action through the command pipeline
-            asyncio.get_event_loop().create_task(
-                self._run_action(result, task)
-            )
+            asyncio.ensure_future(self._run_action(result, task))
 
         self.push_screen(ActionMenuScreen(task), callback=on_dismiss)
 
@@ -914,8 +917,9 @@ class CommandCentreApp(App):
         def on_note(result: str | None) -> None:
             if not result:
                 return
-            task_file = PROJECT_ROOT / ".claude" / "work" / "tasks" / f"{task_id}.md"
-            if not task_file.exists():
+            from .task_loader import find_task_file
+            task_file = find_task_file(task_id)
+            if not task_file:
                 self.notify("Task file not found", severity="error")
                 return
             content = task_file.read_text()
@@ -972,7 +976,7 @@ class CommandCentreApp(App):
         if self.voice.active and VOICE_AVAILABLE and result:
             clean = re.sub(r"\[/?[^\]]*\]", "", result)
             if clean.strip():
-                asyncio.get_event_loop().run_in_executor(
+                asyncio.get_running_loop().run_in_executor(
                     None, self._speak_text, clean.strip()
                 )
 

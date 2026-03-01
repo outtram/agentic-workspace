@@ -3,10 +3,8 @@ import sys
 
 import yaml
 
-from .. import PROJECT_ROOT
 from ..brain_logger import log_action
-
-_TASK_DIR = PROJECT_ROOT / ".claude" / "work" / "tasks"
+from ..task_loader import find_task_file
 
 
 async def handle_done(task_ids: list[str]) -> str:
@@ -62,8 +60,8 @@ def handle_remove(task_ids: list[str], today_ids: list[str]) -> str:
 
 def _update_task_quadrant(task_id: str, quadrant: str):
     """Update a task's Eisenhower quadrant in its file."""
-    task_file = _TASK_DIR / f"{task_id}.md"
-    if not task_file.exists():
+    task_file = find_task_file(task_id)
+    if not task_file:
         return
 
     content = task_file.read_text()

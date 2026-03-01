@@ -60,6 +60,22 @@ def _parse_task_file(path: Path) -> Optional[dict]:
     return meta
 
 
+def find_task_file(task_id: str) -> Optional[Path]:
+    """Find the actual file path for a task ID (e.g. OUT-256).
+
+    Task files are named with slugs like OUT-256-some-title.md,
+    not just OUT-256.md. This globs for the right file.
+    """
+    matches = list(_TASK_DIR.glob(f"{task_id}-*.md"))
+    if matches:
+        return matches[0]
+    # Fallback: exact match (shouldn't happen but be safe)
+    exact = _TASK_DIR / f"{task_id}.md"
+    if exact.exists():
+        return exact
+    return None
+
+
 def load_tasks() -> list[dict]:
     """Read, weight, and sort all active tasks."""
     tasks = []

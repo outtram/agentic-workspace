@@ -1,16 +1,14 @@
 """Enrich handler — /enrich sends task descriptions to Claude for improvement."""
 import yaml
 
-from .. import PROJECT_ROOT
 from ..brain_logger import log_action
-
-_TASK_DIR = PROJECT_ROOT / ".claude" / "work" / "tasks"
+from ..task_loader import find_task_file
 
 
 def _update_task_description(task_id: str, new_description: str):
     """Update the description section of a task markdown file."""
-    task_file = _TASK_DIR / f"{task_id}.md"
-    if not task_file.exists():
+    task_file = find_task_file(task_id)
+    if not task_file:
         return
 
     content = task_file.read_text()

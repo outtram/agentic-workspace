@@ -1,14 +1,10 @@
 """Task edit modal — inline editing of task fields."""
-from pathlib import Path
-
 import yaml
 from textual.containers import Vertical, Horizontal, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Input, Button, Static, TextArea, RadioSet, RadioButton
 
-from . import PROJECT_ROOT
-
-_TASK_DIR = PROJECT_ROOT / ".claude" / "work" / "tasks"
+from .task_loader import find_task_file
 
 _QUADRANTS = ("q1", "q2", "q3", "q4")
 _PRIORITIES = ("low", "medium", "high")
@@ -140,8 +136,8 @@ class TaskEditScreen(ModalScreen[bool]):
 
     def _save(self) -> None:
         """Write updated fields back to the task's markdown file."""
-        task_file = _TASK_DIR / f"{self.task_id}.md"
-        if not task_file.exists():
+        task_file = find_task_file(self.task_id)
+        if not task_file:
             return
 
         content = task_file.read_text()

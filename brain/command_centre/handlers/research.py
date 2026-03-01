@@ -2,10 +2,8 @@
 
 import re
 
-from .. import PROJECT_ROOT
 from ..brain_logger import log_action
-
-_TASK_DIR = PROJECT_ROOT / ".claude" / "work" / "tasks"
+from ..task_loader import find_task_file
 _URL_PATTERN = re.compile(r"https?://[^\s<>\"{}|\\^`\[\]]+")
 
 
@@ -88,8 +86,8 @@ async def _research_topic(title, desc, claude):
 
 def _append_findings(task_id, findings):
     """Append research findings to a task's markdown file."""
-    task_file = _TASK_DIR / f"{task_id}.md"
-    if not task_file.exists():
+    task_file = find_task_file(task_id)
+    if not task_file:
         return
 
     content = task_file.read_text()

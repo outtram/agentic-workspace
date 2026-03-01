@@ -11,7 +11,7 @@ async def _noop(msg: str) -> None:
 async def handle_daily(progress=_noop) -> str:
     """Run daily review pipeline with progress updates at each stage."""
     log_action("daily_review")
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     lines = ["[bold]Daily Review[/]\n"]
 
