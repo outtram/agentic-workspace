@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 328
-last_synced: '2026-03-01T22:23:22.724478'
+last_synced: '2026-03-01T22:23:27.799043'
 entries:
   OUT-223:
     title: Fire place fix
@@ -301,7 +301,7 @@ entries:
     file: OUT-311-open-claw-skills-library-read-and-evaluate-if-ther.md
     source: reminders_import
     reminder_id: x-apple-reminder://E3D44F4E-13D4-4678-9AE0-7D91174F8809
-    status: todo
+    status: done
     created: '2026-02-28T21:16:03.139244'
   OUT-312:
     title: Golden plains master task list
