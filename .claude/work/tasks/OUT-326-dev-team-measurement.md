@@ -2,10 +2,10 @@
 id: OUT-326
 title: Dev team measurement
 type: task
-status: todo
+status: done
 priority: low
 created: '2026-03-01T21:06:46.163215'
-updated: '2026-03-01T21:06:46.163215'
+updated: '2026-03-01T22:22:55.170774'
 branch: task/OUT-326-dev-team-measurement
 source: reminders_import
 eisenhower_quadrant: q2
