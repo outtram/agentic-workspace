@@ -11,6 +11,7 @@ hotkeys:
   deselect_all: "n"
   help: "?"
   edit_task: "e"
+  action_menu: "x"
   command_bar: "/"
   filter_mode: ":"
 

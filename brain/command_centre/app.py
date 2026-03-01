@@ -20,6 +20,7 @@ from .task_loader import load_tasks, load_today_list, save_today_list
 from .router import Router
 from .task_editor import TaskEditScreen
 from .predictions import generate_predictions
+from .action_menu import ActionMenuScreen
 from .handlers.voice import VoiceHandler, VOICE_AVAILABLE
 from .brain_logger import log_action
 
@@ -46,6 +47,7 @@ _HELP_TEXT = """\
   t             Add to today
   d             Mark done (local + iOS)
   e             Edit focused task
+  x             Actions menu (quick actions + free text)
   v             Toggle voice mode
   ?             This help
 
@@ -296,6 +298,8 @@ class CommandCentreApp(App):
             self._mark_done()
         elif char == hk.get("edit_task", "e"):
             self._edit_task()
+        elif char == hk.get("action_menu", "x"):
+            self._open_action_menu()
         elif char == hk.get("select_all", "a"):
             self._select_all()
         elif char == hk.get("deselect_all", "n"):
@@ -771,6 +775,76 @@ class CommandCentreApp(App):
                 self.notify("Task updated")
 
         self.push_screen(TaskEditScreen(task), callback=on_dismiss)
+
+    # --- Action menu ---
+
+    def _open_action_menu(self):
+        """Open action menu for the focused task."""
+        if self.focus_index >= len(self.page_tasks):
+            return
+        task = self.page_tasks[self.focus_index]
+        if not task.get("id"):
+            return
+
+        def on_dismiss(result: str | None) -> None:
+            if result is None:
+                return
+            if result == "edit":
+                self._edit_task()
+                return
+            # Route the action through the command pipeline
+            asyncio.get_event_loop().create_task(
+                self._run_action(result, task)
+            )
+
+        self.push_screen(ActionMenuScreen(task), callback=on_dismiss)
+
+    async def _run_action(self, command: str, task: dict):
+        """Execute an action from the action menu."""
+        tid = task.get("id", "")
+
+        # Ensure the task is selected so commands target it
+        if tid and tid not in self.selected_ids:
+            self.selected_ids.add(tid)
+
+        # Show thinking state
+        self._panel_mode = "response"
+        self._last_response = "[dim]Thinking...[/]"
+        self._refresh_all()
+
+        try:
+            result = await self.router.route(
+                command,
+                self.selected_ids,
+                task,
+                self.all_tasks,
+                self.today_ids,
+                progress=self._update_progress,
+            )
+        except Exception as e:
+            result = f"[red]Error: {e}[/]"
+
+        # Log
+        action = "action_menu"
+        log_action(action, input_text=command, task_ids=[tid])
+
+        # Update state
+        self._last_response = result
+        self._panel_mode = "response"
+        self.all_tasks = load_tasks()
+        self.today_ids = load_today_list()
+        self.selected_ids.clear()
+        if self.focus_index >= len(self.page_tasks):
+            self.focus_index = max(0, len(self.page_tasks) - 1)
+        self._refresh_all()
+
+        # Speak if voice active
+        if self.voice.active and VOICE_AVAILABLE and result:
+            clean = re.sub(r"\[/?[^\]]*\]", "", result)
+            if clean.strip():
+                asyncio.get_event_loop().run_in_executor(
+                    None, self._speak_text, clean.strip()
+                )
 
     # --- Pagination ---
 

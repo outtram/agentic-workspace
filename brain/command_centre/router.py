@@ -109,7 +109,7 @@ class Router:
                 "  :search term      Text search\n\n"
                 "[bold]Hotkeys[/]\n"
                 "  t Add to today  d Mark done  e Edit task\n"
-                "  v Voice mode  a Select all  n Deselect  ? Help\n\n"
+                "  x Actions menu  v Voice mode  ? Help\n\n"
                 "[dim]Or just type to talk to OutBot[/]"
             )
         else:

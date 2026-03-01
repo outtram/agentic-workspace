@@ -27,6 +27,7 @@
 | t | Add selected (or focused) to today |
 | d | Mark done (local + iOS) |
 | e | Edit focused task (opens modal) |
+| x | Actions menu — quick actions, agent/skill suggestions, free text |
 | v | Toggle voice mode |
 | [ / ] | Page left / right |
 | / | Focus command bar (slash commands) |

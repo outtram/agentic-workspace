@@ -2,6 +2,7 @@
 from textual.widgets import Static
 
 from .sanitiser import sanitise
+from .skill_matcher import match_for_task
 from .task_loader import QUADRANT_COLOURS, QUADRANT_LABELS
 
 
@@ -130,5 +131,20 @@ class ContextPanel(Static):
             lines += f"\n{desc[:300]}\n"
             if len(desc) > 300:
                 lines += "[dim]...[/]\n"
+
+        # Actions hint
+        lines += "\n[bold]ACTIONS[/]\n"
+        lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
+        lines += "[dim]/enrich  /research  /done[/]\n"
+        lines += "[dim]e Edit  t Today  [bold #FF6B35]x Actions[/][/]\n"
+
+        # Contextual suggestions
+        suggestions = match_for_task(task)
+        if suggestions["agents"] or suggestions["skills"]:
+            lines += "\n[bold]Suggested[/]\n"
+            for a in suggestions["agents"][:2]:
+                lines += f"[#00D4AA]{a['name']}[/] [dim]{a['desc']}[/]\n"
+            for s in suggestions["skills"][:2]:
+                lines += f"[#00D4AA]{s['name']}[/] [dim]{s['desc']}[/]\n"
 
         return lines

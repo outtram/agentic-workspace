@@ -9,6 +9,7 @@ _HINTS = (
     "[bold #FF6B35]t[/][dim] Today[/]  "
     "[bold #FF6B35]d[/][dim] Done[/]  "
     "[bold #FF6B35]e[/][dim] Edit[/]  "
+    "[bold #FF6B35]x[/][dim] Actions[/]  "
     "[bold #FF6B35]v[/][dim] Voice[/]  "
     "[bold #FF6B35][ ][/][dim] Page[/]  "
     "[bold #FF6B35]/[/][dim] Cmd[/]  "
