@@ -9,6 +9,7 @@ hotkeys:
   select_all: "a"
   deselect_all: "n"
   help: "?"
+  edit_task: "e"
   command_bar: "/"
   filter_mode: ":"
 

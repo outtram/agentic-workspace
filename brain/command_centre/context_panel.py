@@ -30,7 +30,7 @@ class ContextPanel(Static):
         if response:
             content += "\n" + self._render_response(response)
         elif focused_task:
-            content += "\n" + self._render_detail(focused_task)
+            content += "\n" + self._render_detail(focused_task, all_tasks)
         self.update(content)
 
     def _render_today(self, today_ids: list[str], all_tasks: list[dict]) -> str:
@@ -65,7 +65,7 @@ class ContextPanel(Static):
         lines += response
         return lines
 
-    def _render_detail(self, task: dict) -> str:
+    def _render_detail(self, task: dict, all_tasks: list[dict] | None = None) -> str:
         """Render focused task detail."""
         lines = "\n[bold]DETAIL[/]\n"
         lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
@@ -93,11 +93,37 @@ class ContextPanel(Static):
 
         parent = task.get("parent")
         if parent:
-            lines += f"[dim]Parent: {parent}[/]\n"
+            parent_title = ""
+            if all_tasks:
+                for t in all_tasks:
+                    if t.get("id") == parent:
+                        parent_title = sanitise(
+                            t.get("title", "")
+                        ).replace("[", r"\[")
+                        break
+            if parent_title:
+                lines += f"[dim]\u2191 Parent: {parent} — {parent_title}[/]\n"
+            else:
+                lines += f"[dim]\u2191 Parent: {parent}[/]\n"
 
         children = task.get("children", [])
         if children:
-            lines += f"[dim]Children: {len(children)}[/]\n"
+            lines += f"[dim]\u25bc {len(children)} subtask{'s' if len(children) != 1 else ''}:[/]\n"
+            for child_id in children[:5]:
+                child_title = ""
+                if all_tasks:
+                    for t in all_tasks:
+                        if t.get("id") == child_id:
+                            child_title = sanitise(
+                                t.get("title", "")
+                            ).replace("[", r"\[")
+                            break
+                if child_title:
+                    lines += f"  [dim]{child_id}: {child_title[:30]}[/]\n"
+                else:
+                    lines += f"  [dim]{child_id}[/]\n"
+            if len(children) > 5:
+                lines += f"  [dim]... +{len(children) - 5} more[/]\n"
 
         desc = sanitise(task.get("_description", "")).replace("[", r"\[")
         if desc:

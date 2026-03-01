@@ -16,6 +16,7 @@ from .command_bar import CommandBarWidget
 from .status_bar import StatusBarWidget
 from .task_loader import load_tasks, load_today_list, save_today_list
 from .router import Router
+from .task_editor import TaskEditScreen
 from .brain_logger import log_action
 
 
@@ -40,6 +41,7 @@ _HELP_TEXT = """\
 [bold]Actions[/]
   t             Add to today
   d             Mark done (local + iOS)
+  e             Edit focused task
   ?             This help
 
 [bold]Command Bar[/]
@@ -225,6 +227,8 @@ class CommandCentreApp(App):
             self._add_to_today()
         elif char == hk.get("mark_done", "d"):
             self._mark_done()
+        elif char == hk.get("edit_task", "e"):
+            self._edit_task()
         elif char == hk.get("select_all", "a"):
             self._select_all()
         elif char == hk.get("deselect_all", "n"):
@@ -296,6 +300,12 @@ class CommandCentreApp(App):
         except Exception:
             pass
 
+    async def _update_progress(self, msg: str) -> None:
+        """Progress callback — updates context panel with stage messages."""
+        self._panel_mode = "response"
+        self._last_response = msg
+        self._refresh_all()
+
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle command bar submission."""
         text = event.value.strip()
@@ -324,7 +334,12 @@ class CommandCentreApp(App):
 
         try:
             result = await self.router.route(
-                text, self.selected_ids, focused, self.all_tasks, self.today_ids
+                text,
+                self.selected_ids,
+                focused,
+                self.all_tasks,
+                self.today_ids,
+                progress=self._update_progress,
             )
         except Exception as e:
             result = f"[red]Error: {e}[/]"
@@ -512,6 +527,27 @@ class CommandCentreApp(App):
                 self.notify(f"Removed {tid} from today", severity="warning")
         self._escape_pending = False
         self._refresh_all()
+
+    # --- Edit ---
+
+    def _edit_task(self):
+        """Open edit modal for the focused task."""
+        if self.focus_index >= len(self.page_tasks):
+            return
+        task = self.page_tasks[self.focus_index]
+        if not task.get("id"):
+            return
+
+        def on_dismiss(result: bool | None) -> None:
+            if result:
+                self.all_tasks = load_tasks()
+                self.today_ids = load_today_list()
+                if self.focus_index >= len(self.page_tasks):
+                    self.focus_index = max(0, len(self.page_tasks) - 1)
+                self._refresh_all()
+                self.notify("Task updated")
+
+        self.push_screen(TaskEditScreen(task), callback=on_dismiss)
 
     # --- Pagination ---
 

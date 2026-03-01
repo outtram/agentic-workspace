@@ -1,6 +1,15 @@
 """Intent router — parses command bar input and routes to handlers."""
+from typing import Callable, Awaitable
+
 from . import PROJECT_ROOT
 from .brain_logger import log_action
+
+# Type alias for progress callback
+ProgressCallback = Callable[[str], Awaitable[None]]
+
+
+async def _noop_progress(msg: str) -> None:
+    """Default no-op progress callback."""
 
 
 class Router:
@@ -28,15 +37,19 @@ class Router:
         focused_task: dict | None,
         all_tasks: list[dict],
         today_ids: list[str],
+        progress: ProgressCallback | None = None,
     ) -> str:
         """Route input to the right handler and return response text."""
+        progress = progress or _noop_progress
         text = text.strip()
         task_ids = self._get_target_ids(selected_ids, focused_task)
 
         if text.startswith("/"):
-            return await self._handle_slash(text, task_ids, all_tasks, today_ids)
+            return await self._handle_slash(
+                text, task_ids, all_tasks, today_ids, progress
+            )
         else:
-            return await self._handle_natural(text)
+            return await self._handle_natural(text, progress)
 
     async def _handle_slash(
         self,
@@ -44,6 +57,7 @@ class Router:
         task_ids: list[str],
         all_tasks: list[dict],
         today_ids: list[str],
+        progress: ProgressCallback = _noop_progress,
     ) -> str:
         """Route slash commands to handler functions."""
         from .handlers import triage, enrich, daily_review
@@ -52,17 +66,22 @@ class Router:
         cmd = parts[0].lower()
 
         if cmd == "/done":
+            await progress("[dim]Marking done...[/]")
             return await triage.handle_done(task_ids)
         elif cmd == "/today":
             return triage.handle_today(task_ids, today_ids)
         elif cmd == "/remove":
             return triage.handle_remove(task_ids, today_ids)
         elif cmd in ("/q1", "/q2", "/q3", "/q4"):
+            await progress(f"[dim]Moving to {cmd[1:].upper()}...[/]")
             return await triage.handle_quadrant(cmd[1:], task_ids)
         elif cmd == "/enrich":
+            await progress("[dim]Loading Claude...[/]")
             self._ensure_brain()
+            await progress("[dim]Enriching descriptions...[/]")
             return await enrich.handle_enrich(task_ids, all_tasks, self.claude)
         elif cmd == "/daily":
+            await progress("[dim]Running daily review...[/]")
             return await daily_review.handle_daily()
         elif cmd == "/help":
             return (
@@ -74,8 +93,13 @@ class Router:
         else:
             return f"Unknown command: {cmd}. Type /help for available commands."
 
-    async def _handle_natural(self, text: str) -> str:
+    async def _handle_natural(
+        self,
+        text: str,
+        progress: ProgressCallback = _noop_progress,
+    ) -> str:
         """Send natural language to Claude with personality context."""
+        await progress("[dim]Loading personality...[/]")
         self._ensure_brain()
 
         # Check for memory triggers
@@ -87,6 +111,7 @@ class Router:
             )
 
             if is_remember_trigger(text):
+                await progress("[dim]Saving memory...[/]")
                 memory = await extract_memory(text, self.claude)
                 result = write_memory(
                     memory, str(PROJECT_ROOT / ".claude" / "memory")
@@ -106,6 +131,7 @@ class Router:
             )
 
             if is_recall_trigger(text):
+                await progress("[dim]Checking memory...[/]")
                 results = search_memory(
                     text, str(PROJECT_ROOT / ".claude" / "memory")
                 )
@@ -115,11 +141,13 @@ class Router:
         except ImportError:
             pass
 
+        await progress("[dim]Asking Claude...[/]")
         try:
             response = await self.claude.ask(text, system_prompt=system)
         except Exception as e:
             return f"[red]Error: {e}[/]"
 
+        await progress("[dim]Formatting response...[/]")
         try:
             from brain.personality.formatter import format_outbound
 

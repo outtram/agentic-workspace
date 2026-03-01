@@ -113,4 +113,13 @@ class TileGrid(Container):
         if priority and priority != "low":
             lines += f" [dim]\u00b7 {priority}[/]"
 
+        # Hierarchy badges
+        children = task.get("children", [])
+        parent = task.get("parent")
+        if children:
+            n = len(children)
+            lines += f"\n[dim]\u25bc {n} subtask{'s' if n != 1 else ''}[/]"
+        elif parent:
+            lines += f"\n[dim]\u2191 {parent}[/]"
+
         return lines

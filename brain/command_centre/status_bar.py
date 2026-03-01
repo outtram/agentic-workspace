@@ -8,6 +8,7 @@ _HINTS = (
     "[bold #FF6B35]n[/][dim] None[/]  "
     "[bold #FF6B35]t[/][dim] Today[/]  "
     "[bold #FF6B35]d[/][dim] Done[/]  "
+    "[bold #FF6B35]e[/][dim] Edit[/]  "
     "[bold #FF6B35][ ][/][dim] Page[/]  "
     "[bold #FF6B35]/[/][dim] Cmd[/]  "
     "[bold #FF6B35]:[/][dim] Filter[/]  "

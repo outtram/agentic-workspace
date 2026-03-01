@@ -22,9 +22,28 @@
 | Arrow keys | Move focus between tiles |
 | 1-9 | Jump to tile by position |
 | Space / Enter | Toggle select on focused tile |
+| a | Select all on page |
+| n | Deselect all |
 | t | Add selected (or focused) to today |
+| d | Mark done (local + iOS) |
+| e | Edit focused task (opens modal) |
 | [ / ] | Page left / right |
-| Escape | Clear selection, then double-tap to quit |
+| / | Focus command bar (slash commands) |
+| : | Focus command bar (filters — :q1, :overdue, :today, :search) |
+| ? | Show help overlay |
+| Escape | Clear selection → clear filter → close response → double-tap to quit |
+
+### Command Centre Slash Commands (inside `cc` command bar)
+
+| Command | What it does |
+|---------|-------------|
+| `/done` | Mark selected tasks done (local + iOS + git) |
+| `/today` | Add selected to today list |
+| `/remove` | Remove selected from today list |
+| `/q1` .. `/q4` | Move selected to Eisenhower quadrant |
+| `/enrich` | Improve task descriptions via Claude |
+| `/daily` | Run daily review pipeline |
+| `/help` | Show available commands |
 
 ## Slash Commands (inside Claude Code)
 
