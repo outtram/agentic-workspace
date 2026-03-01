@@ -12,13 +12,14 @@ from .task_loader import QUADRANT_COLOURS, QUADRANT_LABELS
 
 # Quick actions — number key → command string
 _QUICK_ACTIONS = [
-    ("1", "/enrich", "Enrich description"),
-    ("2", "/research", "Research / fetch URL"),
-    ("3", "/q1", "Move to Q1 (urgent+important)"),
-    ("4", "/q2", "Move to Q2 (important)"),
-    ("5", "/today", "Add to today"),
-    ("6", "/done", "Mark done"),
-    ("7", "edit", "Edit fields"),
+    ("1", "edit", "Edit task fields"),
+    ("2", "note", "Add a note to task"),
+    ("3", "/enrich", "Enrich description (AI)"),
+    ("4", "/research", "Research / fetch URL"),
+    ("5", "/q1", "Move to Q1 (urgent+important)"),
+    ("6", "/q2", "Move to Q2 (important)"),
+    ("7", "/today", "Add to today"),
+    ("8", "/done", "Mark done"),
 ]
 
 
@@ -90,7 +91,7 @@ class ActionMenuScreen(ModalScreen[str | None]):
             if agents or skills:
                 slines = "[#333333]" + "\u2501" * 44 + "[/]\n"
                 slines += "[bold]Suggested[/]\n"
-                idx = 8
+                idx = 9
                 if agents:
                     for a in agents[:2]:
                         slines += (
@@ -114,7 +115,7 @@ class ActionMenuScreen(ModalScreen[str | None]):
                 "[#333333]" + "\u2501" * 44 + "[/]",
             )
             yield Input(
-                placeholder='Or type: "summarise for Kate", "set due Friday"',
+                placeholder='Type a command, note, or question...',
                 id="action-input",
             )
             yield Static(
@@ -129,12 +130,7 @@ class ActionMenuScreen(ModalScreen[str | None]):
             pass
 
     def on_key(self, event: events.Key) -> None:
-        key = event.key
         char = event.character
-
-        if key == "escape":
-            self.dismiss(None)
-            return
 
         # Check if input is focused — let it handle its own keys
         try:
@@ -164,7 +160,7 @@ class ActionMenuScreen(ModalScreen[str | None]):
                 self.dismiss(cmd)
                 return
 
-        # Suggested agents/skills 8-9+
+        # Suggested agents/skills 9+
         suggestions = match_for_task(self._task_data)
         all_suggestions = []
         for a in suggestions["agents"][:2]:
@@ -172,7 +168,7 @@ class ActionMenuScreen(ModalScreen[str | None]):
         for s in suggestions["skills"][:2]:
             all_suggestions.append(f"/skill {s['name']}")
 
-        idx = 8
+        idx = 9
         for cmd in all_suggestions:
             if num == str(idx):
                 self.dismiss(cmd)

@@ -334,6 +334,16 @@ class CommandCentreApp(App):
     # --- Escape state machine (priority binding) ---
 
     def action_handle_escape(self):
+        # If a modal screen is on top, dismiss it
+        if len(self.screen_stack) > 1:
+            top = self.screen_stack[-1]
+            if isinstance(top, ModalScreen):
+                if isinstance(top, TaskEditScreen):
+                    top.dismiss(False)
+                else:
+                    top.dismiss(None)
+                return
+
         # If command bar is focused, blur it
         try:
             cmd_input = self.query_one("#cmd-input", Input)
@@ -806,12 +816,41 @@ class CommandCentreApp(App):
             if result == "edit":
                 self._edit_task()
                 return
+            if result == "note":
+                self._add_note_to_task(task)
+                return
             # Route the action through the command pipeline
             asyncio.get_event_loop().create_task(
                 self._run_action(result, task)
             )
 
         self.push_screen(ActionMenuScreen(task), callback=on_dismiss)
+
+    def _add_note_to_task(self, task: dict):
+        """Open a note input modal and append text to the task's description."""
+        from .note_modal import NoteModal
+
+        task_id = task.get("id", "")
+        if not task_id:
+            return
+
+        def on_note(result: str | None) -> None:
+            if not result:
+                return
+            task_file = PROJECT_ROOT / ".claude" / "work" / "tasks" / f"{task_id}.md"
+            if not task_file.exists():
+                self.notify("Task file not found", severity="error")
+                return
+            content = task_file.read_text()
+            # Append note to end of file
+            timestamp = __import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M")
+            note_block = f"\n\n## Note ({timestamp})\n\n{result}\n"
+            task_file.write_text(content.rstrip() + note_block)
+            self.all_tasks = load_tasks()
+            self._refresh_all()
+            self.notify("Note added")
+
+        self.push_screen(NoteModal(task_id), callback=on_note)
 
     async def _run_action(self, command: str, task: dict):
         """Execute an action from the action menu."""

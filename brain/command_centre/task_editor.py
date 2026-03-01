@@ -2,8 +2,7 @@
 from pathlib import Path
 
 import yaml
-from textual import events
-from textual.containers import Vertical, Horizontal
+from textual.containers import Vertical, Horizontal, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Input, Button, Static, TextArea, RadioSet, RadioButton
 
@@ -28,6 +27,7 @@ class TaskEditScreen(ModalScreen[bool]):
         background: #1a1a1a;
         border: solid #FF6B35;
         padding: 1 2;
+        overflow-y: auto;
     }
     #edit-title {
         margin-bottom: 1;
@@ -63,7 +63,7 @@ class TaskEditScreen(ModalScreen[bool]):
         self.task_id = task.get("id", "")
 
     def compose(self):
-        with Vertical(id="edit-box"):
+        with VerticalScroll(id="edit-box"):
             yield Static(
                 f"[bold #FF6B35]EDIT TASK: {self.task_id}[/]",
                 id="edit-title",
@@ -125,10 +125,6 @@ class TaskEditScreen(ModalScreen[bool]):
             self._save()
             self.dismiss(True)
         else:
-            self.dismiss(False)
-
-    def on_key(self, event: events.Key) -> None:
-        if event.key == "escape":
             self.dismiss(False)
 
     def _get_selected_name(self, radio_set_id: str, options: tuple) -> str:
