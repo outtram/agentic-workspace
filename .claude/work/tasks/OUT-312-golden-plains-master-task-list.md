@@ -2,10 +2,10 @@
 id: OUT-312
 title: Golden plains master task list
 type: task
-status: todo
+status: done
 priority: low
 created: '2026-02-28T21:16:04.850887'
-updated: '2026-02-28T21:16:04.850887'
+updated: '2026-03-01T22:23:22.739129'
 branch: task/OUT-312-golden-plains-master-task-list
 source: reminders_import
 eisenhower_quadrant: q2
@@ -30,7 +30,6 @@ Coffee
 Cold brew coffee
 Clean out van
 Poles - tarp
-
 
 ## Steps
 - [ ] Review task details
