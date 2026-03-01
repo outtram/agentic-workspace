@@ -70,6 +70,9 @@ def sync_reminders() -> dict:
             description=reminder["body"],
             list_name=reminder["list"],
         )
+        if work_item is None:
+            skipped += 1
+            continue
         quadrants[work_item.eisenhower_quadrant] += 1
         new_count += 1
 
