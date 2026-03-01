@@ -1,20 +1,18 @@
 ---
 id: OUT-282
-title: "Contact Centre - Jen, Simon, AMy"
+title: Contact Centre - Jen, Simon, AMy
 type: task
-status: todo
+status: done
 priority: low
-created: 2026-02-22
-updated: 2026-02-22
-assignee: Troy
+created: '2026-02-22T00:00:00'
+updated: '2026-03-01T22:23:12.487654'
 branch: task/OUT-282-contact-centre-jen-simon-amy
 source: reminder
-reminder_id: "x-apple-reminder://81C2E508-64F5-4873-B026-CC6BF0529E37"
-reminder_list: "Reminders"
-due_date: ""
-eisenhower_quadrant: "q4"
+eisenhower_quadrant: q4
 eisenhower_urgent: false
 eisenhower_important: false
+reminder_id: x-apple-reminder://81C2E508-64F5-4873-B026-CC6BF0529E37
+reminder_list: Reminders
 ---
 
 # Contact Centre - Jen, Simon, AMy
@@ -26,15 +24,3 @@ No description provided
 - [ ] Review task details
 - [ ] Complete task
 - [ ] Mark as done
-
-## Notes
-Context, references, considerations.
-
-## Source
-Imported from macOS Reminders
-- Original list: Reminders
-- Due date: None
-- Priority: 0 (low)
-
-## Progress Log
-- 2026-02-22: Imported from Reminders

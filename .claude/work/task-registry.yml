@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 328
-last_synced: '2026-03-01T22:23:07.241669'
+last_synced: '2026-03-01T22:23:12.472635'
 entries:
   OUT-223:
     title: Fire place fix
@@ -125,7 +125,7 @@ entries:
     title: Contact Centre - Jen, Simon, AMy
     file: OUT-282-contact-centre-jen-simon-amy.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://81C2E508-64F5-4873-B026-CC6BF0529E37
   OUT-286:
