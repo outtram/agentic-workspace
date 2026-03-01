@@ -269,8 +269,8 @@ class CommandCentreApp(App):
         char = event.character
         hk = self._hotkeys
 
-        # Prediction acceptance — intercept y/n before anything else
-        if self._predictions_pending:
+        # Prediction acceptance — only when predictions panel is showing
+        if self._predictions_pending and self._panel_mode == "predictions":
             if char == "y":
                 self._accept_predictions()
                 return
@@ -350,8 +350,8 @@ class CommandCentreApp(App):
             self._refresh_all()
             return
 
-        # Dismiss predictions
-        if self._predictions_pending:
+        # Dismiss predictions (only if still viewing the predictions panel)
+        if self._predictions_pending and self._panel_mode == "predictions":
             self._dismiss_predictions()
             return
 
