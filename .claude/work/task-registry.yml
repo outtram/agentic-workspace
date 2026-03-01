@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 326
-last_synced: '2026-03-01T13:03:57.377502'
+next_id: 327
+last_synced: '2026-03-01T21:06:46.164109'
 entries:
   OUT-223:
     title: Fire place fix
@@ -420,3 +420,10 @@ entries:
     reminder_id: x-apple-reminder://778D8472-F090-4695-9225-13729BEFF7EF
     status: done
     created: '2026-03-01T10:33:22.491766'
+  OUT-326:
+    title: Dev team measurement
+    file: OUT-326-dev-team-measurement.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://FEE2794E-6D9B-4FA2-8845-A27900795482
+    status: todo
+    created: '2026-03-01T21:06:46.163215'
