@@ -60,6 +60,15 @@ This writes to `.claude/memory/USER.md` (preferences) or `.claude/memory/LEARNED
 - **YAGNI principle:** Build simplest thing that works
 - **Evidence over claims:** Verify before declaring success
 
+## Command Centre Help Sources (MANDATORY)
+When modifying ANY Command Centre file (`brain/command_centre/`), you MUST update ALL of these before committing:
+1. **`HELP.md`** — the master help file
+2. **`brain/command_centre/app.py`** — the `_HELP_TEXT` string (? overlay)
+3. **`brain/command_centre/router.py`** — the `/help` command output
+4. **`docs/ARCHITECTURE.md`** — if adding new features
+
+A pre-commit hook will block commits that change CC files without updating help. A Claude Code hook will remind you on every edit. No exceptions.
+
 ## Daily Routine Automation
 When Troy says any of these phrases, automatically run the daily review workflow:
 - "do my daily review"

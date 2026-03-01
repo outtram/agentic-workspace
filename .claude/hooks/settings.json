@@ -24,6 +24,18 @@
             "command": "echo '{\"hookSpecificOutput\":{\"notification\":\"Memory file updated. Consider updating NAVIGATOR.md if structure changed.\"}}'"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "conditions": {
+          "filePattern": "brain/command_centre/(router|handlers/|action_menu|task_editor|note_modal)"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"notification\":\"MANDATORY: You MUST update ALL 3 help sources before committing: (1) HELP.md (2) _HELP_TEXT in app.py (3) /help output in router.py. Also update docs/ARCHITECTURE.md if adding new features.\"}}'"
+          }
+        ]
       }
     ],
 
