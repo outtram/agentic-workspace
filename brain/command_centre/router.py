@@ -93,8 +93,7 @@ class Router:
         elif cmd in ("/voice", "/v"):
             return "Use [bold]v[/] hotkey to toggle voice mode"
         elif cmd == "/daily":
-            await progress("[dim]Running daily review...[/]")
-            return await daily_review.handle_daily()
+            return await daily_review.handle_daily(progress)
         elif cmd == "/inbox":
             return await email_handler.handle_inbox(progress)
         elif cmd == "/email":
