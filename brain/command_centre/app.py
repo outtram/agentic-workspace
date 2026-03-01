@@ -128,6 +128,14 @@ class CommandCentreApp(App):
     #tile-grid {
         width: 3fr;
     }
+    #cmd-suggestions {
+        height: auto;
+        max-height: 14;
+        background: #222222;
+        border-top: solid #FF6B35;
+        padding: 0 1;
+        display: none;
+    }
     """
 
     BINDINGS = [
@@ -168,10 +176,32 @@ class CommandCentreApp(App):
     def total_pages(self) -> int:
         return max(1, (len(self.display_tasks) + 8) // 9)
 
+    # Slash commands shown in suggestions popup
+    _SLASH_COMMANDS = [
+        ("/done", "Mark selected tasks done"),
+        ("/today", "Add selected to today"),
+        ("/remove", "Remove from today"),
+        ("/q1", "Move to Q1 (urgent + important)"),
+        ("/q2", "Move to Q2 (important)"),
+        ("/q3", "Move to Q3 (delegate)"),
+        ("/q4", "Move to Q4 (eliminate)"),
+        ("/enrich", "Improve descriptions via Claude"),
+        ("/research", "Fetch URLs + summarise findings"),
+        ("/daily", "Run daily review (reminders + email + dashboard)"),
+        ("/inbox", "Check email inbox"),
+        ("/import", "Import unread emails as tasks"),
+        ("/email", "Send an email via OutBot"),
+        ("/agent", "List available agents"),
+        ("/skill", "List available skills"),
+        ("/telegram", "Send a Telegram message"),
+        ("/help", "Show available commands"),
+    ]
+
     def compose(self) -> ComposeResult:
         with Horizontal(id="main-area"):
             yield TileGrid(id="tile-grid")
             yield ContextPanel(id="context-panel")
+        yield Static(id="cmd-suggestions")
         yield CommandBarWidget(id="command-bar")
         yield StatusBarWidget(id="status-bar")
 
@@ -344,12 +374,13 @@ class CommandCentreApp(App):
                     top.dismiss(None)
                 return
 
-        # If command bar is focused, blur it
+        # If command bar is focused, blur it and hide suggestions
         try:
             cmd_input = self.query_one("#cmd-input", Input)
             if cmd_input.has_focus:
                 cmd_input.value = ""
                 cmd_input.blur()
+                self._hide_suggestions()
                 return
         except Exception:
             pass
@@ -404,6 +435,51 @@ class CommandCentreApp(App):
             cmd_input.value = initial_char
             cmd_input.focus()
             cmd_input.cursor_position = len(cmd_input.value)
+            # Show suggestions if starting with /
+            if initial_char == "/":
+                self._update_suggestions("/")
+        except Exception:
+            pass
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        """Update suggestions as user types in command bar."""
+        if event.input.id != "cmd-input":
+            return
+        text = event.value
+        if text.startswith("/"):
+            self._update_suggestions(text)
+        else:
+            self._hide_suggestions()
+
+    def _update_suggestions(self, text: str) -> None:
+        """Show filtered slash command suggestions above the command bar."""
+        try:
+            panel = self.query_one("#cmd-suggestions", Static)
+        except Exception:
+            return
+
+        query = text.lower()
+        matches = [
+            (cmd, desc) for cmd, desc in self._SLASH_COMMANDS
+            if cmd.startswith(query)
+        ]
+
+        if not matches:
+            self._hide_suggestions()
+            return
+
+        lines = []
+        for cmd, desc in matches:
+            lines.append(f"  [bold #FF6B35]{cmd}[/]  [dim]{desc}[/]")
+
+        panel.update("\n".join(lines))
+        panel.styles.display = "block"
+
+    def _hide_suggestions(self) -> None:
+        """Hide the suggestions panel."""
+        try:
+            panel = self.query_one("#cmd-suggestions", Static)
+            panel.styles.display = "none"
         except Exception:
             pass
 
@@ -415,6 +491,7 @@ class CommandCentreApp(App):
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle command bar submission."""
+        self._hide_suggestions()
         text = event.value.strip()
         event.input.value = ""
         event.input.blur()
