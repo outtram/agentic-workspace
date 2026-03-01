@@ -2,10 +2,10 @@
 id: OUT-324
 title: System improvement idea
 type: task
-status: todo
+status: done
 priority: low
 created: '2026-03-01T10:33:20.929982'
-updated: '2026-03-01T10:33:20.929982'
+updated: '2026-03-01T22:23:32.968119'
 branch: task/OUT-324-system-improvement-idea
 source: reminders_import
 eisenhower_quadrant: q2
