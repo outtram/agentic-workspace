@@ -96,6 +96,8 @@ class Router:
             return await daily_review.handle_daily(progress)
         elif cmd == "/inbox":
             return await email_handler.handle_inbox(progress)
+        elif cmd in ("/import-emails", "/import"):
+            return await email_handler.handle_import_emails(progress)
         elif cmd == "/email":
             if not args:
                 return (
@@ -131,6 +133,7 @@ class Router:
                 "  /research   Fetch URLs + summarise findings\n"
                 "  /daily      Run daily review (incl. email)\n"
                 "  /inbox      Check email inbox\n"
+                "  /import     Import unread emails as tasks\n"
                 "  /email      Send an email via OutBot\n"
                 "  /agent      List available agents\n"
                 "  /skill      List available skills\n"

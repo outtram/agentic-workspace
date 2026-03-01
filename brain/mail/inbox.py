@@ -94,6 +94,44 @@ class Inbox:
             None, self._imap_fetch, folder, limit, unread_only
         )
 
+    async def mark_read(self, msg_ids: list[str], folder: str = "INBOX") -> int:
+        """Mark emails as read by Message-ID. Returns count marked."""
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None, self._imap_mark_read, msg_ids, folder
+        )
+
+    def _imap_mark_read(self, msg_ids: list[str], folder: str) -> int:
+        """Blocking IMAP mark-as-read — called via run_in_executor."""
+        ssl_ctx = _make_ssl_context()
+        conn = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, GMAIL_IMAP_PORT, ssl_context=ssl_ctx)
+        marked = 0
+        try:
+            conn.login(self._address, self._app_password)
+            conn.select(folder, readonly=False)
+
+            for mid in msg_ids:
+                # Search by Message-ID header
+                safe_id = mid.replace('"', '\\"')
+                status, data = conn.search(
+                    None, f'HEADER Message-ID "{safe_id}"'
+                )
+                if status != "OK" or not data[0]:
+                    continue
+                for seq_num in data[0].split():
+                    conn.store(seq_num, "+FLAGS", "\\Seen")
+                    marked += 1
+
+            conn.close()
+            conn.logout()
+        except Exception:
+            try:
+                conn.logout()
+            except Exception:
+                pass
+            raise
+        return marked
+
     def _imap_fetch(self, folder: str, limit: int, unread_only: bool = True) -> list[InboundEmail]:
         """Blocking IMAP fetch with retry — called via run_in_executor.
 

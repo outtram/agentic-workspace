@@ -71,6 +71,7 @@ _HELP_TEXT = """\
   /research     Fetch URLs + summarise findings
   /daily        Run daily review (incl. email)
   /inbox        Check email inbox
+  /import       Import unread emails as tasks
   /email <msg>  Send an email via OutBot
   /agent        List available agents
   /skill        List available skills

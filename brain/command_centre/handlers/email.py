@@ -48,6 +48,100 @@ async def handle_inbox(progress=_noop) -> str:
     return "\n".join(lines)
 
 
+async def handle_import_emails(progress=_noop) -> str:
+    """Import unread emails as tasks — creates work items + syncs to iOS."""
+    import sys
+    from pathlib import Path
+
+    await progress("[dim]Loading email config...[/]")
+    try:
+        from brain.core.config import Config
+        from brain.mail.inbox import Inbox
+    except ImportError:
+        return "[red]Email modules not available[/]"
+
+    config = Config.load()
+    if not config.email_address or not config.email_app_password:
+        return (
+            "[bold red]Email not configured[/]\n"
+            "Set OUTBOT_EMAIL_ADDRESS and OUTBOT_EMAIL_APP_PASSWORD in brain/.env"
+        )
+
+    inbox = Inbox(config.email_address, config.email_app_password)
+
+    await progress("[dim]Fetching unread emails...[/]")
+    try:
+        emails = await inbox.check(limit=20, unread_only=True)
+    except Exception as e:
+        return f"[red]Inbox check failed: {e}[/]"
+
+    if not emails:
+        return "[dim]No unread emails to import[/]"
+
+    # Import reminders module
+    project_root = Path(__file__).resolve().parents[3]
+    claude_dir = project_root / ".claude"
+    if str(claude_dir) not in sys.path:
+        sys.path.insert(0, str(claude_dir))
+
+    try:
+        from reminders.core.manager import RemindersManager
+        manager = RemindersManager()
+    except Exception as e:
+        return f"[red]Reminders manager failed: {e}[/]"
+
+    imported = 0
+    skipped = 0
+    imported_ids = []
+    lines = ["[bold]Importing emails as tasks[/]\n"]
+
+    for em in emails:
+        title = em.subject or "(no subject)"
+        # Clean up common email prefixes
+        for prefix in ("Re: ", "RE: ", "Fwd: ", "FW: "):
+            if title.startswith(prefix):
+                title = title[len(prefix):]
+
+        # Build description from email body
+        body_preview = em.body[:500] if em.body else ""
+        description = f"From: {em.sender_name or em.sender}\n{body_preview}"
+
+        await progress(f"[dim]Importing: {title[:40]}...[/]")
+        try:
+            work_item = manager.create_reminder(
+                title=title,
+                description=description,
+                source="email",
+                priority="medium",
+            )
+            if work_item:
+                imported += 1
+                imported_ids.append(em.msg_id)
+                lines.append(
+                    f"  [#00D4AA]{work_item.id}[/] {title[:50]}"
+                )
+            else:
+                skipped += 1
+                imported_ids.append(em.msg_id)
+                lines.append(f"  [dim]skipped (duplicate): {title[:50]}[/]")
+        except Exception as e:
+            lines.append(f"  [red]failed: {title[:40]} — {e}[/]")
+
+    # Mark imported emails as read
+    if imported_ids:
+        await progress("[dim]Marking emails as read...[/]")
+        try:
+            marked = await inbox.mark_read(imported_ids)
+            lines.append(f"\n[dim]{marked} email(s) marked as read[/]")
+        except Exception as e:
+            lines.append(f"\n[dim]Could not mark as read: {e}[/]")
+
+    lines.append(
+        f"\n[bold]{imported} imported[/], {skipped} skipped"
+    )
+    return "\n".join(lines)
+
+
 async def handle_email_send(text: str, claude, progress=_noop) -> str:
     """Send an email — extract details via Claude then send."""
     await progress("[dim]Loading email config...[/]")

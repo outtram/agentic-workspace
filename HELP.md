@@ -55,6 +55,7 @@
 | `/research` | Fetch URLs from tasks + summarise findings via Claude |
 | `/daily` or `/dailyreview` | Run daily review (reminders + email + dashboard) |
 | `/inbox` | Check email inbox (Gmail) |
+| `/import` or `/import-emails` | Import unread emails as tasks (syncs to iOS) |
 | `/email <msg>` | Send an email via OutBot (Claude extracts details) |
 | `/agent` | List available agents (or `/agent <name>` for details) |
 | `/skill` | List available skills (or `/skill <name>` for details) |
