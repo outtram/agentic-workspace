@@ -1,4 +1,6 @@
 """Command Centre — main Textual application."""
+import asyncio
+import re
 import sys
 
 from textual.app import App, ComposeResult
@@ -17,6 +19,8 @@ from .status_bar import StatusBarWidget
 from .task_loader import load_tasks, load_today_list, save_today_list
 from .router import Router
 from .task_editor import TaskEditScreen
+from .predictions import generate_predictions
+from .handlers.voice import VoiceHandler, VOICE_AVAILABLE
 from .brain_logger import log_action
 
 
@@ -42,7 +46,13 @@ _HELP_TEXT = """\
   t             Add to today
   d             Mark done (local + iOS)
   e             Edit focused task
+  v             Toggle voice mode
   ?             This help
+
+[bold]Voice Mode (when active)[/]
+  Enter         Start / stop recording
+  v             Turn voice off
+  Escape        Cancel recording
 
 [bold]Command Bar[/]
   /             Slash commands
@@ -55,6 +65,7 @@ _HELP_TEXT = """\
   /remove       Remove from today
   /q1 .. /q4    Move to quadrant
   /enrich       Improve descriptions via Claude
+  /research     Fetch URLs + summarise findings
   /daily        Run daily review pipeline
   /help         Show available commands
 
@@ -123,11 +134,14 @@ class CommandCentreApp(App):
         self.selected_ids: set[str] = set()
         self._escape_pending = False
         self._hotkeys: dict = {}
-        self._panel_mode: str = "detail"  # "detail" | "response"
+        self._panel_mode: str = "detail"  # "detail" | "response" | "predictions"
         self._last_response: str = ""
         self._filter_fn = None
         self._filter_label: str = ""
         self.router = Router()
+        self.voice = VoiceHandler()
+        self._predictions: list[dict] = []
+        self._predictions_pending = False
 
     @property
     def display_tasks(self) -> list[dict]:
@@ -156,6 +170,13 @@ class CommandCentreApp(App):
         self._hotkeys = config["hotkeys"]
         self.all_tasks = load_tasks()
         self.today_ids = load_today_list()
+
+        # Generate predictions on launch
+        self._predictions = generate_predictions(self.all_tasks, self.today_ids)
+        if self._predictions:
+            self._predictions_pending = True
+            self._panel_mode = "predictions"
+
         self._refresh_all()
 
     def _refresh_all(self):
@@ -171,11 +192,19 @@ class CommandCentreApp(App):
             if self.focus_index < len(self.page_tasks)
             else None
         )
+
+        # Build response text depending on mode
+        response = ""
+        if self._panel_mode == "response":
+            response = self._last_response
+        elif self._panel_mode == "predictions" and self._predictions_pending:
+            response = self._render_predictions()
+
         panel.update_content(
             today_ids=self.today_ids,
             all_tasks=self.all_tasks,
             focused_task=focused if self._panel_mode == "detail" else None,
-            response=self._last_response if self._panel_mode == "response" else "",
+            response=response,
         )
 
         status = self.query_one("#status-bar", StatusBarWidget)
@@ -186,7 +215,29 @@ class CommandCentreApp(App):
             page=self.current_page + 1,
             total_pages=self.total_pages,
             filter_label=self._filter_label,
+            voice_active=self.voice.active,
+            voice_recording=self.voice.recording,
         )
+
+        # Update command bar label for voice mode
+        try:
+            cmd_label = self.query_one("#cmd-label", Static)
+            cmd_input = self.query_one("#cmd-input", Input)
+            if self.voice.active:
+                cmd_label.update("[bold #FF6B35]\u266a[/] ")
+                if self.voice.recording:
+                    cmd_input.placeholder = "Recording... press Enter to stop"
+                else:
+                    cmd_input.placeholder = (
+                        "VOICE ON  Enter=record  v=stop voice"
+                    )
+            else:
+                cmd_label.update("\u2318 ")
+                cmd_input.placeholder = (
+                    "/ commands  : filter  or type to talk to OutBot"
+                )
+        except Exception:
+            pass
 
     # --- Key handling ---
 
@@ -202,6 +253,20 @@ class CommandCentreApp(App):
         key = event.key
         char = event.character
         hk = self._hotkeys
+
+        # Prediction acceptance — intercept y/n before anything else
+        if self._predictions_pending:
+            if char == "y":
+                self._accept_predictions()
+                return
+            elif char == "n":
+                self._dismiss_predictions()
+                return
+
+        # Voice mode — Enter starts/stops recording
+        if self.voice.active and key == "enter":
+            self._voice_enter()
+            return
 
         # Navigation (always hardcoded — not configurable)
         if key == "up":
@@ -223,6 +288,8 @@ class CommandCentreApp(App):
                 self._panel_mode = "detail"
                 self._refresh_all()
         # Configurable hotkeys
+        elif char == hk.get("toggle_voice", "v"):
+            self._toggle_voice()
         elif char == hk.get("add_to_today", "t"):
             self._add_to_today()
         elif char == hk.get("mark_done", "d"):
@@ -258,6 +325,18 @@ class CommandCentreApp(App):
                 return
         except Exception:
             pass
+
+        # Cancel voice recording
+        if self.voice.recording:
+            self.voice.stop_recording()
+            self.notify("Recording cancelled")
+            self._refresh_all()
+            return
+
+        # Dismiss predictions
+        if self._predictions_pending:
+            self._dismiss_predictions()
+            return
 
         if self._filter_fn:
             self._filter_fn = None
@@ -357,6 +436,14 @@ class CommandCentreApp(App):
         if self.focus_index >= len(self.page_tasks):
             self.focus_index = max(0, len(self.page_tasks) - 1)
         self._refresh_all()
+
+        # Speak response if voice mode is active
+        if self.voice.active and VOICE_AVAILABLE and result:
+            clean = re.sub(r"\[/?[^\]]*\]", "", result)
+            if clean.strip():
+                asyncio.get_event_loop().run_in_executor(
+                    None, self._speak_text, clean.strip()
+                )
 
     # --- Filter ---
 
@@ -527,6 +614,142 @@ class CommandCentreApp(App):
                 self.notify(f"Removed {tid} from today", severity="warning")
         self._escape_pending = False
         self._refresh_all()
+
+    # --- Voice ---
+
+    def _toggle_voice(self):
+        """Toggle voice mode on/off."""
+        if not VOICE_AVAILABLE:
+            self.notify("Voice unavailable (sounddevice/whisper not installed)")
+            return
+        active = self.voice.toggle()
+        self._escape_pending = False
+        self._refresh_all()
+        self.notify(f"Voice {'ON' if active else 'OFF'}")
+
+    def _voice_enter(self):
+        """Handle Enter key in voice mode — start or stop recording."""
+        if self.voice.recording:
+            self._voice_stop()
+        else:
+            self._voice_start()
+
+    def _voice_start(self):
+        """Start recording audio."""
+        if self.voice.start_recording():
+            self._panel_mode = "response"
+            self._last_response = "[bold #FF6B35]Recording...[/]\n[dim]Press Enter to stop[/]"
+            self._refresh_all()
+        else:
+            self.notify("Failed to start recording — check microphone")
+
+    def _voice_stop(self):
+        """Stop recording, transcribe, submit, speak response."""
+        audio = self.voice.stop_recording()
+        if audio is None:
+            self._last_response = "[dim]Too short or too quiet — try again[/]"
+            self._refresh_all()
+            return
+
+        self._last_response = "[dim]Transcribing...[/]"
+        self._refresh_all()
+
+        # Run transcription and routing in background
+        asyncio.get_event_loop().create_task(self._voice_pipeline(audio))
+
+    async def _voice_pipeline(self, audio):
+        """Async pipeline: transcribe → route → speak."""
+        from brain.voice import transcribe, speak
+
+        loop = asyncio.get_event_loop()
+
+        # Transcribe in thread
+        text = await loop.run_in_executor(None, transcribe, audio)
+        if not text:
+            self._last_response = "[dim]Couldn't understand that — try again[/]"
+            self._refresh_all()
+            return
+
+        self._last_response = f"[dim]You said:[/] {text}\n[dim]Thinking...[/]"
+        self._refresh_all()
+
+        # Route through normal command pipeline
+        focused = (
+            self.page_tasks[self.focus_index]
+            if self.focus_index < len(self.page_tasks)
+            else None
+        )
+
+        try:
+            result = await self.router.route(
+                text,
+                self.selected_ids,
+                focused,
+                self.all_tasks,
+                self.today_ids,
+                progress=self._update_progress,
+            )
+        except Exception as e:
+            result = f"[red]Error: {e}[/]"
+
+        # Log
+        log_action("voice", input_text=text, task_ids=list(self.selected_ids))
+
+        # Display result
+        self._last_response = f"[dim]You said:[/] {text}\n\n{result}"
+        self._panel_mode = "response"
+        self.all_tasks = load_tasks()
+        self.today_ids = load_today_list()
+        self.selected_ids.clear()
+        if self.focus_index >= len(self.page_tasks):
+            self.focus_index = max(0, len(self.page_tasks) - 1)
+        self._refresh_all()
+
+        # Speak response in background thread
+        clean = re.sub(r"\[/?[^\]]*\]", "", result)
+        if clean.strip():
+            await loop.run_in_executor(None, speak, clean.strip())
+
+    @staticmethod
+    def _speak_text(text: str):
+        """Speak text (called from executor)."""
+        from brain.voice import speak
+
+        speak(text)
+
+    # --- Predictions ---
+
+    def _render_predictions(self) -> str:
+        """Render prediction suggestions for the context panel."""
+        lines = "[bold #FF6B35]BRAIN SUGGESTS[/]\n"
+        lines += "[#333333]" + "\u2501" * 24 + "[/]\n\n"
+        for pred in self._predictions:
+            title = pred.get("title", pred["id"])
+            if len(title) > 30:
+                title = title[:27] + "..."
+            lines += f"  [bold]{pred['id']}[/] {title}\n"
+        lines += "\n[bold]Accept? [#00D4AA]y[/] = add to today  [#FF6B35]n[/] = dismiss[/]"
+        return lines
+
+    def _accept_predictions(self):
+        """Accept predictions and add to today list."""
+        added = 0
+        for pred in self._predictions:
+            tid = pred["id"]
+            if tid not in self.today_ids:
+                self.today_ids.append(tid)
+                added += 1
+        self._predictions_pending = False
+        self._panel_mode = "detail"
+        self._refresh_all()
+        self.notify(f"Added {added} suggested tasks to today")
+
+    def _dismiss_predictions(self):
+        """Dismiss predictions without adding."""
+        self._predictions_pending = False
+        self._panel_mode = "detail"
+        self._refresh_all()
+        self.notify("Predictions dismissed")
 
     # --- Edit ---
 

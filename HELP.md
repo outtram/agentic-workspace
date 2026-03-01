@@ -27,11 +27,20 @@
 | t | Add selected (or focused) to today |
 | d | Mark done (local + iOS) |
 | e | Edit focused task (opens modal) |
+| v | Toggle voice mode |
 | [ / ] | Page left / right |
 | / | Focus command bar (slash commands) |
 | : | Focus command bar (filters — :q1, :overdue, :today, :search) |
 | ? | Show help overlay |
-| Escape | Clear selection → clear filter → close response → double-tap to quit |
+| Escape | Clear selection → clear filter → close response → cancel recording → double-tap to quit |
+
+### Voice Mode (when active)
+
+| Key | Action |
+|-----|--------|
+| Enter | Start / stop recording |
+| v | Turn voice off |
+| Escape | Cancel current recording |
 
 ### Command Centre Slash Commands (inside `cc` command bar)
 
@@ -42,8 +51,13 @@
 | `/remove` | Remove selected from today list |
 | `/q1` .. `/q4` | Move selected to Eisenhower quadrant |
 | `/enrich` | Improve task descriptions via Claude |
+| `/research` | Fetch URLs from tasks + summarise findings via Claude |
 | `/daily` | Run daily review pipeline |
 | `/help` | Show available commands |
+
+### Predictions (on launch)
+
+On launch, the brain analyses `brain-log.yml` for day-of-week patterns, frequently selected tasks, and unfinished tasks from yesterday. If suggestions are found, the context panel shows "Brain suggests" with `y` to accept (adds to today) or `n` to dismiss.
 
 ## Slash Commands (inside Claude Code)
 

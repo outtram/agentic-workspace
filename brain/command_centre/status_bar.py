@@ -9,6 +9,7 @@ _HINTS = (
     "[bold #FF6B35]t[/][dim] Today[/]  "
     "[bold #FF6B35]d[/][dim] Done[/]  "
     "[bold #FF6B35]e[/][dim] Edit[/]  "
+    "[bold #FF6B35]v[/][dim] Voice[/]  "
     "[bold #FF6B35][ ][/][dim] Page[/]  "
     "[bold #FF6B35]/[/][dim] Cmd[/]  "
     "[bold #FF6B35]:[/][dim] Filter[/]  "
@@ -36,6 +37,8 @@ class StatusBarWidget(Static):
         page: int = 1,
         total_pages: int = 1,
         filter_label: str = "",
+        voice_active: bool = False,
+        voice_recording: bool = False,
     ):
         # Line 1: shortcut hints
         line1 = _HINTS
@@ -49,6 +52,11 @@ class StatusBarWidget(Static):
             parts.append(f"[#00D4AA]{selected} selected[/]")
         if filter_label:
             parts.append(f"[#FF6B35]filter: {filter_label}[/]")
+        if voice_active:
+            if voice_recording:
+                parts.append("[bold red]voice: RECORDING[/]")
+            else:
+                parts.append("[bold #FF6B35]voice: ON[/]")
         parts.append(f"Page {page} of {total_pages}")
         line2 = " \u2502 ".join(parts)
 

@@ -4,6 +4,7 @@
 hotkeys:
   add_to_today: "t"
   mark_done: "d"
+  toggle_voice: "v"
   page_left: "["
   page_right: "]"
   select_all: "a"
@@ -25,3 +26,4 @@ display:
 
 behaviour:
   sanitise_output: true
+  show_predictions_on_launch: true

@@ -60,7 +60,7 @@ class Router:
         progress: ProgressCallback = _noop_progress,
     ) -> str:
         """Route slash commands to handler functions."""
-        from .handlers import triage, enrich, daily_review
+        from .handlers import triage, enrich, daily_review, research
 
         parts = text.split(maxsplit=1)
         cmd = parts[0].lower()
@@ -80,6 +80,14 @@ class Router:
             self._ensure_brain()
             await progress("[dim]Enriching descriptions...[/]")
             return await enrich.handle_enrich(task_ids, all_tasks, self.claude)
+        elif cmd == "/research":
+            await progress("[dim]Loading Claude...[/]")
+            self._ensure_brain()
+            return await research.handle_research(
+                task_ids, all_tasks, self.claude, progress
+            )
+        elif cmd in ("/voice", "/v"):
+            return "Use [bold]v[/] hotkey to toggle voice mode"
         elif cmd == "/daily":
             await progress("[dim]Running daily review...[/]")
             return await daily_review.handle_daily()
@@ -91,6 +99,7 @@ class Router:
                 "  /remove     Remove from today\n"
                 "  /q1 .. /q4  Move to quadrant\n"
                 "  /enrich     Improve descriptions via Claude\n"
+                "  /research   Fetch URLs + summarise findings\n"
                 "  /daily      Run daily review pipeline\n"
                 "  /help       This help\n\n"
                 "[bold]Filters[/]\n"
@@ -100,7 +109,7 @@ class Router:
                 "  :search term      Text search\n\n"
                 "[bold]Hotkeys[/]\n"
                 "  t Add to today  d Mark done  e Edit task\n"
-                "  a Select all  n Deselect  ? Help overlay\n\n"
+                "  v Voice mode  a Select all  n Deselect  ? Help\n\n"
                 "[dim]Or just type to talk to OutBot[/]"
             )
         else:
