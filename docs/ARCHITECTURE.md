@@ -26,8 +26,9 @@ The Command Centre is a keyboard-driven terminal TUI (built with Textual) that u
 - Task editing modal (title, quadrant, priority, due date, description)
 - Action menu with quick actions + agent/skill suggestions
 - Telegram bridge — live connection status, incoming message notifications
-- Email inbox/outbox via Gmail
-- Slash commands: /done, /today, /enrich, /research, /daily, /inbox, /email, /agent, /skill, /telegram
+- Email inbox/outbox via Gmail, import unread emails as tasks (syncs to iOS)
+- Add timestamped notes to tasks via action menu
+- Slash commands: /done, /today, /enrich, /research, /daily, /inbox, /import, /email, /agent, /skill, /telegram
 
 ### 2. Claude Code Agents (the task management system)
 

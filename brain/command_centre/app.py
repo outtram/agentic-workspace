@@ -48,7 +48,7 @@ _HELP_TEXT = """\
   t             Add to today
   d             Mark done (local + iOS)
   e             Edit focused task
-  x             Actions menu (quick actions + free text)
+  x             Actions menu (edit, note, enrich, move...)
   v             Toggle voice mode
   ?             This help
 

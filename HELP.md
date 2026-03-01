@@ -27,13 +27,13 @@
 | t | Add selected (or focused) to today |
 | d | Mark done (local + iOS) |
 | e | Edit focused task (opens modal) |
-| x | Actions menu — quick actions, agent/skill suggestions, free text |
+| x | Actions menu — edit, add note, enrich, research, move, agent/skill suggestions |
 | v | Toggle voice mode |
 | [ / ] | Page left / right |
 | / | Focus command bar (slash commands) |
 | : | Focus command bar (filters — :q1, :overdue, :today, :search) |
 | ? | Show help overlay |
-| Escape | Clear selection → clear filter → close response → cancel recording → double-tap to quit |
+| Escape | Close modal → clear selection → clear filter → close response → cancel recording → double-tap to quit |
 
 ### Voice Mode (when active)
 
