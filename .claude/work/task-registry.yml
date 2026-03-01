@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 328
-last_synced: '2026-03-01T22:23:38.312101'
+last_synced: '2026-03-01T22:23:43.447026'
 entries:
   OUT-223:
     title: Fire place fix
@@ -13,7 +13,7 @@ entries:
     title: Tech Roadmap
     file: OUT-226-tech-roadmap.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-12'
     reminder_id: x-apple-reminder://10004C8C-5257-4330-AD18-B5D15CD76D83
   OUT-228:
