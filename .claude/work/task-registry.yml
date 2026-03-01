@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 328
-last_synced: '2026-03-01T22:23:12.472635'
+last_synced: '2026-03-01T22:23:17.638486'
 entries:
   OUT-223:
     title: Fire place fix
@@ -20,7 +20,7 @@ entries:
     title: AusSuper marketing team one pager - current Deloitte work + future opportunities
     file: OUT-228-aussuper-marketing-team-one-pager-current-deloitte.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-12'
     reminder_id: x-apple-reminder://7AEDC110-1D5C-413F-99E1-76D56D6DE35C
   OUT-234:
