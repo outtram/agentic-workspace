@@ -85,10 +85,23 @@ class Router:
             return await daily_review.handle_daily()
         elif cmd == "/help":
             return (
-                "[bold]Commands:[/] /done /today /remove "
-                "/q1 /q2 /q3 /q4 /enrich /daily /help\n"
-                "[bold]Filters:[/] :q1 :overdue :today :search term\n"
-                "[bold]Natural language:[/] Just type to talk to OutBot"
+                "[bold]Slash Commands[/]\n"
+                "  /done       Mark selected tasks done\n"
+                "  /today      Add selected to today\n"
+                "  /remove     Remove from today\n"
+                "  /q1 .. /q4  Move to quadrant\n"
+                "  /enrich     Improve descriptions via Claude\n"
+                "  /daily      Run daily review pipeline\n"
+                "  /help       This help\n\n"
+                "[bold]Filters[/]\n"
+                "  :q1 :q2 :q3 :q4   Filter by quadrant\n"
+                "  :overdue          Overdue tasks\n"
+                "  :today            Today list\n"
+                "  :search term      Text search\n\n"
+                "[bold]Hotkeys[/]\n"
+                "  t Add to today  d Mark done  e Edit task\n"
+                "  a Select all  n Deselect  ? Help overlay\n\n"
+                "[dim]Or just type to talk to OutBot[/]"
             )
         else:
             return f"Unknown command: {cmd}. Type /help for available commands."
