@@ -92,7 +92,7 @@ class Router:
             )
         elif cmd in ("/voice", "/v"):
             return "Use [bold]v[/] hotkey to toggle voice mode"
-        elif cmd == "/daily":
+        elif cmd in ("/daily", "/dailyreview", "/daily-review"):
             return await daily_review.handle_daily(progress)
         elif cmd == "/inbox":
             return await email_handler.handle_inbox(progress)
@@ -129,7 +129,7 @@ class Router:
                 "  /q1 .. /q4  Move to quadrant\n"
                 "  /enrich     Improve descriptions via Claude\n"
                 "  /research   Fetch URLs + summarise findings\n"
-                "  /daily      Run daily review pipeline\n"
+                "  /daily      Run daily review (incl. email)\n"
                 "  /inbox      Check email inbox\n"
                 "  /email      Send an email via OutBot\n"
                 "  /agent      List available agents\n"

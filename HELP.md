@@ -53,7 +53,7 @@
 | `/q1` .. `/q4` | Move selected to Eisenhower quadrant |
 | `/enrich` | Improve task descriptions via Claude |
 | `/research` | Fetch URLs from tasks + summarise findings via Claude |
-| `/daily` | Run daily review pipeline |
+| `/daily` or `/dailyreview` | Run daily review (reminders + email + dashboard) |
 | `/inbox` | Check email inbox (Gmail) |
 | `/email <msg>` | Send an email via OutBot (Claude extracts details) |
 | `/agent` | List available agents (or `/agent <name>` for details) |

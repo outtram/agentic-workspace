@@ -69,7 +69,7 @@ _HELP_TEXT = """\
   /q1 .. /q4    Move to quadrant
   /enrich       Improve descriptions via Claude
   /research     Fetch URLs + summarise findings
-  /daily        Run daily review pipeline
+  /daily        Run daily review (incl. email)
   /inbox        Check email inbox
   /email <msg>  Send an email via OutBot
   /agent        List available agents

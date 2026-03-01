@@ -30,7 +30,6 @@ async def handle_daily(progress=_noop) -> str:
             )
     except Exception as e:
         lines.append(f"[red]Reminders sync failed: {e}[/]")
-        sync = {"new": 0, "skipped": 0}
 
     # Stage 2: Count quadrants
     await progress("[dim]Counting tasks by quadrant...[/]")
@@ -82,7 +81,32 @@ async def handle_daily(progress=_noop) -> str:
     except Exception as e:
         lines.append(f"[red]Overdue check failed: {e}[/]")
 
-    # Stage 4: Generate dashboard
+    # Stage 4: Check email inbox
+    await progress("[dim]Checking email inbox...[/]")
+    try:
+        from brain.core.config import Config
+        from brain.mail.inbox import Inbox
+
+        config = Config.load()
+        if config.email_address and config.email_app_password:
+            inbox = Inbox(config.email_address, config.email_app_password)
+            emails = await inbox.check(limit=5, unread_only=True)
+            if emails:
+                lines.append(
+                    f"\n[bold]Email[/] ({len(emails)} unread)"
+                )
+                for e in emails[:5]:
+                    name = e.sender_name or e.sender
+                    subj = e.subject[:40] if e.subject else "(no subject)"
+                    lines.append(f"  [#FF6B35]{name}[/] — {subj}")
+            else:
+                lines.append("\n[dim]Email: no unread messages[/]")
+        else:
+            lines.append("\n[dim]Email: not configured[/]")
+    except Exception as e:
+        lines.append(f"\n[dim]Email check failed: {e}[/]")
+
+    # Stage 5: Generate dashboard
     await progress("[dim]Generating dashboard...[/]")
     try:
         from brain.workflows.daily_review import generate_dashboard
