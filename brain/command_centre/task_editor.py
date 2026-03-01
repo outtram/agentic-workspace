@@ -59,7 +59,7 @@ class TaskEditScreen(ModalScreen[bool]):
 
     def __init__(self, task: dict):
         super().__init__()
-        self.task = task
+        self._task_data = task
         self.task_id = task.get("id", "")
 
     def compose(self):
@@ -71,12 +71,12 @@ class TaskEditScreen(ModalScreen[bool]):
 
             yield Static("[dim]Title[/]", classes="field-label")
             yield Input(
-                value=self.task.get("title", ""),
+                value=self._task_data.get("title", ""),
                 id="edit-input-title",
             )
 
             yield Static("[dim]Quadrant[/]", classes="field-label")
-            current_q = self.task.get("eisenhower_quadrant", "q4")
+            current_q = self._task_data.get("eisenhower_quadrant", "q4")
             with RadioSet(id="edit-quadrant"):
                 for q in _QUADRANTS:
                     yield RadioButton(
@@ -86,7 +86,7 @@ class TaskEditScreen(ModalScreen[bool]):
                     )
 
             yield Static("[dim]Priority[/]", classes="field-label")
-            current_p = self.task.get("priority", "low")
+            current_p = self._task_data.get("priority", "low")
             with RadioSet(id="edit-priority"):
                 for p in _PRIORITIES:
                     yield RadioButton(
@@ -96,7 +96,7 @@ class TaskEditScreen(ModalScreen[bool]):
                     )
 
             yield Static("[dim]Due date (YYYY-MM-DD)[/]", classes="field-label")
-            due = self.task.get("due_date", "")
+            due = self._task_data.get("due_date", "")
             if hasattr(due, "isoformat"):
                 due = due.isoformat()
             yield Input(
@@ -106,13 +106,13 @@ class TaskEditScreen(ModalScreen[bool]):
 
             yield Static("[dim]Parent[/]", classes="field-label")
             yield Input(
-                value=self.task.get("parent", "") or "",
+                value=self._task_data.get("parent", "") or "",
                 id="edit-input-parent",
             )
 
             yield Static("[dim]Description[/]", classes="field-label")
             yield TextArea(
-                self.task.get("_description", ""),
+                self._task_data.get("_description", ""),
                 id="edit-description",
             )
 
