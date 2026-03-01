@@ -12,10 +12,20 @@ class TileGrid(Container):
 
     DEFAULT_CSS = """
     TileGrid {
+        padding: 0;
+    }
+    #breadcrumb {
+        height: 1;
+        padding: 0 2;
+        background: #111111;
+        display: none;
+    }
+    #tile-area {
         layout: grid;
         grid-size: 3 3;
         grid-gutter: 1;
         padding: 1;
+        height: 1fr;
     }
     .tile {
         border: solid #333333;
@@ -39,8 +49,12 @@ class TileGrid(Container):
     """
 
     def compose(self):
-        for i in range(9):
-            yield Static(id=f"tile-{i}", classes="tile empty")
+        from textual.containers import Container
+
+        yield Static(id="breadcrumb")
+        with Container(id="tile-area"):
+            for i in range(9):
+                yield Static(id=f"tile-{i}", classes="tile empty")
 
     def update_tiles(
         self,
@@ -48,8 +62,23 @@ class TileGrid(Container):
         focus_index: int,
         selected_ids: set[str],
         today_ids: list[str],
+        breadcrumb: str = "",
     ):
         """Re-render all 9 tiles with current state."""
+        # Show breadcrumb if we've drilled into a parent
+        try:
+            bc = self.query_one("#breadcrumb", Static)
+            if breadcrumb:
+                bc.update(
+                    f"[dim]\u2190 Esc[/]  [bold #FF6B35]{breadcrumb}[/]"
+                )
+                bc.styles.display = "block"
+            else:
+                bc.update("")
+                bc.styles.display = "none"
+        except Exception:
+            pass
+
         colours = load_config()["display"]
 
         for i in range(9):

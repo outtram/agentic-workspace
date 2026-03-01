@@ -1,13 +1,28 @@
-"""Command Centre — main Textual application."""
+"""Command Centre — main Textual application.
+
+Navigation model (v2):
+  Grid View  → Enter on parent  → Grid shows children (nav stack)
+  Grid View  → Enter on leaf    → Task Focus View
+  Focus View → Escape           → back to Grid
+  Grid View  → Escape           → pop nav stack → clear filter → clear select → quit
+
+Key changes from v1:
+  - Enter = drill down (into children or focus view).  Space = toggle select.
+  - / opens the Command Palette (navigable modal with agents/skills/commands).
+  - : still opens the command bar for filters.
+  - AI progress shows a step-by-step log with elapsed time.
+"""
+
 import asyncio
 import re
 import sys
+import time
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.screen import ModalScreen
-from textual.widgets import Input, Static
+from textual.widgets import Input, Static, TextArea
 from textual import events
 
 from . import PROJECT_ROOT
@@ -20,7 +35,8 @@ from .task_loader import load_tasks, load_today_list, save_today_list
 from .router import Router
 from .task_editor import TaskEditScreen
 from .predictions import generate_predictions
-from .action_menu import ActionMenuScreen
+from .command_palette import CommandPalette
+from .task_focus import TaskFocusView
 from .handlers.voice import VoiceHandler, VOICE_AVAILABLE
 from .telegram_bridge import TelegramBridge
 from .brain_logger import log_action
@@ -35,51 +51,41 @@ _HELP_TEXT = """\
 [#333333]\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501[/]
 
 [bold]Navigation[/]
-  Arrow keys    Move focus between tiles
+  Arrow keys    Move focus (tiles or fields)
+  Enter         Drill into children / open task / edit field
+  Space         Toggle select
+  Escape        Back one level / clear / quit
   1-9           Jump to tile by position
   \\[  \\]         Page left / right
 
 [bold]Selection[/]
-  Space / Enter Toggle select
+  Space         Toggle select
   a             Select all on page
   n             Deselect all
 
 [bold]Actions[/]
+  /             Command palette (commands, agents, skills)
   t             Add to today
   d             Mark done (local + iOS)
-  e             Edit focused task
-  x             Actions menu (edit, note, enrich, move...)
+  e             Edit task (modal)
   v             Toggle voice mode
+  :             Filter (:q1, :overdue, :search)
   ?             This help
 
-[bold]Voice Mode (when active)[/]
+[bold]Task Focus View[/]  (when zoomed into a task)
+  \u2191 \u2193           Navigate between fields
+  Enter         Edit field / cycle choice
+  Escape        Stop editing \u2192 back to grid
+  /             Command palette for this task
+  t  d          Today / Done
+
+[bold]Voice Mode[/]  (when active)
   Enter         Start / stop recording
   v             Turn voice off
   Escape        Cancel recording
 
-[bold]Command Bar[/]
-  /             Slash commands
-  :             Filter (:q1, :overdue, :search)
-  Type          Natural language to OutBot
-
-[bold]Slash Commands[/]
-  /done         Mark selected tasks done
-  /today        Add selected to today
-  /remove       Remove from today
-  /q1 .. /q4    Move to quadrant
-  /enrich       Improve descriptions via Claude
-  /research     Fetch URLs + summarise findings
-  /daily        Run daily review (incl. email)
-  /inbox        Check email inbox
-  /import       Import unread emails as tasks
-  /email <msg>  Send an email via OutBot
-  /agent        List available agents
-  /skill        List available skills
-  /telegram     Send a Telegram message
-  /help         Show available commands
-
 [bold]Quit[/]
-  Escape        Clear selection \u2192 double-tap to quit
+  Escape        Back through levels \u2192 double-tap to quit
 
 [dim]Press any key to close[/]"""
 
@@ -92,7 +98,7 @@ class HelpOverlay(ModalScreen):
         align: center middle;
     }
     #help-box {
-        width: 52;
+        width: 56;
         height: auto;
         max-height: 80%;
         background: #1a1a1a;
@@ -116,7 +122,7 @@ class HelpOverlay(ModalScreen):
 class CommandCentreApp(App):
     """Unified terminal TUI — keyboard-driven task command centre."""
 
-    AUTO_FOCUS = None  # Don't auto-focus the Input — grid keys must work first
+    AUTO_FOCUS = None
 
     CSS = """
     Screen {
@@ -151,21 +157,65 @@ class CommandCentreApp(App):
         self.selected_ids: set[str] = set()
         self._escape_pending = False
         self._hotkeys: dict = {}
+
+        # View mode: "grid" (tile grid) or "focus" (single-task detail)
+        self._view_mode: str = "grid"
+
+        # Navigation stack — list of parent task IDs we've drilled into
+        self._nav_stack: list[str] = []
+
+        # Panel mode
         self._panel_mode: str = "detail"  # "detail" | "response" | "predictions"
         self._last_response: str = ""
+
+        # Filtering
         self._filter_fn = None
         self._filter_label: str = ""
+
+        # AI progress tracking
+        self._progress_log: list[tuple[float, str]] = []
+        self._progress_start: float | None = None
+        self._progress_timer = None
+
+        # Subsystems
         self.router = Router()
         self.voice = VoiceHandler()
         self.telegram = TelegramBridge()
         self._predictions: list[dict] = []
         self._predictions_pending = False
 
+    # --- Properties ---
+
     @property
     def display_tasks(self) -> list[dict]:
+        """Return tasks filtered by nav stack and any active filter."""
+        tasks = self.all_tasks
+
+        # If we've drilled into a parent, show only its children
+        if self._nav_stack:
+            parent_id = self._nav_stack[-1]
+            # Find children: tasks whose parent matches, or whose ID is in
+            # the parent task's children list
+            parent_task = None
+            for t in self.all_tasks:
+                if t.get("id") == parent_id:
+                    parent_task = t
+                    break
+
+            child_ids = set()
+            if parent_task:
+                child_ids = set(parent_task.get("children", []))
+
+            tasks = [
+                t
+                for t in self.all_tasks
+                if t.get("parent") == parent_id or t.get("id") in child_ids
+            ]
+
         if self._filter_fn:
-            return [t for t in self.all_tasks if self._filter_fn(t)]
-        return self.all_tasks
+            tasks = [t for t in tasks if self._filter_fn(t)]
+
+        return tasks
 
     @property
     def page_tasks(self) -> list[dict]:
@@ -176,30 +226,25 @@ class CommandCentreApp(App):
     def total_pages(self) -> int:
         return max(1, (len(self.display_tasks) + 8) // 9)
 
-    # Slash commands shown in suggestions popup
-    _SLASH_COMMANDS = [
-        ("/done", "Mark selected tasks done"),
-        ("/today", "Add selected to today"),
-        ("/remove", "Remove from today"),
-        ("/q1", "Move to Q1 (urgent + important)"),
-        ("/q2", "Move to Q2 (important)"),
-        ("/q3", "Move to Q3 (delegate)"),
-        ("/q4", "Move to Q4 (eliminate)"),
-        ("/enrich", "Improve descriptions via Claude"),
-        ("/research", "Fetch URLs + summarise findings"),
-        ("/daily", "Run daily review (reminders + email + dashboard)"),
-        ("/inbox", "Check email inbox"),
-        ("/import", "Import unread emails as tasks"),
-        ("/email", "Send an email via OutBot"),
-        ("/agent", "List available agents"),
-        ("/skill", "List available skills"),
-        ("/telegram", "Send a Telegram message"),
-        ("/help", "Show available commands"),
-    ]
+    @property
+    def _focused_task(self) -> dict | None:
+        """Get the currently focused task (grid or focus view)."""
+        if self._view_mode == "focus":
+            try:
+                fv = self.query_one("#task-focus", TaskFocusView)
+                return fv.task
+            except Exception:
+                return None
+        if self.focus_index < len(self.page_tasks):
+            return self.page_tasks[self.focus_index]
+        return None
+
+    # --- Compose ---
 
     def compose(self) -> ComposeResult:
         with Horizontal(id="main-area"):
             yield TileGrid(id="tile-grid")
+            yield TaskFocusView(id="task-focus")
             yield ContextPanel(id="context-panel")
         yield Static(id="cmd-suggestions")
         yield CommandBarWidget(id="command-bar")
@@ -222,24 +267,38 @@ class CommandCentreApp(App):
         # Start Telegram bridge in background
         asyncio.ensure_future(self._init_telegram())
 
+    # --- Refresh ---
+
     def _refresh_all(self):
         """Update all widgets with current state."""
-        grid = self.query_one("#tile-grid", TileGrid)
-        grid.update_tiles(
-            self.page_tasks, self.focus_index, self.selected_ids, self.today_ids
-        )
+        # Toggle visibility based on view mode
+        try:
+            grid = self.query_one("#tile-grid", TileGrid)
+            focus_view = self.query_one("#task-focus", TaskFocusView)
 
+            if self._view_mode == "grid":
+                grid.styles.display = "block"
+                focus_view.styles.display = "none"
+                grid.update_tiles(
+                    self.page_tasks,
+                    self.focus_index,
+                    self.selected_ids,
+                    self.today_ids,
+                    breadcrumb=self._build_breadcrumb(),
+                )
+            else:
+                grid.styles.display = "none"
+                focus_view.styles.display = "block"
+        except Exception:
+            pass
+
+        # Context panel
         panel = self.query_one("#context-panel", ContextPanel)
-        focused = (
-            self.page_tasks[self.focus_index]
-            if self.focus_index < len(self.page_tasks)
-            else None
-        )
+        focused = self._focused_task
 
-        # Build response text depending on mode
         response = ""
         if self._panel_mode == "response":
-            response = self._last_response
+            response = self._build_progress_display()
         elif self._panel_mode == "predictions" and self._predictions_pending:
             response = self._render_predictions()
 
@@ -250,6 +309,7 @@ class CommandCentreApp(App):
             response=response,
         )
 
+        # Status bar
         status = self.query_one("#status-bar", StatusBarWidget)
         overdue = sum(1 for t in self.all_tasks if t.get("_overdue"))
         status.update_counts(
@@ -263,9 +323,15 @@ class CommandCentreApp(App):
             voice_recording=self.voice.recording,
             overdue=overdue,
             telegram_status=self.telegram.status_label,
+            view_mode=self._view_mode,
+            nav_depth=len(self._nav_stack),
         )
 
-        # Update command bar label for voice mode
+        # Command bar label
+        self._update_command_bar_label()
+
+    def _update_command_bar_label(self):
+        """Update command bar hint text based on mode."""
         try:
             cmd_label = self.query_one("#cmd-label", Static)
             cmd_input = self.query_one("#cmd-input", Input)
@@ -274,9 +340,12 @@ class CommandCentreApp(App):
                 if self.voice.recording:
                     cmd_input.placeholder = "Recording... press Enter to stop"
                 else:
-                    cmd_input.placeholder = (
-                        "VOICE ON  Enter=record  v=stop voice"
-                    )
+                    cmd_input.placeholder = "VOICE ON  Enter=record  v=stop voice"
+            elif self._view_mode == "focus":
+                cmd_label.update("[bold #FF6B35]\u25c9[/] ")
+                cmd_input.placeholder = (
+                    "/ commands  : filter  or type to talk to OutBot"
+                )
             else:
                 cmd_label.update("\u2318 ")
                 cmd_input.placeholder = (
@@ -285,15 +354,38 @@ class CommandCentreApp(App):
         except Exception:
             pass
 
+    def _build_breadcrumb(self) -> str:
+        """Build a breadcrumb string for navigation depth."""
+        if not self._nav_stack:
+            return ""
+        parts = []
+        task_map = {t["id"]: t for t in self.all_tasks if "id" in t}
+        for tid in self._nav_stack:
+            t = task_map.get(tid)
+            if t:
+                name = t.get("title", tid)
+                if len(name) > 20:
+                    name = name[:17] + "..."
+                parts.append(f"{tid}: {name}")
+            else:
+                parts.append(tid)
+        return " \u203a ".join(parts)
+
     # --- Key handling ---
 
     def on_key(self, event: events.Key):
-        # KEY DESIGN: Arrow keys, space, enter, and number keys are hardcoded
-        # because they're structural navigation — not user-configurable.
-        # The command-centre.yml hotkeys section controls action keys only
-        # (t, d, e, x, v, a, n, ?, [, ], /, :).
+        # If the focus-edit-input or focus-edit-area is active, let them handle keys
+        if self._view_mode == "focus":
+            try:
+                fv = self.query_one("#task-focus", TaskFocusView)
+                if fv.is_editing:
+                    # Let the editor widgets handle their own keys
+                    # Only intercept Escape (handled by priority binding)
+                    return
+            except Exception:
+                pass
 
-        # If command bar input is focused, don't handle grid keys
+        # If command bar input is focused, don't handle grid/focus keys
         try:
             cmd_input = self.query_one("#cmd-input", Input)
             if cmd_input.has_focus:
@@ -305,7 +397,7 @@ class CommandCentreApp(App):
         char = event.character
         hk = self._hotkeys
 
-        # Prediction acceptance — only when predictions panel is showing
+        # Prediction acceptance
         if self._predictions_pending and self._panel_mode == "predictions":
             if char == "y":
                 self._accept_predictions()
@@ -319,7 +411,17 @@ class CommandCentreApp(App):
             self._voice_enter()
             return
 
-        # Navigation (always hardcoded — not configurable)
+        # --- Focus view keys ---
+        if self._view_mode == "focus":
+            self._handle_focus_key(key, char, hk)
+            return
+
+        # --- Grid view keys ---
+        self._handle_grid_key(key, char, hk)
+
+    def _handle_grid_key(self, key: str, char: str | None, hk: dict):
+        """Handle keys in grid mode."""
+        # Navigation
         if key == "up":
             self._focus_up()
         elif key == "down":
@@ -328,7 +430,9 @@ class CommandCentreApp(App):
             self._focus_left()
         elif key == "right":
             self._focus_right()
-        elif key in ("space", "enter"):
+        elif key == "enter":
+            self._drill_down()
+        elif key == "space":
             self._toggle_select()
         # Number jump
         elif char and char.isdigit() and char != "0":
@@ -348,7 +452,7 @@ class CommandCentreApp(App):
         elif char == hk.get("edit_task", "e"):
             self._edit_task()
         elif char == hk.get("action_menu", "x"):
-            self._open_action_menu()
+            self._open_command_palette()
         elif char == hk.get("select_all", "a"):
             self._select_all()
         elif char == hk.get("deselect_all", "n"):
@@ -359,14 +463,55 @@ class CommandCentreApp(App):
             self._page_left()
         elif char == hk.get("page_right", "]"):
             self._page_right()
-        # / or : → focus command bar (only these two keys, not arbitrary chars)
-        elif char in (hk.get("command_bar", "/"), hk.get("filter_mode", ":")):
-            self._focus_command_bar(char)
+        elif char == hk.get("command_bar", "/"):
+            self._open_command_palette()
+        elif char == hk.get("filter_mode", ":"):
+            self._focus_command_bar(":")
 
-    # --- Escape state machine (priority binding) ---
+    def _handle_focus_key(self, key: str, char: str | None, hk: dict):
+        """Handle keys in focus view."""
+        try:
+            fv = self.query_one("#task-focus", TaskFocusView)
+        except Exception:
+            return
+
+        if key == "up":
+            fv.move_cursor(-1)
+        elif key == "down":
+            fv.move_cursor(1)
+        elif key == "enter":
+            fv.start_edit()
+        elif key == "space":
+            # Toggle select on the focused task
+            task = fv.task
+            if task:
+                tid = task.get("id", "")
+                if tid:
+                    if tid in self.selected_ids:
+                        self.selected_ids.discard(tid)
+                    else:
+                        self.selected_ids.add(tid)
+                        log_action("selected", task_ids=[tid])
+                    self._refresh_all()
+        elif char == hk.get("add_to_today", "t"):
+            self._add_to_today()
+        elif char == hk.get("mark_done", "d"):
+            self._mark_done()
+        elif char == hk.get("command_bar", "/"):
+            self._open_command_palette()
+        elif char == hk.get("action_menu", "x"):
+            self._open_command_palette()
+        elif char == hk.get("help", "?"):
+            self.push_screen(HelpOverlay())
+        elif char == hk.get("filter_mode", ":"):
+            self._focus_command_bar(":")
+        elif char == hk.get("toggle_voice", "v"):
+            self._toggle_voice()
+
+    # --- Escape state machine ---
 
     def action_handle_escape(self):
-        # If a modal screen is on top, dismiss it
+        # 1. Dismiss modals
         if len(self.screen_stack) > 1:
             top = self.screen_stack[-1]
             if isinstance(top, ModalScreen):
@@ -376,7 +521,28 @@ class CommandCentreApp(App):
                     top.dismiss(None)
                 return
 
-        # If command bar is focused, blur it and hide suggestions
+        # 2. Focus view: cancel edit or exit focus
+        if self._view_mode == "focus":
+            try:
+                fv = self.query_one("#task-focus", TaskFocusView)
+                if fv.is_editing:
+                    # Textarea needs special handling — save on Escape
+                    try:
+                        area = fv.query_one("#focus-edit-area", TextArea)
+                        if area.styles.display != "none":
+                            fv.handle_textarea_escape()
+                            return
+                    except Exception:
+                        pass
+                    fv.cancel_edit()
+                    return
+            except Exception:
+                pass
+            # Not editing — exit focus view
+            self._exit_focus()
+            return
+
+        # 3. Command bar focused — blur + clear
         try:
             cmd_input = self.query_one("#cmd-input", Input)
             if cmd_input.has_focus:
@@ -387,18 +553,35 @@ class CommandCentreApp(App):
         except Exception:
             pass
 
-        # Cancel voice recording
+        # 4. Voice recording
         if self.voice.recording:
             self.voice.stop_recording()
             self.notify("Recording cancelled")
             self._refresh_all()
             return
 
-        # Dismiss predictions (only if still viewing the predictions panel)
+        # 5. Predictions panel
         if self._predictions_pending and self._panel_mode == "predictions":
             self._dismiss_predictions()
             return
 
+        # 6. Nav stack — go back up one level
+        if self._nav_stack:
+            self._nav_stack.pop()
+            self.current_page = 0
+            self.focus_index = 0
+            self._escape_pending = False
+            self._panel_mode = "detail"
+            self._refresh_all()
+            parent_name = ""
+            if self._nav_stack:
+                parent_name = self._nav_stack[-1]
+            self.notify(
+                f"Back to {parent_name}" if parent_name else "Back to all tasks"
+            )
+            return
+
+        # 7. Filter → Selection → Response → Quit cascade
         if self._filter_fn:
             self._filter_fn = None
             self._filter_label = ""
@@ -415,11 +598,12 @@ class CommandCentreApp(App):
         elif self._panel_mode == "response":
             self._panel_mode = "detail"
             self._last_response = ""
+            self._progress_log.clear()
+            self._progress_start = None
             self._escape_pending = False
             self._refresh_all()
         elif self._escape_pending:
             save_today_list(self.today_ids)
-            # Stop Telegram bridge before exiting
             if self.telegram.available:
                 asyncio.ensure_future(self.telegram.stop())
             self.exit()
@@ -431,71 +615,209 @@ class CommandCentreApp(App):
     def _reset_escape(self):
         self._escape_pending = False
 
-    # --- Command bar ---
+    # --- Drill-down (Enter in grid) ---
+
+    def _drill_down(self):
+        """Enter on a tile: drill into children or open focus view."""
+        if self.focus_index >= len(self.page_tasks):
+            return
+        task = self.page_tasks[self.focus_index]
+        if not task.get("id"):
+            return
+
+        children = task.get("children", [])
+
+        if children:
+            # Has children — drill into them (push nav stack)
+            self._nav_stack.append(task["id"])
+            self.current_page = 0
+            self.focus_index = 0
+            self._escape_pending = False
+            self._panel_mode = "detail"
+            self._refresh_all()
+            self.notify(f"Showing subtasks of {task['id']}")
+        else:
+            # Leaf task — open focus view
+            self._enter_focus(task)
+
+    def _enter_focus(self, task: dict):
+        """Switch to focus view for a specific task."""
+        self._view_mode = "focus"
+        self._escape_pending = False
+        self._panel_mode = "detail"
+
+        try:
+            fv = self.query_one("#task-focus", TaskFocusView)
+            fv.show_task(task)
+        except Exception:
+            pass
+
+        log_action("focus_entered", task_ids=[task.get("id", "")])
+        self._refresh_all()
+
+    def _exit_focus(self):
+        """Switch back to grid view from focus view."""
+        self._view_mode = "grid"
+        self._escape_pending = False
+
+        # Reload tasks in case focus view made edits
+        self.all_tasks = load_tasks()
+        self.today_ids = load_today_list()
+
+        if self.focus_index >= len(self.page_tasks):
+            self.focus_index = max(0, len(self.page_tasks) - 1)
+
+        try:
+            fv = self.query_one("#task-focus", TaskFocusView)
+            fv.clear()
+        except Exception:
+            pass
+
+        self._refresh_all()
+        self.notify("Back to grid")
+
+    # --- Command palette ---
+
+    def _open_command_palette(self):
+        """Open the command palette (replaces / suggestions and x action menu)."""
+        task = self._focused_task
+
+        def on_dismiss(result: str | None) -> None:
+            if result is None:
+                return
+            if result == "edit":
+                self._edit_task()
+                return
+            if result == "note":
+                if task:
+                    self._add_note_to_task(task)
+                return
+            # Route through the command pipeline
+            asyncio.ensure_future(self._run_palette_action(result, task))
+
+        self.push_screen(CommandPalette(task=task), callback=on_dismiss)
+
+    async def _run_palette_action(self, command: str, task: dict | None):
+        """Execute a command from the palette."""
+        tid = task.get("id", "") if task else ""
+
+        # Ensure task is targeted
+        if tid and tid not in self.selected_ids:
+            self.selected_ids.add(tid)
+
+        # Start progress tracking
+        self._start_progress(f"Running: {command}")
+
+        try:
+            result = await self.router.route(
+                command,
+                self.selected_ids,
+                task,
+                self.all_tasks,
+                self.today_ids,
+                progress=self._update_progress,
+            )
+        except Exception as e:
+            result = f"[red]Error: {e}[/]"
+
+        # Finish progress tracking
+        self._finish_progress(result)
+
+        log_action("command", input_text=command, task_ids=[tid] if tid else [])
+
+        # Reload state
+        self.all_tasks = load_tasks()
+        self.today_ids = load_today_list()
+        self.selected_ids.clear()
+        if self.focus_index >= len(self.page_tasks):
+            self.focus_index = max(0, len(self.page_tasks) - 1)
+
+        # If in focus mode, refresh the focus view with updated task
+        if self._view_mode == "focus" and tid:
+            for t in self.all_tasks:
+                if t.get("id") == tid:
+                    try:
+                        fv = self.query_one("#task-focus", TaskFocusView)
+                        fv.show_task(t)
+                    except Exception:
+                        pass
+                    break
+
+        self._refresh_all()
+
+        # Speak if voice active
+        if self.voice.active and VOICE_AVAILABLE and result:
+            clean = re.sub(r"\[/?[^\]]*\]", "", result)
+            if clean.strip():
+                asyncio.get_running_loop().run_in_executor(
+                    None, self._speak_text, clean.strip()
+                )
+
+    # --- Command bar (for : filter and OutBot) ---
 
     def _focus_command_bar(self, initial_char: str = ""):
-        """Focus the command bar Input and optionally pre-fill a character."""
+        """Focus the command bar for filter mode or OutBot chat."""
         try:
             cmd_input = self.query_one("#cmd-input", Input)
             cmd_input.value = initial_char
             cmd_input.focus()
             cmd_input.cursor_position = len(cmd_input.value)
-            # Show suggestions if starting with /
-            if initial_char == "/":
-                self._update_suggestions("/")
         except Exception:
             pass
 
     def on_input_changed(self, event: Input.Changed) -> None:
-        """Update suggestions as user types in command bar."""
-        if event.input.id != "cmd-input":
-            return
-        text = event.value
-        if text.startswith("/"):
-            self._update_suggestions(text)
-        else:
-            self._hide_suggestions()
+        """Handle input changes — suggestions for command bar."""
+        if event.input.id == "cmd-input":
+            text = event.value
+            if text.startswith("/"):
+                self._update_suggestions(text)
+            else:
+                self._hide_suggestions()
 
     def _update_suggestions(self, text: str) -> None:
-        """Show filtered slash command suggestions above the command bar."""
+        """Show filtered slash command suggestions (lightweight fallback)."""
         try:
             panel = self.query_one("#cmd-suggestions", Static)
         except Exception:
             return
 
+        from .command_palette import _COMMANDS
+
         query = text.lower()
-        matches = [
-            (cmd, desc) for cmd, desc in self._SLASH_COMMANDS
-            if cmd.startswith(query)
-        ]
+        matches = [(cmd, desc) for cmd, desc in _COMMANDS if cmd.startswith(query)]
 
         if not matches:
             self._hide_suggestions()
             return
 
         lines = []
-        for cmd, desc in matches:
+        for cmd, desc in matches[:8]:
             lines.append(f"  [bold #FF6B35]{cmd}[/]  [dim]{desc}[/]")
 
         panel.update("\n".join(lines))
         panel.styles.display = "block"
 
     def _hide_suggestions(self) -> None:
-        """Hide the suggestions panel."""
         try:
-            panel = self.query_one("#cmd-suggestions", Static)
-            panel.styles.display = "none"
+            self.query_one("#cmd-suggestions", Static).styles.display = "none"
         except Exception:
             pass
 
-    async def _update_progress(self, msg: str) -> None:
-        """Progress callback — updates context panel with stage messages."""
-        self._panel_mode = "response"
-        self._last_response = msg
-        self._refresh_all()
-
     async def on_input_submitted(self, event: Input.Submitted) -> None:
-        """Handle command bar submission."""
+        """Handle Input submissions from command bar or focus editor."""
+        # Focus view inline editor
+        if event.input.id == "focus-edit-input":
+            try:
+                fv = self.query_one("#task-focus", TaskFocusView)
+                fv.handle_input_submitted(event.value)
+            except Exception:
+                pass
+            return
+
+        # Command bar
+        if event.input.id != "cmd-input":
+            return
+
         self._hide_suggestions()
         text = event.value.strip()
         event.input.value = ""
@@ -509,17 +831,10 @@ class CommandCentreApp(App):
             self._handle_filter(text[1:].strip())
             return
 
-        # Show thinking state
-        self._panel_mode = "response"
-        self._last_response = "[dim]Thinking...[/]"
-        self._refresh_all()
+        # Slash commands or natural language
+        self._start_progress(f"Running: {text}")
 
-        # Route command
-        focused = (
-            self.page_tasks[self.focus_index]
-            if self.focus_index < len(self.page_tasks)
-            else None
-        )
+        focused = self._focused_task
 
         try:
             result = await self.router.route(
@@ -533,13 +848,11 @@ class CommandCentreApp(App):
         except Exception as e:
             result = f"[red]Error: {e}[/]"
 
-        # Log
+        self._finish_progress(result)
+
         action = "command" if text.startswith("/") else "outbot"
         log_action(action, input_text=text, task_ids=list(self.selected_ids))
 
-        # Update state
-        self._last_response = result
-        self._panel_mode = "response"
         self.all_tasks = load_tasks()
         self.today_ids = load_today_list()
         self.selected_ids.clear()
@@ -547,7 +860,6 @@ class CommandCentreApp(App):
             self.focus_index = max(0, len(self.page_tasks) - 1)
         self._refresh_all()
 
-        # Speak response if voice mode is active
         if self.voice.active and VOICE_AVAILABLE and result:
             clean = re.sub(r"\[/?[^\]]*\]", "", result)
             if clean.strip():
@@ -555,10 +867,94 @@ class CommandCentreApp(App):
                     None, self._speak_text, clean.strip()
                 )
 
+    # --- AI Progress Tracking ---
+
+    def _start_progress(self, label: str):
+        """Begin tracking an AI operation with progress log."""
+        self._progress_log.clear()
+        self._progress_start = time.time()
+        self._progress_log.append((time.time(), label))
+        self._panel_mode = "response"
+        self._last_response = ""
+        self._refresh_all()
+
+        # Start a timer to update elapsed time every second
+        self._cancel_progress_timer()
+        self._progress_timer = self.set_interval(1.0, self._tick_progress)
+
+    def _cancel_progress_timer(self):
+        """Stop the progress update timer."""
+        if self._progress_timer is not None:
+            self._progress_timer.stop()
+            self._progress_timer = None
+
+    def _tick_progress(self):
+        """Called every second to update the elapsed time display."""
+        if self._progress_start is not None:
+            self._refresh_all()
+
+    async def _update_progress(self, msg: str) -> None:
+        """Progress callback — accumulates messages in the progress log."""
+        clean_msg = re.sub(r"\[/?[^\]]*\]", "", msg).strip()
+        if clean_msg:
+            self._progress_log.append((time.time(), clean_msg))
+        self._panel_mode = "response"
+        self._refresh_all()
+
+    def _finish_progress(self, result: str):
+        """End progress tracking and show final result."""
+        self._cancel_progress_timer()
+        elapsed = 0.0
+        if self._progress_start:
+            elapsed = time.time() - self._progress_start
+        self._progress_start = None
+
+        # Build final display: log + result
+        if elapsed > 0:
+            self._progress_log.append(
+                (time.time(), f"Completed in {elapsed:.1f}s")
+            )
+
+        self._last_response = result
+        self._panel_mode = "response"
+        self._refresh_all()
+
+    def _build_progress_display(self) -> str:
+        """Build the progress panel content with log and elapsed time."""
+        lines: list[str] = []
+
+        # Show progress log entries
+        if self._progress_log:
+            lines.append("[bold #FF6B35]PROGRESS[/]")
+            lines.append("[#333333]" + "\u2501" * 24 + "[/]")
+
+            for ts, msg in self._progress_log:
+                # Show relative time from start
+                if self._progress_start:
+                    rel = ts - self._progress_start
+                    lines.append(f"[dim]{rel:5.1f}s[/]  {msg}")
+                else:
+                    lines.append(f"  {msg}")
+
+            # Show elapsed time if still running
+            if self._progress_start is not None:
+                elapsed = time.time() - self._progress_start
+                lines.append("")
+                lines.append(f"[bold #FF6B35]\u23f1 {elapsed:.0f}s elapsed[/]")
+
+            lines.append("")
+
+        # Show final response if available
+        if self._last_response:
+            lines.append("[bold #FF6B35]RESULT[/]")
+            lines.append("[#333333]" + "\u2501" * 24 + "[/]")
+            lines.append(self._last_response)
+
+        return "\n".join(lines) if lines else "[dim]Thinking...[/]"
+
     # --- Filter ---
 
     def _handle_filter(self, query: str):
-        """Apply a filter to the task grid."""
         query = query.lower().strip()
 
         if query in ("all", "clear", ""):
@@ -591,7 +987,7 @@ class CommandCentreApp(App):
         self.focus_index = 0
         self._refresh_all()
 
-    # --- Navigation ---
+    # --- Grid navigation ---
 
     def _focus_left(self):
         col = self.focus_index % 3
@@ -642,7 +1038,6 @@ class CommandCentreApp(App):
         self._refresh_all()
 
     def _select_all(self):
-        """Select all tasks on current page."""
         for task in self.page_tasks:
             tid = task.get("id", "")
             if tid:
@@ -652,7 +1047,6 @@ class CommandCentreApp(App):
         self.notify(f"Selected {len(self.page_tasks)} tasks")
 
     def _deselect_all(self):
-        """Deselect all tasks."""
         self.selected_ids.clear()
         self._escape_pending = False
         self._refresh_all()
@@ -661,13 +1055,15 @@ class CommandCentreApp(App):
     # --- Mark done ---
 
     def _mark_done(self):
-        """Mark focused/selected tasks as done via RemindersManager."""
         ids_to_complete = list(self.selected_ids) if self.selected_ids else []
-        if not ids_to_complete and self.focus_index < len(self.page_tasks):
-            task = self.page_tasks[self.focus_index]
-            tid = task.get("id", "")
-            if tid:
-                ids_to_complete = [tid]
+
+        # In focus mode, target the focused task
+        if not ids_to_complete:
+            task = self._focused_task
+            if task:
+                tid = task.get("id", "")
+                if tid:
+                    ids_to_complete = [tid]
 
         if not ids_to_complete:
             return
@@ -691,6 +1087,10 @@ class CommandCentreApp(App):
         ]
         self.selected_ids.clear()
 
+        # If in focus view and task was completed, exit focus
+        if self._view_mode == "focus":
+            self._exit_focus()
+
         if self.focus_index >= len(self.page_tasks):
             self.focus_index = max(0, len(self.page_tasks) - 1)
 
@@ -711,24 +1111,24 @@ class CommandCentreApp(App):
             self.selected_ids.clear()
             if added:
                 self.notify(f"Added {added} to today", severity="information")
-        elif self.focus_index < len(self.page_tasks):
-            task = self.page_tasks[self.focus_index]
-            tid = task.get("id", "")
-            if tid and tid not in self.today_ids:
-                self.today_ids.append(tid)
-                log_action("added_to_today", task_ids=[tid])
-                self.notify(f"Added {tid} to today", severity="information")
-            elif tid and tid in self.today_ids:
-                self.today_ids.remove(tid)
-                log_action("removed_from_today", task_ids=[tid])
-                self.notify(f"Removed {tid} from today", severity="warning")
+        else:
+            task = self._focused_task
+            if task:
+                tid = task.get("id", "")
+                if tid and tid not in self.today_ids:
+                    self.today_ids.append(tid)
+                    log_action("added_to_today", task_ids=[tid])
+                    self.notify(f"Added {tid} to today", severity="information")
+                elif tid and tid in self.today_ids:
+                    self.today_ids.remove(tid)
+                    log_action("removed_from_today", task_ids=[tid])
+                    self.notify(f"Removed {tid} from today", severity="warning")
         self._escape_pending = False
         self._refresh_all()
 
     # --- Voice ---
 
     def _toggle_voice(self):
-        """Toggle voice mode on/off."""
         if not VOICE_AVAILABLE:
             self.notify("Voice unavailable (sounddevice/whisper not installed)")
             return
@@ -738,23 +1138,22 @@ class CommandCentreApp(App):
         self.notify(f"Voice {'ON' if active else 'OFF'}")
 
     def _voice_enter(self):
-        """Handle Enter key in voice mode — start or stop recording."""
         if self.voice.recording:
             self._voice_stop()
         else:
             self._voice_start()
 
     def _voice_start(self):
-        """Start recording audio."""
         if self.voice.start_recording():
             self._panel_mode = "response"
-            self._last_response = "[bold #FF6B35]Recording...[/]\n[dim]Press Enter to stop[/]"
+            self._last_response = (
+                "[bold #FF6B35]Recording...[/]\n[dim]Press Enter to stop[/]"
+            )
             self._refresh_all()
         else:
             self.notify("Failed to start recording — check microphone")
 
     def _voice_stop(self):
-        """Stop recording, transcribe, submit, speak response."""
         audio = self.voice.stop_recording()
         if audio is None:
             self._last_response = "[dim]Too short or too quiet — try again[/]"
@@ -763,32 +1162,21 @@ class CommandCentreApp(App):
 
         self._last_response = "[dim]Transcribing...[/]"
         self._refresh_all()
-
-        # Run transcription and routing in background
         asyncio.ensure_future(self._voice_pipeline(audio))
 
     async def _voice_pipeline(self, audio):
-        """Async pipeline: transcribe → route → speak."""
         from brain.voice import transcribe, speak
 
         loop = asyncio.get_running_loop()
-
-        # Transcribe in thread
         text = await loop.run_in_executor(None, transcribe, audio)
         if not text:
             self._last_response = "[dim]Couldn't understand that — try again[/]"
             self._refresh_all()
             return
 
-        self._last_response = f"[dim]You said:[/] {text}\n[dim]Thinking...[/]"
-        self._refresh_all()
+        self._start_progress(f"Voice: {text}")
 
-        # Route through normal command pipeline
-        focused = (
-            self.page_tasks[self.focus_index]
-            if self.focus_index < len(self.page_tasks)
-            else None
-        )
+        focused = self._focused_task
 
         try:
             result = await self.router.route(
@@ -802,12 +1190,10 @@ class CommandCentreApp(App):
         except Exception as e:
             result = f"[red]Error: {e}[/]"
 
-        # Log
+        self._finish_progress(f"[dim]You said:[/] {text}\n\n{result}")
+
         log_action("voice", input_text=text, task_ids=list(self.selected_ids))
 
-        # Display result
-        self._last_response = f"[dim]You said:[/] {text}\n\n{result}"
-        self._panel_mode = "response"
         self.all_tasks = load_tasks()
         self.today_ids = load_today_list()
         self.selected_ids.clear()
@@ -815,14 +1201,12 @@ class CommandCentreApp(App):
             self.focus_index = max(0, len(self.page_tasks) - 1)
         self._refresh_all()
 
-        # Speak response in background thread
         clean = re.sub(r"\[/?[^\]]*\]", "", result)
         if clean.strip():
             await loop.run_in_executor(None, speak, clean.strip())
 
     @staticmethod
     def _speak_text(text: str):
-        """Speak text (called from executor)."""
         from brain.voice import speak
 
         speak(text)
@@ -830,7 +1214,6 @@ class CommandCentreApp(App):
     # --- Predictions ---
 
     def _render_predictions(self) -> str:
-        """Render prediction suggestions for the context panel."""
         lines = "[bold #FF6B35]BRAIN SUGGESTS[/]\n"
         lines += "[#333333]" + "\u2501" * 24 + "[/]\n\n"
         for pred in self._predictions:
@@ -842,7 +1225,6 @@ class CommandCentreApp(App):
         return lines
 
     def _accept_predictions(self):
-        """Accept predictions and add to today list."""
         added = 0
         for pred in self._predictions:
             tid = pred["id"]
@@ -855,20 +1237,16 @@ class CommandCentreApp(App):
         self.notify(f"Added {added} suggested tasks to today")
 
     def _dismiss_predictions(self):
-        """Dismiss predictions without adding."""
         self._predictions_pending = False
         self._panel_mode = "detail"
         self._refresh_all()
         self.notify("Predictions dismissed")
 
-    # --- Edit ---
+    # --- Edit (legacy modal — kept for backward compat) ---
 
     def _edit_task(self):
-        """Open edit modal for the focused task."""
-        if self.focus_index >= len(self.page_tasks):
-            return
-        task = self.page_tasks[self.focus_index]
-        if not task.get("id"):
+        task = self._focused_task
+        if not task or not task.get("id"):
             return
 
         def on_dismiss(result: bool | None) -> None:
@@ -877,37 +1255,25 @@ class CommandCentreApp(App):
                 self.today_ids = load_today_list()
                 if self.focus_index >= len(self.page_tasks):
                     self.focus_index = max(0, len(self.page_tasks) - 1)
+                # Update focus view if active
+                if self._view_mode == "focus":
+                    tid = task.get("id", "")
+                    for t in self.all_tasks:
+                        if t.get("id") == tid:
+                            try:
+                                fv = self.query_one("#task-focus", TaskFocusView)
+                                fv.show_task(t)
+                            except Exception:
+                                pass
+                            break
                 self._refresh_all()
                 self.notify("Task updated")
 
         self.push_screen(TaskEditScreen(task), callback=on_dismiss)
 
-    # --- Action menu ---
-
-    def _open_action_menu(self):
-        """Open action menu for the focused task."""
-        if self.focus_index >= len(self.page_tasks):
-            return
-        task = self.page_tasks[self.focus_index]
-        if not task.get("id"):
-            return
-
-        def on_dismiss(result: str | None) -> None:
-            if result is None:
-                return
-            if result == "edit":
-                self._edit_task()
-                return
-            if result == "note":
-                self._add_note_to_task(task)
-                return
-            # Route the action through the command pipeline
-            asyncio.ensure_future(self._run_action(result, task))
-
-        self.push_screen(ActionMenuScreen(task), callback=on_dismiss)
+    # --- Note ---
 
     def _add_note_to_task(self, task: dict):
-        """Open a note input modal and append text to the task's description."""
         from .note_modal import NoteModal
 
         task_id = task.get("id", "")
@@ -918,12 +1284,12 @@ class CommandCentreApp(App):
             if not result:
                 return
             from .task_loader import find_task_file
+
             task_file = find_task_file(task_id)
             if not task_file:
                 self.notify("Task file not found", severity="error")
                 return
             content = task_file.read_text()
-            # Append note to end of file
             timestamp = __import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M")
             note_block = f"\n\n## Note ({timestamp})\n\n{result}\n"
             task_file.write_text(content.rstrip() + note_block)
@@ -932,53 +1298,6 @@ class CommandCentreApp(App):
             self.notify("Note added")
 
         self.push_screen(NoteModal(task_id), callback=on_note)
-
-    async def _run_action(self, command: str, task: dict):
-        """Execute an action from the action menu."""
-        tid = task.get("id", "")
-
-        # Ensure the task is selected so commands target it
-        if tid and tid not in self.selected_ids:
-            self.selected_ids.add(tid)
-
-        # Show thinking state
-        self._panel_mode = "response"
-        self._last_response = "[dim]Thinking...[/]"
-        self._refresh_all()
-
-        try:
-            result = await self.router.route(
-                command,
-                self.selected_ids,
-                task,
-                self.all_tasks,
-                self.today_ids,
-                progress=self._update_progress,
-            )
-        except Exception as e:
-            result = f"[red]Error: {e}[/]"
-
-        # Log
-        action = "action_menu"
-        log_action(action, input_text=command, task_ids=[tid])
-
-        # Update state
-        self._last_response = result
-        self._panel_mode = "response"
-        self.all_tasks = load_tasks()
-        self.today_ids = load_today_list()
-        self.selected_ids.clear()
-        if self.focus_index >= len(self.page_tasks):
-            self.focus_index = max(0, len(self.page_tasks) - 1)
-        self._refresh_all()
-
-        # Speak if voice active
-        if self.voice.active and VOICE_AVAILABLE and result:
-            clean = re.sub(r"\[/?[^\]]*\]", "", result)
-            if clean.strip():
-                asyncio.get_running_loop().run_in_executor(
-                    None, self._speak_text, clean.strip()
-                )
 
     # --- Pagination ---
 
@@ -996,10 +1315,9 @@ class CommandCentreApp(App):
             self._escape_pending = False
             self._refresh_all()
 
-    # --- Telegram bridge ---
+    # --- Telegram ---
 
     async def _init_telegram(self):
-        """Start Telegram bridge in background."""
         try:
             started = await self.telegram.start(
                 on_message=self._on_telegram_message
@@ -1011,19 +1329,13 @@ class CommandCentreApp(App):
             pass
 
     async def _on_telegram_message(self, msg):
-        """Handle incoming Telegram message — show notification + route."""
         name = msg.sender_name or "Unknown"
         preview = msg.content[:60] if msg.content else ""
         self.notify(f"TG {name}: {preview}")
 
-        # Route through OutBot pipeline and reply via Telegram
         try:
             result = await self.router.route(
-                msg.content,
-                set(),
-                None,
-                self.all_tasks,
-                self.today_ids,
+                msg.content, set(), None, self.all_tasks, self.today_ids
             )
             if result and self.telegram.available:
                 clean = re.sub(r"\[/?[^\]]*\]", "", result)

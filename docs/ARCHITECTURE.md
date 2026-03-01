@@ -19,15 +19,20 @@ The Command Centre is a keyboard-driven terminal TUI (built with Textual) that u
 
 **Key features:**
 - 3x3 tile grid showing tasks with Eisenhower quadrant colours
+- **Hierarchical drill-down**: Enter on parent → shows children; Enter on leaf → Task Focus View
+- **Task Focus View**: single-task control centre with field-by-field editing (Up/Down, Enter to edit, Escape to back out)
+- **Command Palette**: / key opens navigable modal with commands, agents, and skills (arrow keys + filter)
+- **AI Progress Log**: step-by-step progress with elapsed timer (not just "Thinking...")
+- **Navigation stack**: Escape goes back through levels (focus → children → parent → all tasks)
+- Space = select, Enter = drill down (separated from v1 where both toggled select)
 - Multi-select tasks + batch operations (done, move quadrant, enrich)
-- Context panel with task detail, actions menu, and OutBot responses
+- Context panel with task detail, progress log, and OutBot responses
 - Voice mode — record audio, transcribe, route through OutBot
 - Brain predictions on launch (day-of-week patterns, incomplete yesterday)
 - Task editing modal (title, quadrant, priority, due date, description)
-- Action menu with quick actions + agent/skill suggestions
 - Telegram bridge — live connection status, incoming message notifications
 - Email inbox/outbox via Gmail, import unread emails as tasks (syncs to iOS)
-- Add timestamped notes to tasks via action menu
+- Add timestamped notes to tasks via command palette
 - Slash commands: /done, /today, /enrich, /research, /daily, /inbox, /import, /email, /agent, /skill, /telegram
 
 ### 2. Claude Code Agents (the task management system)
@@ -222,7 +227,9 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Status Bar** | `status_bar.py` | Hints + counts (tasks, today, overdue, telegram, voice) |
 | **Router** | `router.py` | Routes input to slash handlers or OutBot natural language |
 | **Task Editor** | `task_editor.py` | Modal for editing task fields (title, quadrant, due, etc.) |
-| **Action Menu** | `action_menu.py` | Quick actions + agent/skill suggestions per task |
+| **Action Menu** | `action_menu.py` | Quick actions (legacy, kept for compat) |
+| **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key) |
+| **Task Focus** | `task_focus.py` | Single-task control centre with field-by-field editing |
 | **Telegram Bridge** | `telegram_bridge.py` | Background Telegram connection + message forwarding |
 | **Predictions** | `predictions.py` | Brain-log analysis for launch-time suggestions |
 | **Skill Matcher** | `skill_matcher.py` | Keyword matching for agent/skill suggestions |

@@ -17,23 +17,46 @@
 
 ## Command Centre Keybindings (inside `cc`)
 
+### Grid View (main)
+
 | Key | Action |
 |-----|--------|
 | Arrow keys | Move focus between tiles |
+| Enter | **Drill down** — parent task → show children; leaf task → open Focus View |
+| Space | Toggle select on focused tile |
 | 1-9 | Jump to tile by position |
-| Space / Enter | Toggle select on focused tile |
 | a | Select all on page |
 | n | Deselect all |
+| / | **Command Palette** — navigate commands, agents, skills with arrow keys |
 | t | Add selected (or focused) to today |
 | d | Mark done (local + iOS) |
-| e | Edit focused task (opens modal) |
-| x | Actions menu — edit, add note, enrich, research, move, agent/skill suggestions |
+| e | Edit focused task (modal) |
 | v | Toggle voice mode |
 | [ / ] | Page left / right |
-| / | Focus command bar (slash commands) |
-| : | Focus command bar (filters — :q1, :overdue, :today, :search) |
+| : | Filter mode (:q1, :overdue, :today, :search) |
 | ? | Show help overlay |
-| Escape | Close modal → clear selection → clear filter → close response → cancel recording → double-tap to quit |
+| Escape | Back one level → clear filter → clear selection → double-tap to quit |
+
+### Task Focus View (when zoomed into a task)
+
+| Key | Action |
+|-----|--------|
+| ↑ / ↓ | Navigate between fields |
+| Enter | Edit field (text input) or cycle choice (quadrant/priority/status) |
+| Escape | Stop editing → back to field list → back to grid |
+| / | Command Palette for this task (agents, skills, commands) |
+| t | Add to today |
+| d | Mark done |
+| Space | Toggle select |
+
+### Command Palette (/ key)
+
+| Key | Action |
+|-----|--------|
+| ↑ / ↓ | Navigate between items |
+| Enter | Select item |
+| Type | Filter items |
+| Escape | Close palette |
 
 ### Voice Mode (when active)
 

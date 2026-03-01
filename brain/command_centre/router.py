@@ -124,6 +124,11 @@ class Router:
             return "[red]Telegram bridge not running[/]"
         elif cmd == "/help":
             return (
+                "[bold]Navigation[/]\n"
+                "  Enter       Drill into children / open Focus View\n"
+                "  Space       Toggle select\n"
+                "  Escape      Back one level / clear / quit\n"
+                "  /           Command Palette (agents, skills, commands)\n\n"
                 "[bold]Slash Commands[/]\n"
                 "  /done       Mark selected tasks done\n"
                 "  /today      Add selected to today\n"
@@ -144,9 +149,11 @@ class Router:
                 "  :overdue          Overdue tasks\n"
                 "  :today            Today list\n"
                 "  :search term      Text search\n\n"
-                "[bold]Hotkeys[/]\n"
-                "  t Add to today  d Mark done  e Edit task\n"
-                "  x Actions menu  v Voice mode  ? Help\n\n"
+                "[bold]Focus View[/]\n"
+                "  \u2191 \u2193          Navigate fields\n"
+                "  Enter       Edit field / cycle choice\n"
+                "  Escape      Back to grid\n"
+                "  /           Commands for this task\n\n"
                 "[dim]Or just type to talk to OutBot[/]"
             )
         else:
