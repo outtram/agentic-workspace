@@ -228,7 +228,7 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Router** | `router.py` | Routes input to slash handlers or OutBot natural language |
 | **Task Editor** | `task_editor.py` | Modal for editing task fields (title, quadrant, due, etc.) |
 | **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key) |
-| **Task Focus** | `task_focus.py` | Single-task control centre with field-by-field editing |
+| **Task Focus** | `task_focus.py` | Single-task view with field editing + research/notes viewer |
 | **Telegram Bridge** | `telegram_bridge.py` | Background Telegram connection + message forwarding |
 | **Predictions** | `predictions.py` | Brain-log analysis for launch-time suggestions |
 | **Skill Matcher** | `skill_matcher.py` | Keyword matching for agent/skill suggestions |

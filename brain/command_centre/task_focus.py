@@ -440,24 +440,33 @@ class TaskFocusView(Widget):
                 if line.startswith("## Note"):
                     entries.append(line.replace("## ", ""))
                 elif line.startswith("## Research"):
-                    # Show first 3 lines of research content
+                    # Show first 3 non-blank content lines as preview
                     entries.append("Research findings:")
                     j = i + 1
-                    # Skip blank lines after heading
-                    while j < len(lines) and not lines[j].strip():
-                        j += 1
                     shown = 0
                     while j < len(lines) and shown < 3:
-                        if lines[j].startswith("##"):
+                        if self._is_section_boundary(lines[j]) and not lines[j].startswith("## Research"):
                             break
-                        if lines[j].strip():
-                            entries.append(f"  {lines[j].strip()[:60]}")
+                        text = lines[j].strip()
+                        # Skip blank lines and markdown separators
+                        if text and text != "---":
+                            entries.append(f"  {text[:60]}")
                             shown += 1
                         j += 1
                 i += 1
             return entries
         except Exception:
             return []
+
+    # Known task file section headings (research content may have its own ## headings)
+    _SECTION_HEADINGS = {"Description", "Steps", "Notes", "Research", "Note"}
+
+    def _is_section_boundary(self, line: str) -> bool:
+        """Check if a line is a known task-file section heading."""
+        if not line.startswith("## "):
+            return False
+        heading = line[3:].split()[0] if line[3:].strip() else ""
+        return heading in self._SECTION_HEADINGS
 
     def _get_full_research(self) -> str:
         """Get full research + notes content from the task file."""
@@ -479,7 +488,10 @@ class TaskFocusView(Widget):
                 if line.startswith("## Research") or line.startswith("## Note"):
                     section_lines = [line]
                     i += 1
-                    while i < len(lines) and not lines[i].startswith("## "):
+                    # Capture everything until the next known section boundary
+                    while i < len(lines):
+                        if self._is_section_boundary(lines[i]) and lines[i] != line:
+                            break
                         section_lines.append(lines[i])
                         i += 1
                     sections.append("\n".join(section_lines).strip())
