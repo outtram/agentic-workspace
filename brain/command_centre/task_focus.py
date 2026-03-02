@@ -134,13 +134,13 @@ class TaskFocusView(Widget):
     def move_cursor(self, direction: int) -> None:
         """Move field cursor up (-1) or down (+1).
 
-        Cursor can go one past the last field to highlight the notes section.
+        Extra positions past the fields: PRD, then Notes/Research.
         """
         if self._editing:
             return
         new = self._field_cursor + direction
-        # len(_FIELDS) = notes/research section (one past last field)
-        if 0 <= new <= len(_FIELDS):
+        # len(_FIELDS) = PRD, len(_FIELDS)+1 = notes/research
+        if 0 <= new <= len(_FIELDS) + 1:
             self._field_cursor = new
             self._refresh_display()
 
@@ -149,8 +149,13 @@ class TaskFocusView(Widget):
         if not self._task_data or self._editing:
             return
 
+        # PRD section — open or create PRD
+        if self._field_cursor == len(_FIELDS):
+            self.open_or_create_prd()
+            return
+
         # Notes/research section — open full content read-only
-        if self._field_cursor >= len(_FIELDS):
+        if self._field_cursor == len(_FIELDS) + 1:
             self._editing = True
             self._edit_field = "_notes_research"
             self._show_textarea("_notes_research")
@@ -314,8 +319,22 @@ class TaskFocusView(Widget):
                 else:
                     lines.append(f"    {' ' * 12} [dim](no description)[/]")
 
-        # Notes section (read-only, cursor position = len(_FIELDS))
-        notes_focused = self._field_cursor == len(_FIELDS) and not self._editing
+        # PRD section (cursor position = len(_FIELDS))
+        prd_pos = len(_FIELDS)
+        prd_focused = self._field_cursor == prd_pos and not self._editing
+        prd_id = task.get("prd", "")
+        lines.append("")
+        prd_arrow = "[bold #FF6B35]\u25b8 [/]" if prd_focused else "  "
+        if prd_id:
+            prd_hint = " [dim](p to edit)[/]" if prd_focused else ""
+            lines.append(f"{prd_arrow}[bold blue]PRD[/]  {prd_id}{prd_hint}")
+        else:
+            prd_hint = " [dim](p to create)[/]" if prd_focused else ""
+            lines.append(f"{prd_arrow}[dim]No PRD[/]{prd_hint}")
+
+        # Notes section (cursor position = len(_FIELDS) + 1)
+        notes_pos = prd_pos + 1
+        notes_focused = self._field_cursor == notes_pos and not self._editing
         lines.append("")
         lines.append("[#333333]" + "\u2501" * 48 + "[/]")
         notes = self._get_notes()
@@ -616,6 +635,12 @@ class TaskFocusView(Widget):
         if prd_path.exists():
             return prd_id
 
+        # Pull existing research + notes from the task file
+        existing_context = self._get_full_research()
+        notes_section = "Additional context, links, research."
+        if existing_context and existing_context != "(no notes or research)":
+            notes_section = existing_context
+
         now = datetime.now().strftime("%Y-%m-%d")
         content = f"""---
 id: {prd_id}
@@ -652,7 +677,7 @@ Any design decisions, mockups, or technical approaches.
 - Parent task: {task_id}
 
 ## Notes
-Additional context, links, research.
+{notes_section}
 
 ## Progress Log
 - {now}: Created PRD from task {task_id}

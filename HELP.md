@@ -46,7 +46,7 @@
 | Escape | Stop editing → back to field list → back to grid |
 | / | Command Palette for this task (agents, skills, commands) |
 | n | Add a timestamped note |
-| p | Open/create PRD (editable, Esc saves) |
+| p | Open/create PRD (editable, Esc saves, includes research) |
 | t | Add to today |
 | d | Mark done |
 | Space | Toggle select |
