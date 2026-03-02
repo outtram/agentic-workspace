@@ -45,6 +45,7 @@
 | Enter | Edit field (text input) or cycle choice (quadrant/priority/status) |
 | Escape | Stop editing → back to field list → back to grid |
 | / | Command Palette for this task (agents, skills, commands) |
+| n | Add a timestamped note |
 | t | Add to today |
 | d | Mark done |
 | Space | Toggle select |

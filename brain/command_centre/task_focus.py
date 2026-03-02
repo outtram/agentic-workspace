@@ -169,6 +169,14 @@ class TaskFocusView(Widget):
         else:
             self._show_input(key)
 
+    def start_add_note(self) -> None:
+        """Open a blank textarea to add a new note."""
+        if not self._task_data or self._editing:
+            return
+        self._editing = True
+        self._edit_field = "_new_note"
+        self._show_textarea("_new_note")
+
     def cancel_edit(self) -> bool:
         """Cancel current edit.  Returns True if was editing (consumed Esc)."""
         if not self._editing:
@@ -186,8 +194,18 @@ class TaskFocusView(Widget):
 
         key = self._edit_field
 
-        # Notes/research is read-only — just close the viewer
+        # Notes/research viewer is read-only — just close
         if key == "_notes_research":
+            self._editing = False
+            self._edit_field = None
+            self._hide_editors()
+            self._refresh_display()
+            return
+
+        # New note — append timestamped section to task file
+        if key == "_new_note":
+            if value.strip():
+                self._append_note(value.strip())
             self._editing = False
             self._edit_field = None
             self._hide_editors()
@@ -299,6 +317,7 @@ class TaskFocusView(Widget):
         lines.append("[#333333]" + "\u2501" * 48 + "[/]")
         lines.append(
             "[bold #FF6B35]/[/][dim] Commands  [/]"
+            "[bold #FF6B35]n[/][dim] Note  [/]"
             "[bold #FF6B35]t[/][dim] Today  [/]"
             "[bold #FF6B35]d[/][dim] Done  [/]"
             "[bold #FF6B35]Space[/][dim] Select[/]"
@@ -311,6 +330,8 @@ class TaskFocusView(Widget):
 
     def _get_display_value(self, key: str) -> str:
         """Get the display string for a field."""
+        if key == "_new_note":
+            return ""
         if not self._task_data:
             return ""
         if key == "_notes_research":
@@ -500,6 +521,31 @@ class TaskFocusView(Widget):
             return "\n\n".join(sections) if sections else "(no notes or research)"
         except Exception:
             return ""
+
+    def _append_note(self, text: str) -> None:
+        """Append a timestamped note section to the task file."""
+        if not self._task_data:
+            return
+        task_id = self._task_data.get("id", "")
+        if not task_id:
+            return
+        task_file = find_task_file(task_id)
+        if not task_file:
+            return
+        try:
+            stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+            section = f"\n\n## Note — {stamp}\n\n{text}\n"
+            content = task_file.read_text().rstrip()
+            task_file.write_text(content + section)
+            try:
+                self.app.notify("Note added")
+            except Exception:
+                pass
+        except Exception as e:
+            try:
+                self.app.notify(f"Note failed: {e}", severity="error")
+            except Exception:
+                pass
 
     def _debounced_save(self) -> None:
         """Debounce file writes — waits 0.5s after last change before saving."""

@@ -79,6 +79,7 @@ _HELP_TEXT = """\
 [bold]Task Focus View[/]  (when zoomed into a task)
   \u2191 \u2193           Navigate fields + notes/research
   Enter         Edit field / cycle choice
+  n             Add a timestamped note
   Escape        Stop editing \u2192 back to grid
   /             Command palette for this task
   t  d          Today / Done
@@ -497,6 +498,8 @@ class CommandCentreApp(App):
                         self.selected_ids.add(tid)
                         log_action("selected", task_ids=[tid])
                     self._refresh_all()
+        elif char == "n":
+            fv.start_add_note()
         elif char == hk.get("add_to_today", "t"):
             self._add_to_today()
         elif char == hk.get("mark_done", "d"):
