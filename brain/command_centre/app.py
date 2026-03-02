@@ -1,5 +1,8 @@
 """Command Centre — main Textual application.
 
+Note: Avoid using _task or _render as attribute names on Widget subclasses —
+Textual reserves these internally (asyncio.Task tracking and Visual rendering).
+
 Navigation model (v2):
   Grid View  → Enter on parent  → Grid shows children (nav stack)
   Grid View  → Enter on leaf    → Task Focus View

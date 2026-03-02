@@ -78,7 +78,7 @@ class TaskFocusView(VerticalScroll):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._task: dict | None = None
+        self._task_data: dict | None = None
         self._field_cursor: int = 0
         self._editing: bool = False
         self._edit_field: str | None = None
@@ -92,7 +92,7 @@ class TaskFocusView(VerticalScroll):
 
     @property
     def task(self) -> dict | None:
-        return self._task
+        return self._task_data
 
     @property
     def is_editing(self) -> bool:
@@ -104,17 +104,17 @@ class TaskFocusView(VerticalScroll):
 
     def show_task(self, task: dict) -> None:
         """Set the task and render the focus view."""
-        self._task = task
+        self._task_data = task
         self._field_cursor = 0
         self._editing = False
         self._edit_field = None
         self._dirty = False
         self._hide_editors()
-        self._render()
+        self._refresh_display()
 
     def clear(self) -> None:
         """Clear the focus view."""
-        self._task = None
+        self._task_data = None
         self._field_cursor = 0
         self._editing = False
         self._edit_field = None
@@ -126,11 +126,11 @@ class TaskFocusView(VerticalScroll):
         new = self._field_cursor + direction
         if 0 <= new < len(_FIELDS):
             self._field_cursor = new
-            self._render()
+            self._refresh_display()
 
     def start_edit(self) -> None:
         """Enter edit mode for the currently focused field."""
-        if not self._task or self._editing:
+        if not self._task_data or self._editing:
             return
 
         key, _label, field_type = _FIELDS[self._field_cursor]
@@ -142,7 +142,7 @@ class TaskFocusView(VerticalScroll):
             self._cycle_choice(key)
             self._editing = False
             self._edit_field = None
-            self._render()
+            self._refresh_display()
             return
 
         if field_type == "multiline":
@@ -157,26 +157,26 @@ class TaskFocusView(VerticalScroll):
         self._editing = False
         self._edit_field = None
         self._hide_editors()
-        self._render()
+        self._refresh_display()
         return True
 
     def commit_edit(self, value: str) -> None:
         """Save the edited value back to the task dict (and to file)."""
-        if not self._task or not self._edit_field:
+        if not self._task_data or not self._edit_field:
             return
 
         key = self._edit_field
         old_val = self._get_display_value(key)
 
         if value.strip() != old_val.strip():
-            self._task[key] = value.strip()
+            self._task_data[key] = value.strip()
             self._dirty = True
             self._save_to_file()
 
         self._editing = False
         self._edit_field = None
         self._hide_editors()
-        self._render()
+        self._refresh_display()
 
     def handle_input_submitted(self, value: str) -> None:
         """Called when the inline Input is submitted."""
@@ -192,12 +192,12 @@ class TaskFocusView(VerticalScroll):
 
     # --- Internal rendering ---
 
-    def _render(self) -> None:
+    def _refresh_display(self) -> None:
         """Re-render the focus view content."""
-        if not self._task:
+        if not self._task_data:
             return
 
-        task = self._task
+        task = self._task_data
         tid = task.get("id", "???")
         q = task.get("eisenhower_quadrant", "q4")
         colour = QUADRANT_COLOURS.get(q, "#3D3D3D")
@@ -279,9 +279,9 @@ class TaskFocusView(VerticalScroll):
 
     def _get_display_value(self, key: str) -> str:
         """Get the display string for a field."""
-        if not self._task:
+        if not self._task_data:
             return ""
-        val = self._task.get(key, "")
+        val = self._task_data.get(key, "")
         if val is None:
             return ""
         if key == "due_date" and hasattr(val, "isoformat"):
@@ -320,7 +320,7 @@ class TaskFocusView(VerticalScroll):
 
     def _cycle_choice(self, key: str) -> None:
         """Cycle a choice field to the next value."""
-        if not self._task:
+        if not self._task_data:
             return
 
         cycles = {
@@ -332,19 +332,19 @@ class TaskFocusView(VerticalScroll):
         if not cycle:
             return
 
-        current = self._task.get(key, cycle[0])
+        current = self._task_data.get(key, cycle[0])
         try:
             idx = cycle.index(current)
             new_val = cycle[(idx + 1) % len(cycle)]
         except ValueError:
             new_val = cycle[0]
 
-        self._task[key] = new_val
+        self._task_data[key] = new_val
 
         # Update derived fields for quadrant
         if key == "eisenhower_quadrant":
-            self._task["eisenhower_urgent"] = new_val in ("q1", "q3")
-            self._task["eisenhower_important"] = new_val in ("q1", "q2")
+            self._task_data["eisenhower_urgent"] = new_val in ("q1", "q3")
+            self._task_data["eisenhower_important"] = new_val in ("q1", "q2")
 
         self._dirty = True
         self._debounced_save()
@@ -382,9 +382,9 @@ class TaskFocusView(VerticalScroll):
 
     def _get_notes(self) -> list[str]:
         """Extract note headings from the task file."""
-        if not self._task:
+        if not self._task_data:
             return []
-        task_id = self._task.get("id", "")
+        task_id = self._task_data.get("id", "")
         if not task_id:
             return []
         task_file = find_task_file(task_id)
@@ -409,9 +409,9 @@ class TaskFocusView(VerticalScroll):
     def _save_to_file(self) -> None:
         """Persist changes back to the task's markdown file."""
         self._save_timer = None
-        if not self._task:
+        if not self._task_data:
             return
-        task_id = self._task.get("id", "")
+        task_id = self._task_data.get("id", "")
         if not task_id:
             return
 
@@ -430,7 +430,7 @@ class TaskFocusView(VerticalScroll):
                 return
 
             # Update frontmatter fields
-            task = self._task
+            task = self._task_data
             if task.get("title"):
                 meta["title"] = task["title"]
             meta["eisenhower_quadrant"] = task.get("eisenhower_quadrant", "q4")
