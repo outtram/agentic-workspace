@@ -2,6 +2,7 @@
 
 Note: Avoid using _task or _render as attribute names on Widget subclasses —
 Textual reserves these internally (asyncio.Task tracking and Visual rendering).
+TaskFocusView uses Widget base (not VerticalScroll) to avoid Textual 8.0 render bug.
 
 Navigation model (v2):
   Grid View  → Enter on parent  → Grid shows children (nav stack)

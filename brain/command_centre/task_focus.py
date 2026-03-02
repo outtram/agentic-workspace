@@ -8,7 +8,7 @@ Escape backs out one level.
 import yaml
 from datetime import datetime
 
-from textual.containers import VerticalScroll
+from textual.widget import Widget
 from textual.widgets import Static, Input, TextArea
 
 from .sanitiser import sanitise
@@ -37,7 +37,7 @@ _PRIORITY_CYCLE = ["low", "medium", "high"]
 _STATUS_CYCLE = ["todo", "open", "draft", "doing"]
 
 
-class TaskFocusView(VerticalScroll):
+class TaskFocusView(Widget):
     """Displays a single task with editable fields.
 
     Managed by the main app — not a standalone screen.  The app toggles
@@ -49,6 +49,8 @@ class TaskFocusView(VerticalScroll):
         width: 3fr;
         padding: 1 2;
         display: none;
+        layout: vertical;
+        overflow-y: auto;
     }
     #focus-content {
         width: 100%;
