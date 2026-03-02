@@ -80,6 +80,7 @@ _HELP_TEXT = """\
   \u2191 \u2193           Navigate fields + notes/research
   Enter         Edit field / cycle choice
   n             Add a timestamped note
+  p             Open/create PRD (Esc saves)
   Escape        Stop editing \u2192 back to grid
   /             Command palette for this task
   t  d          Today / Done
@@ -500,6 +501,8 @@ class CommandCentreApp(App):
                     self._refresh_all()
         elif char == "n":
             fv.start_add_note()
+        elif char == "p":
+            fv.open_or_create_prd()
         elif char == hk.get("add_to_today", "t"):
             self._add_to_today()
         elif char == hk.get("mark_done", "d"):

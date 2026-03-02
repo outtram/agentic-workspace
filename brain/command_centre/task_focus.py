@@ -5,8 +5,10 @@ over the grid area.  Arrow keys navigate between fields, Enter edits inline,
 Escape backs out one level.
 """
 
+import re
 import yaml
 from datetime import datetime
+from pathlib import Path
 
 from textual.widget import Widget
 from textual.widgets import Static, Input, TextArea
@@ -17,6 +19,8 @@ from .task_loader import (
     QUADRANT_LABELS,
     find_task_file,
 )
+
+_PRD_DIR = Path(__file__).resolve().parent.parent.parent / ".claude" / "work" / "prd"
 
 
 # Fields shown in the focus view, in order.
@@ -212,6 +216,16 @@ class TaskFocusView(Widget):
             self._refresh_display()
             return
 
+        # PRD — save content back to PRD file
+        if key == "_prd":
+            if value.strip():
+                self._save_prd(value)
+            self._editing = False
+            self._edit_field = None
+            self._hide_editors()
+            self._refresh_display()
+            return
+
         old_val = self._get_display_value(key)
 
         if value.strip() != old_val.strip():
@@ -252,8 +266,11 @@ class TaskFocusView(Widget):
         lines: list[str] = []
 
         # Header
+        prd_badge = ""
+        if task.get("prd"):
+            prd_badge = f"  [bold blue]PRD[/]"
         lines.append(
-            f"[bold #FF6B35]{tid}[/]  [{colour}]{label}[/]"
+            f"[bold #FF6B35]{tid}[/]  [{colour}]{label}[/]{prd_badge}"
         )
         lines.append(f"[dim]← Esc back to grid[/]")
         lines.append("[#333333]" + "\u2501" * 48 + "[/]")
@@ -318,9 +335,9 @@ class TaskFocusView(Widget):
         lines.append(
             "[bold #FF6B35]/[/][dim] Commands  [/]"
             "[bold #FF6B35]n[/][dim] Note  [/]"
+            "[bold #FF6B35]p[/][dim] PRD  [/]"
             "[bold #FF6B35]t[/][dim] Today  [/]"
             "[bold #FF6B35]d[/][dim] Done  [/]"
-            "[bold #FF6B35]Space[/][dim] Select[/]"
         )
 
         try:
@@ -332,6 +349,8 @@ class TaskFocusView(Widget):
         """Get the display string for a field."""
         if key == "_new_note":
             return ""
+        if key == "_prd":
+            return self._get_prd_content()
         if not self._task_data:
             return ""
         if key == "_notes_research":
@@ -420,8 +439,13 @@ class TaskFocusView(Widget):
             area = self.query_one("#focus-edit-area", TextArea)
             area.load_text(self._get_display_value(key))
             area.read_only = key == "_notes_research"
-            # Taller for notes/research so you can see the content
-            area.styles.height = 16 if key == "_notes_research" else 8
+            # Size based on content type
+            if key == "_prd":
+                area.styles.height = 24
+            elif key in ("_notes_research", "_new_note"):
+                area.styles.height = 16
+            else:
+                area.styles.height = 8
             area.styles.display = "block"
             area.focus()
         except Exception:
@@ -544,6 +568,146 @@ class TaskFocusView(Widget):
         except Exception as e:
             try:
                 self.app.notify(f"Note failed: {e}", severity="error")
+            except Exception:
+                pass
+
+    # --- PRD support ---
+
+    def _find_prd_file(self) -> Path | None:
+        """Find the PRD file linked to this task."""
+        if not self._task_data:
+            return None
+        prd_id = self._task_data.get("prd", "")
+        if not prd_id:
+            return None
+        matches = list(_PRD_DIR.glob(f"{prd_id}-*.md"))
+        if matches:
+            return matches[0]
+        exact = _PRD_DIR / f"{prd_id}.md"
+        if exact.exists():
+            return exact
+        return None
+
+    def _get_prd_content(self) -> str:
+        """Read the full PRD content."""
+        prd_file = self._find_prd_file()
+        if not prd_file:
+            return ""
+        try:
+            return prd_file.read_text()
+        except Exception:
+            return ""
+
+    def _create_prd(self) -> str | None:
+        """Create a new PRD from the task, link it, return the PRD ID."""
+        if not self._task_data:
+            return None
+        task_id = self._task_data.get("id", "")
+        title = self._task_data.get("title", "Untitled")
+        desc = self._task_data.get("_description", "")
+        priority = self._task_data.get("priority", "medium")
+
+        # Generate PRD ID from task ID
+        prd_id = task_id
+        slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:40]
+        filename = f"{prd_id}-{slug}.md"
+        prd_path = _PRD_DIR / filename
+
+        if prd_path.exists():
+            return prd_id
+
+        now = datetime.now().strftime("%Y-%m-%d")
+        content = f"""---
+id: {prd_id}
+title: {title}
+type: prd
+status: draft
+priority: {priority}
+created: {now}
+updated: {now}
+assignee: Troy
+branch: feature/{prd_id}-{slug}
+---
+
+# {title}
+
+## Problem
+{desc if desc else 'What problem does this solve?'}
+
+## Solution
+What are we building?
+
+## Requirements
+- [ ] Requirement 1
+- [ ] Requirement 2
+
+## Design Notes
+Any design decisions, mockups, or technical approaches.
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Related
+- Parent task: {task_id}
+
+## Notes
+Additional context, links, research.
+
+## Progress Log
+- {now}: Created PRD from task {task_id}
+"""
+        try:
+            _PRD_DIR.mkdir(parents=True, exist_ok=True)
+            prd_path.write_text(content)
+        except Exception as e:
+            try:
+                self.app.notify(f"PRD create failed: {e}", severity="error")
+            except Exception:
+                pass
+            return None
+
+        # Link PRD to task file
+        self._task_data["prd"] = prd_id
+        self._dirty = True
+        self._save_to_file()
+
+        return prd_id
+
+    def open_or_create_prd(self) -> None:
+        """Open existing PRD or create a new one, then show in editor."""
+        if not self._task_data or self._editing:
+            return
+
+        prd_id = self._task_data.get("prd", "")
+        if not prd_id:
+            prd_id = self._create_prd()
+            if not prd_id:
+                return
+            try:
+                self.app.notify(f"PRD created: {prd_id}")
+            except Exception:
+                pass
+
+        # Open PRD in the textarea for editing
+        self._editing = True
+        self._edit_field = "_prd"
+        self._show_textarea("_prd")
+
+    def _save_prd(self, content: str) -> None:
+        """Write PRD content back to the file."""
+        prd_file = self._find_prd_file()
+        if not prd_file:
+            return
+        try:
+            prd_file.write_text(content)
+            try:
+                self.app.notify("PRD saved")
+            except Exception:
+                pass
+        except Exception as e:
+            try:
+                self.app.notify(f"PRD save failed: {e}", severity="error")
             except Exception:
                 pass
 
