@@ -128,17 +128,24 @@ class TaskFocusView(Widget):
             pass
 
     def move_cursor(self, direction: int) -> None:
-        """Move field cursor up (-1) or down (+1)."""
+        """Move field cursor up (-1) or down (+1).
+
+        Cursor can go one past the last field to highlight the notes section.
+        """
         if self._editing:
             return
         new = self._field_cursor + direction
-        if 0 <= new < len(_FIELDS):
+        # len(_FIELDS) = notes/research section (one past last field)
+        if 0 <= new <= len(_FIELDS):
             self._field_cursor = new
             self._refresh_display()
 
     def start_edit(self) -> None:
         """Enter edit mode for the currently focused field."""
         if not self._task_data or self._editing:
+            return
+        # Notes section is read-only
+        if self._field_cursor >= len(_FIELDS):
             return
 
         key, _label, field_type = _FIELDS[self._field_cursor]
@@ -259,17 +266,19 @@ class TaskFocusView(Widget):
                 else:
                     lines.append(f"    {' ' * 12} [dim](no description)[/]")
 
-        # Notes section (read-only)
+        # Notes section (read-only, cursor position = len(_FIELDS))
+        notes_focused = self._field_cursor == len(_FIELDS) and not self._editing
         lines.append("")
         lines.append("[#333333]" + "\u2501" * 48 + "[/]")
         notes = self._get_notes()
+        arrow = "[bold #FF6B35]\u25b8 [/]" if notes_focused else "  "
         if notes:
-            lines.append("[bold]NOTES & RESEARCH[/]")
+            lines.append(f"{arrow}[bold]NOTES & RESEARCH[/]")
             for note in notes[-6:]:
                 safe_note = note.replace("[", r"\[")
-                lines.append(f"[dim]{safe_note}[/]")
+                lines.append(f"    {safe_note}")
         else:
-            lines.append("[dim]No notes yet[/]")
+            lines.append(f"{arrow}[dim]No notes yet[/]")
 
         # Hints
         lines.append("")

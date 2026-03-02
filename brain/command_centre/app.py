@@ -77,7 +77,7 @@ _HELP_TEXT = """\
   ?             This help
 
 [bold]Task Focus View[/]  (when zoomed into a task)
-  \u2191 \u2193           Navigate between fields
+  \u2191 \u2193           Navigate fields + notes/research
   Enter         Edit field / cycle choice
   Escape        Stop editing \u2192 back to grid
   /             Command palette for this task
