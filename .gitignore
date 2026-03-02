@@ -62,3 +62,14 @@ brain/.env
 # IDE
 .windsurf/
 .worktrees/
+
+# Client project files (contain sensitive names)
+Projects/
+*.pptx
+
+# Generated dashboards (keep only eisenhower-latest.html)
+.claude/dashboards/eisenhower-20*.html
+dashboard.html
+
+# Temp Office files
+~$*

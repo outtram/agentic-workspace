@@ -271,7 +271,7 @@ class CommandCentreApp(App):
         self._refresh_all()
 
         # Start Telegram bridge in background
-        asyncio.ensure_future(self._init_telegram())
+        asyncio.create_task(self._init_telegram())
 
     # --- Refresh ---
 
@@ -615,7 +615,7 @@ class CommandCentreApp(App):
         elif self._escape_pending:
             save_today_list(self.today_ids)
             if self.telegram.available:
-                asyncio.ensure_future(self.telegram.stop())
+                asyncio.create_task(self.telegram.stop())
             self.exit()
         else:
             self._escape_pending = True
@@ -703,7 +703,7 @@ class CommandCentreApp(App):
                     self._add_note_to_task(task)
                 return
             # Route through the command pipeline
-            asyncio.ensure_future(self._run_palette_action(result, task))
+            asyncio.create_task(self._run_palette_action(result, task))
 
         self.push_screen(CommandPalette(task=task), callback=on_dismiss)
 
@@ -1078,8 +1078,15 @@ class CommandCentreApp(App):
         if not ids_to_complete:
             return
 
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude"))
-        from reminders.core.manager import RemindersManager
+        claude_dir = str(PROJECT_ROOT / ".claude")
+        if claude_dir not in sys.path:
+            sys.path.insert(0, claude_dir)
+
+        try:
+            from reminders.core.manager import RemindersManager
+        except ImportError:
+            self.notify("RemindersManager not available", severity="error")
+            return
 
         manager = RemindersManager()
         completed = 0
@@ -1172,7 +1179,7 @@ class CommandCentreApp(App):
 
         self._last_response = "[dim]Transcribing...[/]"
         self._refresh_all()
-        asyncio.ensure_future(self._voice_pipeline(audio))
+        asyncio.create_task(self._voice_pipeline(audio))
 
     async def _voice_pipeline(self, audio):
         from brain.voice import transcribe, speak

@@ -3,6 +3,7 @@ import sys
 
 import yaml
 
+from .. import PROJECT_ROOT
 from ..brain_logger import log_action
 from ..task_loader import find_task_file
 
@@ -12,8 +13,14 @@ async def handle_done(task_ids: list[str]) -> str:
     if not task_ids:
         return "No tasks selected"
 
-    sys.path.insert(0, str(PROJECT_ROOT / ".claude"))
-    from reminders.core.manager import RemindersManager
+    claude_dir = str(PROJECT_ROOT / ".claude")
+    if claude_dir not in sys.path:
+        sys.path.insert(0, claude_dir)
+
+    try:
+        from reminders.core.manager import RemindersManager
+    except ImportError:
+        return "[red]RemindersManager not available[/]"
 
     manager = RemindersManager()
     completed = 0

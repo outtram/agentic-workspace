@@ -1,0 +1,281 @@
+- timestamp: '2026-03-01T09:34:11'
+  action: test
+  task_ids:
+  - OUT-001
+  input: smoke test
+- timestamp: '2026-03-01T09:38:58'
+  action: selected
+  task_ids:
+  - OUT-256
+- timestamp: '2026-03-01T09:40:05'
+  action: selected
+  task_ids:
+  - OUT-260
+- timestamp: '2026-03-01T09:40:05'
+  action: selected
+  task_ids:
+  - OUT-245
+- timestamp: '2026-03-01T09:40:22'
+  action: done
+  task_ids:
+  - OUT-245
+- timestamp: '2026-03-01T09:40:22'
+  action: removed_from_today
+  task_ids:
+  - OUT-256
+- timestamp: '2026-03-01T09:52:57'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T09:53:05'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T09:53:08'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T09:59:36'
+  action: selected
+  task_ids:
+  - OUT-256
+- timestamp: '2026-03-01T10:03:46'
+  action: removed_from_today
+  task_ids:
+  - OUT-292
+- timestamp: '2026-03-01T10:03:49'
+  action: added_to_today
+  task_ids:
+  - OUT-292
+- timestamp: '2026-03-01T10:04:26'
+  action: outbot
+  input: '?'
+- timestamp: '2026-03-01T10:30:01'
+  action: selected
+  task_ids:
+  - OUT-256
+- timestamp: '2026-03-01T10:30:04'
+  action: selected
+  task_ids:
+  - OUT-242
+- timestamp: '2026-03-01T10:30:24'
+  action: selected
+  task_ids:
+  - OUT-322
+- timestamp: '2026-03-01T10:30:26'
+  action: selected
+  task_ids:
+  - OUT-322
+- timestamp: '2026-03-01T10:30:32'
+  action: selected
+  task_ids:
+  - OUT-322
+- timestamp: '2026-03-01T10:33:56'
+  action: outbot
+  input: dailyreview
+- timestamp: '2026-03-01T10:38:10'
+  action: selected
+  task_ids:
+  - OUT-325
+- timestamp: '2026-03-01T10:40:08'
+  action: outbot
+  task_ids:
+  - OUT-325
+  input: work on out-325 for me and flesh it out see if you can extract the text from
+    that image and let me know what you think of it please.
+- timestamp: '2026-03-01T11:40:33'
+  action: outbot
+  input: help
+- timestamp: '2026-03-01T11:45:11'
+  action: selected
+  task_ids:
+  - OUT-256
+- timestamp: '2026-03-01T11:48:13'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T11:48:31'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T11:49:10'
+  action: selected
+  task_ids:
+  - OUT-282
+- timestamp: '2026-03-01T11:49:34'
+  action: selected
+  task_ids:
+  - OUT-282
+- timestamp: '2026-03-01T11:49:42'
+  action: selected
+  task_ids:
+  - OUT-282
+- timestamp: '2026-03-01T13:00:16'
+  action: outbot
+  input: dailyreview plus check email
+- timestamp: '2026-03-01T13:05:01'
+  action: outbot
+  input: dailyreview
+- timestamp: '2026-03-01T13:15:49'
+  action: selected
+  task_ids:
+  - OUT-292
+- timestamp: '2026-03-01T13:15:52'
+  action: selected
+  task_ids:
+  - OUT-292
+- timestamp: '2026-03-01T21:01:05'
+  action: outbot
+  input: dailyreview
+- timestamp: '2026-03-01T21:27:27'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T21:45:11'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T21:45:35'
+  action: added_to_today
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T21:45:36'
+  action: removed_from_today
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T21:45:38'
+  action: added_to_today
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-01T21:48:02'
+  action: outbot
+  input: today
+- timestamp: '2026-03-01T21:55:55'
+  action: selected
+  task_ids:
+  - OUT-323
+- timestamp: '2026-03-01T21:56:07'
+  action: action_menu
+  task_ids:
+  - OUT-327
+  input: '1'
+- timestamp: '2026-03-01T21:56:10'
+  action: outbot
+  input: '1'
+- timestamp: '2026-03-01T21:57:18'
+  action: selected
+  task_ids:
+  - OUT-326
+- timestamp: '2026-03-01T21:57:30'
+  action: outbot
+  task_ids:
+  - OUT-326
+  input: '3'
+- timestamp: '2026-03-01T21:57:31'
+  action: action_menu
+  task_ids:
+  - OUT-326
+  input: '3'
+- timestamp: '2026-03-01T21:58:58'
+  action: outbot
+  input: when i press x in this interface it shows an overlay pressing 3 says enrich
+    with ai which is what i wanted to do with this item 326
+- timestamp: '2026-03-01T22:23:07'
+  action: done
+  task_ids:
+  - OUT-326
+- timestamp: '2026-03-01T22:23:53'
+  action: done
+  task_ids:
+  - OUT-327
+  - OUT-282
+  - OUT-228
+  - OUT-312
+  - OUT-311
+  - OUT-324
+  - OUT-323
+  - OUT-226
+  - OUT-223
+- timestamp: '2026-03-01T22:46:06'
+  action: outbot
+  input: inbox
+- timestamp: '2026-03-01T22:47:26'
+  action: added_to_today
+  task_ids:
+  - OUT-314
+- timestamp: '2026-03-01T22:51:27'
+  action: outbot
+  input: import system improvemnet and process the images in it into text
+- timestamp: '2026-03-02T11:49:04'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T11:54:15'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T12:11:18'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T12:53:24'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T12:55:37'
+  action: researched
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T12:55:37'
+  action: command
+  task_ids:
+  - OUT-310
+  input: /research
+- timestamp: '2026-03-02T13:13:44'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T13:26:17'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T13:27:19'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T13:39:16'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T13:40:55'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T13:40:57'
+  action: selected
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T14:13:31'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T14:45:16'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T14:52:55'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T15:16:47'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T20:55:31'
+  action: focus_entered
+  task_ids:
+  - OUT-310
+- timestamp: '2026-03-02T20:55:45'
+  action: focus_entered
+  task_ids:
+  - OUT-310

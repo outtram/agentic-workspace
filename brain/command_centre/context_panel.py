@@ -145,7 +145,7 @@ class ContextPanel(VerticalScroll):
         lines += "\n[bold]ACTIONS[/]\n"
         lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
         lines += "[dim]/enrich  /research  /done[/]\n"
-        lines += "[dim]e Edit  t Today  [bold #FF6B35]x Actions[/][/]\n"
+        lines += "[dim]e Edit  t Today  [bold #FF6B35]/ Commands[/][/]\n"
 
         # Contextual suggestions
         suggestions = match_for_task(task)

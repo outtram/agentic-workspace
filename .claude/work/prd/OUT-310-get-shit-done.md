@@ -1,25 +1,18 @@
 ---
 id: OUT-310
 title: Get shit done
-type: task
-status: todo
+type: prd
+status: draft
 priority: low
-created: '2026-02-28T21:16:01.531208'
-updated: '2026-03-02T15:17:41.044384'
-branch: task/OUT-310-get-shit-done
-source: reminders_import
-eisenhower_quadrant: q2
-eisenhower_urgent: false
-eisenhower_important: true
-reminder_id: x-apple-reminder://B1507B75-DB1C-498B-8A12-B62F5AEF476F
-reminder_list: Reminders
-due_date: null
+created: 2026-03-02
+updated: 2026-03-02
+assignee: Troy
+branch: feature/OUT-310-get-shit-done
 ---
 
 # Get shit done
 
-## Description
-
+## Problem
 🚨 This is how engineers at Amazon, Google, and Shopify actually use Claude Code.
 
 It's called GSD (Get Shit Done) and it solves context rot the quality degradation that destroys your Claude Code sessions as the context window fills up.
@@ -50,11 +43,24 @@ npx get-shit-done-cc@latest
 
 Link in the first comment 👇
 
-## Steps
-- [ ] Review task details
-- [ ] Complete task
-- [ ] Mark as done
+## Solution
+What are we building?
 
+## Requirements
+- [ ] Requirement 1
+- [ ] Requirement 2
+
+## Design Notes
+Any design decisions, mockups, or technical approaches.
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Related
+- Parent task: OUT-310
+
+## Notes
 ## Research
 
 Here are 5 actionable findings on GSD:
@@ -121,3 +127,6 @@ Sources:
 ## Note — 2026-03-02 14:14
 
 New note from Troy. My question is should we apply this to this current system or not?
+
+## Progress Log
+- 2026-03-02: Created PRD from task OUT-310

@@ -18,6 +18,9 @@ _DEFAULTS = {
         "help": "?",
         "command_bar": "/",
         "filter_mode": ":",
+        "edit_task": "e",
+        "toggle_voice": "v",
+        "action_menu": "x",
     },
     "display": {
         "tiles_per_row": 3,

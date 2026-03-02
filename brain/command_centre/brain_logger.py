@@ -1,4 +1,5 @@
 """Brain logger — records every action to brain-log.yml for pattern learning."""
+import fcntl
 from datetime import datetime
 from pathlib import Path
 
@@ -16,7 +17,7 @@ def log_action(
     context: str = "",
     input_text: str = "",
 ):
-    """Append an action to the brain log."""
+    """Append an action to the brain log (file-locked to prevent race conditions)."""
     entry = {
         "timestamp": datetime.now().isoformat(timespec="seconds"),
         "action": action,
@@ -28,19 +29,24 @@ def log_action(
     if input_text:
         entry["input"] = input_text
 
-    entries = []
-    if _LOG_PATH.exists():
-        try:
-            data = yaml.safe_load(_LOG_PATH.read_text())
-            if isinstance(data, list):
-                entries = data
-        except yaml.YAMLError:
-            pass
-
-    entries.append(entry)
-
-    if len(entries) > _MAX_ENTRIES:
-        entries = entries[-_MAX_ENTRIES:]
-
     _LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _LOG_PATH.write_text(yaml.dump(entries, default_flow_style=False, sort_keys=False))
+
+    try:
+        with open(_LOG_PATH, "a+") as fh:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+            try:
+                fh.seek(0)
+                data = yaml.safe_load(fh.read())
+                entries = data if isinstance(data, list) else []
+
+                entries.append(entry)
+                if len(entries) > _MAX_ENTRIES:
+                    entries = entries[-_MAX_ENTRIES:]
+
+                fh.seek(0)
+                fh.truncate()
+                fh.write(yaml.dump(entries, default_flow_style=False, sort_keys=False))
+            finally:
+                fcntl.flock(fh, fcntl.LOCK_UN)
+    except Exception:
+        pass

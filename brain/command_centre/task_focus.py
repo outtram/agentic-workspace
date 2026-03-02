@@ -381,7 +381,10 @@ class TaskFocusView(Widget):
             return val.isoformat()
         if key == "_due_date":
             return str(val) if val else ""
-        return str(val)
+        result = str(val)
+        if key in ("title", "_description"):
+            result = sanitise(result)
+        return result
 
     def _format_value(self, key: str, value: str) -> str:
         """Add colour formatting for specific fields."""

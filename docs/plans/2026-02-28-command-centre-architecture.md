@@ -1,6 +1,6 @@
 # Command Centre Architecture
 
-> **Status:** APPROVED DESIGN — ready for build
+> **Status:** BUILT — all 4 phases complete, bug-fixed 2026-03-01
 > **Created:** 2026-02-28
 > **Author:** Troy + Claude (Cursor)
 > **Build target:** Claude Code (terminal TUI)
@@ -20,10 +20,10 @@ A **unified terminal interface** — codename "Command Centre" — that merges t
 - `brain/voice.py` (standalone voice) → absorbed as a mode toggle
 
 ### What Lives (unchanged)
-- `brain/main.py` → Telegram bot stays separate (it's a daemon)
+- `brain/main.py` → Telegram bot standalone mode (optional, can also run in-process)
 - `brain/orchestrator.py` → reused as the brain engine
 - All agents, skills, memory, events → wired in, not rewritten
-- `brain/telegram/bot.py` → Telegram adapter untouched
+- `brain/telegram/bot.py` → Telegram adapter (reused by in-process bridge)
 - `brain/core/` → config, events, models, db all reused
 
 ---
@@ -133,7 +133,7 @@ graph TB
 
 - `1-9` — focus tile by position
 - `Space` — toggle select on focused tile
-- `Enter` — toggle select (same as Space)
+- `Enter` — **drill down**: parent task → show children, leaf task → open Task Focus View
 - `a` — select all on current page
 - `n` — deselect all
 - Arrow keys — move focus between tiles
@@ -183,7 +183,7 @@ TODAY (3 tasks)
 
 ## 5. Command Bar
 
-Always visible at the bottom. Press `/` or `:` or just start typing to focus it.
+Always visible at the bottom. Press `:` to focus for filters, or just start typing for OutBot. `/` opens the **Command Palette** (a navigable modal with all commands, agents, and skills).
 
 ### Command Types
 
@@ -220,10 +220,9 @@ Always visible at the bottom. Press `/` or `:` or just start typing to focus it.
 
 | Key | Action |
 |---|---|
-| `Escape` | Clear selection / close panel / quit (double-tap) |
-| `Tab` | Cycle focus: grid → command bar → context panel |
+| `Escape` | Multi-level: cancel edit → exit focus → pop nav → clear filter → clear select → quit |
 | `v` | Toggle voice mode |
-| `/` | Focus command bar |
+| `/` | **Command Palette** — filterable list of commands, agents, skills |
 | `:` | Focus command bar (filter mode) |
 | `?` | Show hotkey help overlay |
 
@@ -233,13 +232,39 @@ Always visible at the bottom. Press `/` or `:` or just start typing to focus it.
 |---|---|
 | `1-9` | Focus tile by position |
 | `Arrow keys` | Move focus |
-| `Space` / `Enter` | Toggle select on focused tile |
+| `Enter` | **Drill down** — parent → children, leaf → Task Focus View |
+| `Space` | Toggle select on focused tile |
 | `a` | Select all (current page) |
 | `n` | Deselect all |
 | `[` / `]` | Page left / right |
-| `t` | Add selected to today |
-| `d` | Mark selected as done |
-| `r` | Open task detail in context panel |
+| `t` | Add selected/focused to today (toggles if already today) |
+| `d` | Mark selected/focused as done (local + iOS) |
+| `e` | Edit task (modal) |
+
+### Task Focus View (single-task detail)
+
+| Key | Action |
+|---|---|
+| `↑` / `↓` | Navigate between fields (title, quadrant, priority, due, status, parent, description, PRD, notes) |
+| `Enter` | Edit field (text input) or cycle choice (quadrant/priority/status) |
+| `Escape` | Stop editing → back to field list → back to grid |
+| `n` | Add a timestamped note |
+| `p` | Open/create PRD (Esc saves) |
+| `t` | Add to today |
+| `d` | Mark done |
+| `Space` | Toggle select |
+| `/` | Command Palette for this task |
+
+### Command Palette (/ key)
+
+| Key | Action |
+|---|---|
+| `↑` / `↓` | Navigate between items |
+| `Enter` | Select item |
+| Type | Filter items by name or description |
+| `Escape` | Close palette |
+
+Shows contextual suggestions based on current task, then slash commands, agents, and skills.
 
 ### Voice Mode (when active)
 
@@ -336,43 +361,48 @@ These are invoked automatically when you select a task and type `/research` or m
 
 ```
 brain/
-├── command_centre/          # NEW — the unified TUI
-│   ├── __init__.py
-│   ├── app.py              # Main Textual App (entry point)
-│   ├── tile_grid.py        # 3x3 tile grid widget
-│   ├── context_panel.py    # Right-side detail/response panel
-│   ├── command_bar.py      # Bottom command input
-│   ├── status_bar.py       # Bottom status strip
-│   ├── router.py           # Intent routing (command → handler)
-│   ├── brain_logger.py     # Event logging for pattern learning
-│   ├── task_loader.py      # Load/sort/filter tasks (extracted from picker)
+├── command_centre/            # The unified TUI
+│   ├── __init__.py            # PROJECT_ROOT definition
+│   ├── __main__.py            # Entry point: python -m brain.command_centre
+│   ├── app.py                 # Main Textual App (key handling, state, lifecycle)
+│   ├── tile_grid.py           # 3x3 tile grid widget with focus/select states
+│   ├── context_panel.py       # Right-side panel: today list, detail, responses
+│   ├── command_bar.py         # Bottom command input widget
+│   ├── status_bar.py          # Bottom status strip with counts + hints
+│   ├── router.py              # Intent routing (slash cmd / natural language → handler)
+│   ├── brain_logger.py        # Event logging with file locking for pattern learning
+│   ├── task_loader.py         # Load/sort/filter tasks + find_task_file()
+│   ├── config_loader.py       # Loads hotkeys + display from command-centre.yml
+│   ├── sanitiser.py           # Cross-cutting client name sanitisation
+│   ├── predictions.py         # Prediction engine (day-of-week, frequency, unfinished)
+│   ├── telegram_bridge.py     # Runs Telegram bot in-process as background task
+│   ├── command_palette.py     # Full-screen filterable command/agent/skill palette
+│   ├── task_focus.py          # Single-task focus view with inline field editing
+│   ├── task_editor.py         # Legacy modal editor (kept for backward compat)
+│   ├── note_modal.py          # Quick note input modal
+│   ├── skill_matcher.py       # Suggests agents/skills based on task content
 │   └── handlers/
 │       ├── __init__.py
-│       ├── triage.py       # Select, today, done, quadrant moves
-│       ├── enrich.py       # Claude enrichment of tasks
-│       ├── research.py     # URL research via agent-browser
-│       ├── email.py        # Email drafting
-│       ├── voice.py        # Voice mode toggle + pipeline
-│       ├── daily_review.py # Daily review pipeline
-│       └── agent_runner.py # Generic agent/skill runner
-│   ├── sanitiser.py        # Cross-cutting client name sanitisation
-│   ├── config_loader.py    # Loads hotkeys + display from YAML
-│   ├── telegram_bridge.py  # Runs Telegram in-process as background task
-│   └── handlers/
-│       └── ...             # (as listed above)
-├── chat.py                 # DEPRECATED (kept for backward compat)
-├── voice.py                # KEPT (imported by handlers/voice.py)
-├── main.py                 # KEPT (Telegram standalone mode, optional)
-├── orchestrator.py         # KEPT (brain engine, reused by router + telegram)
-└── ...                     # All other brain/ files unchanged
+│       ├── triage.py          # /done, /today, /remove, /q1-q4
+│       ├── enrich.py          # /enrich — Claude enrichment of task descriptions
+│       ├── research.py        # /research — URL fetch + Claude summarisation
+│       ├── email.py           # /inbox, /import-emails, /email
+│       ├── voice.py           # Voice mode toggle + audio pipeline
+│       ├── daily_review.py    # /daily — 5-stage review pipeline
+│       └── agent_runner.py    # /agent, /skill — list and describe
+├── chat.py                    # DEPRECATED (kept for backward compat)
+├── voice.py                   # KEPT (imported by handlers/voice.py)
+├── main.py                    # KEPT (Telegram standalone mode, optional)
+├── orchestrator.py            # KEPT (brain engine, reused by router + telegram)
+└── ...                        # All other brain/ files unchanged
 
 .claude/config/
-└── command-centre.yml      # NEW — hotkeys, display, behaviour config
+└── command-centre.yml         # Hotkeys, display, behaviour config (optional)
 
 .claude/dashboards/
-├── today.yml               # EXISTING — today shortlist
-├── brain-log.yml           # NEW — interaction event log
-└── predictions.yml         # NEW (Phase 3) — predicted today list
+├── today.yml                  # Today shortlist
+├── brain-log.yml              # Interaction event log (file-locked)
+└── predictions.yml            # Predicted today suggestions
 ```
 
 ---
@@ -394,96 +424,72 @@ python brain/main.py
 
 ## 12. Build Phases
 
-### Phase 1: Shell (the container) ✅ Done = app launches, tiles render, you can navigate
+### Phase 1: Shell ✅ BUILT
 
-**Files:** `app.py`, `tile_grid.py`, `context_panel.py`, `command_bar.py`, `status_bar.py`, `task_loader.py`
+**Files:** `app.py`, `tile_grid.py`, `context_panel.py`, `command_bar.py`, `status_bar.py`, `task_loader.py`, `config_loader.py`, `sanitiser.py`
 
-**What it does:**
-- Textual app with 3-column layout (grid | context | — wait, 2-column: grid + context)
-- Loads tasks from `.claude/work/tasks/` (reuse existing `load_tasks()` logic)
-- Renders 3x3 tile grid with quadrant colours
-- Arrow keys / 1-9 to navigate
-- `[` `]` to paginate
-- `Space` to select/deselect
-- Today shortlist in context panel
-- `t` to add to today
-- Status bar with counts
-
-**Done criteria:**
-- Launch app, see 9 tiles with task titles
-- Navigate with arrows, select with space
-- Add to today, see it in context panel
-- Page through all 25 tasks
-- `Escape` twice to quit
-
-**Estimated effort:** 3-4 hours
+**What was built:**
+- Textual app with 2-column layout (tile grid + context panel)
+- Loads tasks from `.claude/work/tasks/`, weight-sorted by quadrant + due date
+- 3x3 tile grid with quadrant colours, overdue/today indicators
+- Arrow keys / 1-9 navigation, `[` `]` pagination
+- `Space` to toggle select, `a` select all, `n` deselect
+- Today shortlist in context panel, `t` to add/toggle
+- `d` to mark done (local + iOS Reminders sync)
+- Status bar with counts, mode indicators, page info
+- Configurable hotkeys via `command-centre.yml`
+- Client name sanitisation on all display output
+- `Escape` multi-level state machine (modal → focus → nav → filter → select → quit)
 
 ---
 
-### Phase 2: Brain (the command bar + OutBot) ✅ Done = you can type commands and get Claude responses
+### Phase 2: Brain ✅ BUILT
 
-**Files:** `command_bar.py` (enhanced), `router.py`, `handlers/triage.py`, `handlers/enrich.py`, `brain_logger.py`
+**Files:** `router.py`, `brain_logger.py`, `command_palette.py`, `task_focus.py`, `task_editor.py`, `note_modal.py`, `skill_matcher.py`, `handlers/triage.py`, `handlers/enrich.py`, `handlers/research.py`, `handlers/daily_review.py`
 
-**What it does:**
-- Command bar accepts text input
-- Intent router parses: natural language vs `/slash` commands vs `:filters`
-- Natural language → Claude via existing `ClaudeClient`
-- `/daily` runs daily review
-- `/enrich` enriches selected tasks
-- `/done` marks tasks done
-- `/filter` filters grid
-- Brain logger records every action to `brain-log.yml`
-- Context panel shows Claude responses
-
-**Done criteria:**
-- Type "what should I focus on?" → Claude responds in context panel
-- `/done` on selected tasks → files updated, tiles removed
-- `/enrich` → selected tasks get better descriptions
-- Every action logged to `brain-log.yml`
-
-**Estimated effort:** 4-5 hours
+**What was built:**
+- Intent router: slash commands, natural language → Claude, filters
+- `/done`, `/today`, `/remove`, `/q1-q4` triage commands
+- `/enrich` — Claude enriches task descriptions
+- `/research` — URL fetch + Claude summarisation, saved to task
+- `/daily` — 5-stage pipeline (reminders, quadrants, overdue, email, dashboard)
+- Brain logger with file locking (race-safe for TG + TUI)
+- **Command Palette** (`/` key) — filterable modal with contextual suggestions, all commands, agents, skills
+- **Task Focus View** (`Enter` on leaf) — single-task detail with inline field editing, choice cycling, debounced save
+- Note modal + timestamped note appending
+- PRD creation/editing from focus view (`p` key)
+- Skill matcher — suggests relevant agents/skills based on task content
+- Navigation stack — `Enter` on parent drills into children, `Escape` pops back
+- AI progress tracking with elapsed time display
 
 ---
 
-### Phase 3: Voice + Predictions ✅ Done = voice works inline, brain suggests tomorrow's focus
+### Phase 3: Voice + Predictions ✅ BUILT
 
-**Files:** `handlers/voice.py`, `handlers/research.py`, `predictions.yml`
+**Files:** `handlers/voice.py`, `predictions.py`, `telegram_bridge.py`
 
-**What it does:**
-- `v` toggles voice mode
-- Record → Whisper → command bar → route → response → speak
-- URL task detection + research handler
-- Brain reads `brain-log.yml` on launch, suggests predicted today
-- Pattern learning: time-of-day, day-of-week, task co-selection
-
-**Done criteria:**
-- Press `v`, speak, hear response, see it in context panel
-- Select URL task, `/research` → agent-browser fetches + summarises
-- Launch app → "Brain suggests: OUT-256, OUT-310" based on history
-
-**Estimated effort:** 4-5 hours
+**What was built:**
+- `v` toggles voice mode, status bar shows recording state
+- Record → Whisper STT → route → Claude → TTS (macOS `say`) + display
+- Prediction engine: day-of-week patterns, frequency, unfinished yesterday
+- On launch: "Brain suggests" panel with `y` (accept) / `n` (dismiss)
+- Telegram bridge running in-process as background async task
 
 ---
 
-### Phase 4: Polish + Agents/Skills ✅ Done = full system, all capabilities accessible
+### Phase 4: Polish + Full Integration ✅ BUILT
 
 **Files:** `handlers/agent_runner.py`, `handlers/email.py`
 
-**What it does:**
-- `/agent overseer` runs the overseer pipeline
-- `/skill pptx` invokes PowerPoint skill
-- `/email kate about these` drafts email
-- Telegram integration: send today list to Telegram on request
-- Help overlay (`?` key)
-- Error handling, edge cases, visual polish
-
-**Done criteria:**
-- Every agent invocable from command centre
-- Email drafting works
-- Help overlay comprehensive
-- No crashes on empty states, weird inputs
-
-**Estimated effort:** 3-4 hours
+**What was built:**
+- `/agent` and `/skill` — list and describe all 9 agents + 22 skills
+- `/inbox` — check Gmail inbox
+- `/import-emails` — import unread emails as tasks (syncs to iOS)
+- `/email <msg>` — Claude extracts recipient/subject/body, sends via SMTP
+- `/telegram <msg>` — send messages to Telegram chat
+- Help overlay (`?` key) — comprehensive keybinding reference
+- Telegram messages trigger OutBot responses (auto-reply)
+- Robust error handling with try/except on all external modules
 
 ---
 
