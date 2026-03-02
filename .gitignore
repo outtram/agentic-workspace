@@ -67,8 +67,10 @@ brain/.env
 Projects/
 *.pptx
 
-# Generated dashboards (keep only eisenhower-latest.html)
+# Generated dashboards and runtime data (keep only eisenhower-latest.html)
 .claude/dashboards/eisenhower-20*.html
+.claude/dashboards/brain-log.yml
+.claude/dashboards/predictions.yml
 dashboard.html
 
 # Temp Office files
