@@ -20,7 +20,7 @@ The Command Centre is a keyboard-driven terminal TUI (built with Textual) that u
 **Key features:**
 - 3x3 tile grid showing tasks with Eisenhower quadrant colours
 - **Hierarchical drill-down**: Enter on parent → shows children; Enter on leaf → Task Focus View
-- **Task Focus View**: single-task control centre with field-by-field editing (Up/Down, Enter to edit, Escape to back out)
+- **Task Focus View**: single-task control centre with field-by-field editing, notes, PRD promotion, and research viewer (Up/Down, Enter to edit, n to add note, p to open/create PRD, Escape to back out)
 - **Command Palette**: / key opens navigable modal with commands, agents, and skills (arrow keys + filter)
 - **AI Progress Log**: step-by-step progress with elapsed timer (not just "Thinking...")
 - **Navigation stack**: Escape goes back through levels (focus → children → parent → all tasks)

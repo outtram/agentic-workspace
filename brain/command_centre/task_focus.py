@@ -788,6 +788,12 @@ Any design decisions, mockups, or technical approaches.
             elif "parent" in meta:
                 del meta["parent"]
 
+            prd = task.get("prd", "")
+            if prd:
+                meta["prd"] = prd
+            elif "prd" in meta:
+                del meta["prd"]
+
             meta["updated"] = datetime.now().isoformat()
 
             # Rebuild body with updated description
