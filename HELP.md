@@ -28,6 +28,7 @@
 | a | Select all on page |
 | n | Deselect all |
 | / | **Command Palette** — all commands, agents, and skills in a filterable list |
+| c | Toggle **chat panel** — persistent OutBot conversation sidebar |
 | t | Add selected (or focused) to today |
 | d | Mark done (local + iOS) |
 | e | Edit focused task (modal) |
@@ -45,6 +46,7 @@
 | Enter | Edit field (text input) or cycle choice (quadrant/priority/status) |
 | Escape | Stop editing → back to field list → back to grid |
 | / | Command Palette for this task (agents, skills, commands) |
+| c | Toggle chat panel |
 | n | Add a timestamped note |
 | p | Open/create PRD (editable, Esc saves, includes research) |
 | t | Add to today |
@@ -86,6 +88,8 @@ Arrow down past Description to the **Notes & Research** section. Press Enter to 
 | `/email <msg>` | Send an email via OutBot (Claude extracts details) |
 | `/agent` | List available agents (or `/agent <name>` for details) |
 | `/skill` | List available skills (or `/skill <name>` for details) |
+| `/remember <text>` | Save a memory (shared with OutBot) |
+| `/forget <text>` | Remove a stored memory |
 | `/telegram <msg>` | Send a Telegram message |
 | `/help` | Show available commands |
 

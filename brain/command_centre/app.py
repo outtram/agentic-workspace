@@ -43,6 +43,7 @@ from .command_palette import CommandPalette
 from .task_focus import TaskFocusView
 from .handlers.voice import VoiceHandler, VOICE_AVAILABLE
 from .telegram_bridge import TelegramBridge
+from .heartbeat_bridge import HeartbeatBridge
 from .brain_logger import log_action
 
 
@@ -69,6 +70,7 @@ _HELP_TEXT = """\
 
 [bold]Actions[/]
   /             Command palette (commands, agents, skills)
+  c             Toggle chat panel (talk to OutBot)
   t             Add to today
   d             Mark done (local + iOS)
   e             Edit task (modal)
@@ -79,6 +81,7 @@ _HELP_TEXT = """\
 [bold]Task Focus View[/]  (when zoomed into a task)
   \u2191 \u2193           Navigate fields + notes/research
   Enter         Edit field / cycle choice
+  c             Toggle chat panel
   n             Add a timestamped note
   p             Open/create PRD (Esc saves)
   Escape        Stop editing \u2192 back to grid
@@ -187,6 +190,7 @@ class CommandCentreApp(App):
         self.router = Router()
         self.voice = VoiceHandler()
         self.telegram = TelegramBridge()
+        self.heartbeat = HeartbeatBridge()
         self._predictions: list[dict] = []
         self._predictions_pending = False
 
@@ -273,6 +277,9 @@ class CommandCentreApp(App):
         # Start Telegram bridge in background
         asyncio.create_task(self._init_telegram())
 
+        # Start heartbeat bridge in background
+        asyncio.create_task(self._init_heartbeat())
+
     # --- Refresh ---
 
     def _refresh_all(self):
@@ -329,6 +336,7 @@ class CommandCentreApp(App):
             voice_recording=self.voice.recording,
             overdue=overdue,
             telegram_status=self.telegram.status_label,
+            heartbeat_status=self.heartbeat.status_label,
             view_mode=self._view_mode,
             nav_depth=len(self._nav_stack),
         )
@@ -391,10 +399,16 @@ class CommandCentreApp(App):
             except Exception:
                 pass
 
-        # If command bar input is focused, don't handle grid/focus keys
+        # If command bar or chat input is focused, don't handle grid/focus keys
         try:
             cmd_input = self.query_one("#cmd-input", Input)
             if cmd_input.has_focus:
+                return
+        except Exception:
+            pass
+        try:
+            chat_input = self.query_one("#chat-input", Input)
+            if chat_input.has_focus:
                 return
         except Exception:
             pass
@@ -471,6 +485,8 @@ class CommandCentreApp(App):
             self._page_right()
         elif char == hk.get("command_bar", "/"):
             self._open_command_palette()
+        elif char == hk.get("chat_toggle", "c"):
+            self._toggle_chat()
         elif char == hk.get("filter_mode", ":"):
             self._focus_command_bar(":")
 
@@ -515,6 +531,8 @@ class CommandCentreApp(App):
             self.push_screen(HelpOverlay())
         elif char == hk.get("filter_mode", ":"):
             self._focus_command_bar(":")
+        elif char == hk.get("chat_toggle", "c"):
+            self._toggle_chat()
         elif char == hk.get("toggle_voice", "v"):
             self._toggle_voice()
 
@@ -559,6 +577,27 @@ class CommandCentreApp(App):
                 cmd_input.value = ""
                 cmd_input.blur()
                 self._hide_suggestions()
+                return
+        except Exception:
+            pass
+
+        # 3b. Chat input focused — blur + exit chat mode
+        try:
+            chat_input = self.query_one("#chat-input", Input)
+            if chat_input.has_focus:
+                chat_input.value = ""
+                chat_input.blur()
+                return
+        except Exception:
+            pass
+
+        # 3c. Chat mode active — switch back to info mode
+        try:
+            panel = self.query_one("#context-panel", ContextPanel)
+            if panel.is_chat_mode:
+                panel.toggle_mode()
+                self.notify("Chat mode OFF")
+                self._refresh_all()
                 return
         except Exception:
             pass
@@ -616,6 +655,8 @@ class CommandCentreApp(App):
             save_today_list(self.today_ids)
             if self.telegram.available:
                 asyncio.create_task(self.telegram.stop())
+            if self.heartbeat.running:
+                asyncio.create_task(self.heartbeat.stop())
             self.exit()
         else:
             self._escape_pending = True
@@ -822,6 +863,14 @@ class CommandCentreApp(App):
                 fv.handle_input_submitted(event.value)
             except Exception:
                 pass
+            return
+
+        # Chat input
+        if event.input.id == "chat-input":
+            text = event.value.strip()
+            event.input.value = ""
+            if text:
+                asyncio.create_task(self._handle_chat_message(text))
             return
 
         # Command bar
@@ -1360,3 +1409,114 @@ class CommandCentreApp(App):
                     await self.telegram.send(clean.strip())
         except Exception:
             pass
+
+    # --- Heartbeat ---
+
+    async def _init_heartbeat(self):
+        try:
+            started = await self.heartbeat.start(
+                on_notification=self._on_heartbeat_notification
+            )
+            if started:
+                self._refresh_all()
+        except Exception:
+            pass
+
+    async def _on_heartbeat_notification(self, message: str):
+        """Handle a heartbeat notification — show toast and update panel."""
+        self.notify(f"\u2764 {message[:80]}")
+
+        # If chat mode is active, inject as system message
+        try:
+            panel = self.query_one("#context-panel", ContextPanel)
+            if panel.is_chat_mode:
+                panel.add_system_message(message)
+                return
+        except Exception:
+            pass
+
+        # Otherwise show in the response panel
+        self._last_response = f"[bold #FF6B35]\u2764 HEARTBEAT[/]\n{message}"
+        self._panel_mode = "response"
+        self._refresh_all()
+
+    # --- Chat ---
+
+    def _toggle_chat(self):
+        """Toggle the context panel between info and chat modes."""
+        try:
+            panel = self.query_one("#context-panel", ContextPanel)
+            panel.toggle_mode()
+
+            if panel.is_chat_mode:
+                # Set task context from selected + focused tasks
+                context_tasks = []
+                context_ids = set()
+                if self.selected_ids:
+                    for t in self.all_tasks:
+                        tid = t.get("id")
+                        if tid in self.selected_ids:
+                            context_tasks.append(t)
+                            context_ids.add(tid)
+                focused = self._focused_task
+                if focused and focused.get("id") not in context_ids:
+                    context_tasks.append(focused)
+                panel.set_task_context(context_tasks)
+                self.notify("Chat mode ON  (c to switch back)")
+            else:
+                self.notify("Chat mode OFF")
+                self._refresh_all()
+        except Exception:
+            pass
+
+    async def _handle_chat_message(self, text: str):
+        """Process a message from the chat input."""
+        try:
+            panel = self.query_one("#context-panel", ContextPanel)
+        except Exception:
+            return
+
+        # Add user message to chat
+        panel.add_chat_message("user", text)
+
+        # Build task context from selected + focused tasks
+        context_tasks = []
+        context_ids = set()
+        if self.selected_ids:
+            for t in self.all_tasks:
+                tid = t.get("id")
+                if tid in self.selected_ids:
+                    context_tasks.append(t)
+                    context_ids.add(tid)
+        focused = self._focused_task
+        if focused and focused.get("id") not in context_ids:
+            context_tasks.append(focused)
+        panel.set_task_context(context_tasks)
+
+        # Route through the same pipeline as command bar
+        try:
+            result = await self.router.route(
+                text,
+                self.selected_ids,
+                focused,
+                self.all_tasks,
+                self.today_ids,
+            )
+        except Exception as e:
+            result = f"Error: {e}"
+
+        # Strip Rich markup for chat display
+        clean = re.sub(r"\[/?[^\]]*\]", "", result)
+        panel.add_chat_message("assistant", clean.strip() if clean.strip() else result)
+
+        log_action("chat", input_text=text, task_ids=list(self.selected_ids))
+
+        # Reload state (in case command changed tasks)
+        self.all_tasks = load_tasks()
+        self.today_ids = load_today_list()
+
+        # Speak if voice active
+        if self.voice.active and VOICE_AVAILABLE and clean.strip():
+            asyncio.get_running_loop().run_in_executor(
+                None, self._speak_text, clean.strip()
+            )

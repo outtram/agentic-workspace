@@ -6,6 +6,7 @@ _GRID_HINTS = (
     "[bold #FF6B35]Enter[/][dim] Open[/]  "
     "[bold #FF6B35]Space[/][dim] Sel[/]  "
     "[bold #FF6B35]/[/][dim] Cmds[/]  "
+    "[bold #FF6B35]c[/][dim] Chat[/]  "
     "[bold #FF6B35]t[/][dim] Today[/]  "
     "[bold #FF6B35]d[/][dim] Done[/]  "
     "[bold #FF6B35]e[/][dim] Edit[/]  "
@@ -19,6 +20,7 @@ _FOCUS_HINTS = (
     "[bold #FF6B35]Enter[/][dim] Edit[/]  "
     "[bold #FF6B35]Esc[/][dim] Back[/]  "
     "[bold #FF6B35]/[/][dim] Cmds[/]  "
+    "[bold #FF6B35]c[/][dim] Chat[/]  "
     "[bold #FF6B35]t[/][dim] Today[/]  "
     "[bold #FF6B35]d[/][dim] Done[/]  "
     "[bold #FF6B35]?[/][dim] Help[/]"
@@ -49,6 +51,7 @@ class StatusBarWidget(Static):
         voice_recording: bool = False,
         overdue: int = 0,
         telegram_status: str = "",
+        heartbeat_status: str = "",
         view_mode: str = "grid",
         nav_depth: int = 0,
     ):
@@ -77,6 +80,8 @@ class StatusBarWidget(Static):
                 parts.append("[bold #FF6B35]voice: ON[/]")
         if telegram_status:
             parts.append(f"[bold #00D4AA]{telegram_status}[/]")
+        if heartbeat_status:
+            parts.append(f"[bold #00D4AA]{heartbeat_status}[/]")
         if view_mode == "grid":
             parts.append(f"Page {page} of {total_pages}")
         line2 = " \u2502 ".join(parts)

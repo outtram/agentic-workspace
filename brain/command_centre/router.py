@@ -64,6 +64,7 @@ class Router:
         from .handlers import triage, enrich, daily_review, research
         from .handlers import email as email_handler
         from .handlers import agent_runner
+        from .handlers import memory as memory_handler
 
         parts = text.split(maxsplit=1)
         cmd = parts[0].lower()
@@ -113,6 +114,16 @@ class Router:
             return agent_runner.handle_agents(args)
         elif cmd == "/skill":
             return agent_runner.handle_skills(args)
+        elif cmd == "/remember":
+            await progress("[dim]Loading Claude...[/]")
+            self._ensure_brain()
+            await progress("[dim]Saving memory...[/]")
+            return await memory_handler.handle_remember(args, self.claude)
+        elif cmd == "/forget":
+            await progress("[dim]Loading Claude...[/]")
+            self._ensure_brain()
+            await progress("[dim]Searching memory...[/]")
+            return await memory_handler.handle_forget(args, self.claude)
         elif cmd == "/telegram":
             if not args:
                 return (
@@ -128,7 +139,8 @@ class Router:
                 "  Enter       Drill into children / open Focus View\n"
                 "  Space       Toggle select\n"
                 "  Escape      Back one level / clear / quit\n"
-                "  /           Command Palette (agents, skills, commands)\n\n"
+                "  /           Command Palette (agents, skills, commands)\n"
+                "  c           Toggle chat panel\n\n"
                 "[bold]Slash Commands[/]\n"
                 "  /done       Mark selected tasks done\n"
                 "  /today      Add selected to today\n"
@@ -142,6 +154,8 @@ class Router:
                 "  /email      Send an email via OutBot\n"
                 "  /agent      List available agents\n"
                 "  /skill      List available skills\n"
+                "  /remember   Save a memory (shared with OutBot)\n"
+                "  /forget     Remove a stored memory\n"
                 "  /telegram   Send a Telegram message\n"
                 "  /help       This help\n\n"
                 "[bold]Filters[/]\n"

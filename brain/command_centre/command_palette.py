@@ -27,6 +27,8 @@ _COMMANDS = [
     ("/inbox", "Check email inbox"),
     ("/import", "Import unread emails as tasks"),
     ("/email", "Send an email via OutBot"),
+    ("/remember", "Save a memory (shared with OutBot)"),
+    ("/forget", "Remove a stored memory"),
     ("/telegram", "Send a Telegram message"),
     ("/import-emails", "Import unread emails as tasks"),
     ("/help", "Show available commands"),
