@@ -53,48 +53,49 @@ from .brain_logger import log_action
 
 _HELP_TEXT = """\
 [bold #FF6B35]COMMAND CENTRE — HOTKEYS[/]
-[#333333]\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501[/]
+[#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/]
 
 [bold]Navigation[/]
-  Arrow keys    Move focus (tiles or fields)
-  Enter         Drill into children / open task / edit field
-  Space         Toggle select
-  Escape        Back one level / clear / quit
+  Arrow keys    Move focus between tiles
+  Enter         Drill down — parent task → show children; leaf task → open Focus View
+  Space         Toggle select on focused tile
   1-9           Jump to tile by position
-  \\[  \\]         Page left / right
+  [ / ]         Page left / right
 
 [bold]Selection[/]
-  Space         Toggle select
   a             Select all on page
   n             Deselect all
 
 [bold]Actions[/]
-  /             Command palette (commands, agents, skills)
+  /             Command Palette — all commands, agents, and skills in a filterable list
   c             Toggle chat panel (talk to OutBot)
-  t             Add to today
+  t             Add selected (or focused) to today
   d             Mark done (local + iOS)
-  e             Edit task (modal)
+  e             Edit focused task (modal)
   v             Toggle voice mode
-  :             Filter (:q1, :overdue, :search)
-  ?             This help
+  :             Filter mode (:q1, :overdue, :today, :search)
+  ?             Show help overlay
+  Escape        Back one level → clear filter → clear selection → double-tap to quit
 
 [bold]Task Focus View[/]  (when zoomed into a task)
-  \u2191 \u2193           Navigate fields + notes/research
-  Enter         Edit field / cycle choice
+  ↑ / ↓         Navigate between fields
+  Enter         Edit field (text input) or cycle choice (quadrant/priority/status)
+  Escape        Stop editing → back to field list → back to grid
+  /             Command Palette for this task (agents, skills, commands)
   c             Toggle chat panel
   n             Add a timestamped note
-  p             Open/create PRD (Esc saves)
-  Escape        Stop editing \u2192 back to grid
-  /             Command palette for this task
-  t  d          Today / Done
+  p             Open/create PRD (editable, Esc saves, includes research)
+  t             Add to today
+  d             Mark done
+  Space         Toggle select
 
 [bold]Voice Mode[/]  (when active)
   Enter         Start / stop recording
   v             Turn voice off
-  Escape        Cancel recording
+  Escape        Cancel current recording
 
 [bold]Quit[/]
-  Escape        Back through levels \u2192 double-tap to quit
+  Escape        Back through levels → double-tap to quit
 
 [dim]Press any key to close[/]"""
 

@@ -134,42 +134,8 @@ class Router:
                 return await self._telegram_bridge.send(args)
             return "[red]Telegram bridge not running[/]"
         elif cmd == "/help":
-            return (
-                "[bold]Navigation[/]\n"
-                "  Enter       Drill into children / open Focus View\n"
-                "  Space       Toggle select\n"
-                "  Escape      Back one level / clear / quit\n"
-                "  /           Command Palette (agents, skills, commands)\n"
-                "  c           Toggle chat panel\n\n"
-                "[bold]Slash Commands[/]\n"
-                "  /done       Mark selected tasks done\n"
-                "  /today      Add selected to today\n"
-                "  /remove     Remove from today\n"
-                "  /q1 .. /q4  Move to quadrant\n"
-                "  /enrich     Improve descriptions via Claude\n"
-                "  /research   Fetch URLs + summarise findings\n"
-                "  /daily      Run daily review (incl. email)\n"
-                "  /inbox      Check email inbox\n"
-                "  /import     Import unread emails as tasks\n"
-                "  /email      Send an email via OutBot\n"
-                "  /agent      List available agents\n"
-                "  /skill      List available skills\n"
-                "  /remember   Save a memory (shared with OutBot)\n"
-                "  /forget     Remove a stored memory\n"
-                "  /telegram   Send a Telegram message\n"
-                "  /help       This help\n\n"
-                "[bold]Filters[/]\n"
-                "  :q1 :q2 :q3 :q4   Filter by quadrant\n"
-                "  :overdue          Overdue tasks\n"
-                "  :today            Today list\n"
-                "  :search term      Text search\n\n"
-                "[bold]Focus View[/]\n"
-                "  \u2191 \u2193          Navigate fields\n"
-                "  Enter       Edit field / cycle choice\n"
-                "  Escape      Back to grid\n"
-                "  /           Commands for this task\n\n"
-                "[dim]Or just type to talk to OutBot[/]"
-            )
+            from .help_gen import generate_help_router, _load_yaml, HELP_DATA
+            return generate_help_router(_load_yaml(HELP_DATA))
         else:
             return f"Unknown command: {cmd}. Type /help for available commands."
 

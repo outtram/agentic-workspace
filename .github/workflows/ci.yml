@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev, "feature/**"]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml pytest pytest-asyncio httpx croniter textual
+
+      - name: Python syntax check (all .py files)
+        run: |
+          find brain/ -name "*.py" -exec python3 -m py_compile {} \;
+
+      - name: Help sync check
+        run: |
+          python3 -m brain.command_centre.help_gen --check
+
+      - name: Command Centre tests
+        run: |
+          python3 -m pytest brain/tests/test_command_centre/ -v
+
+      - name: Full test suite
+        run: |
+          python3 -m pytest brain/tests/ -v --ignore=brain/tests/integration

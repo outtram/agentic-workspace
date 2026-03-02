@@ -3,7 +3,7 @@
 ## Terminal Commands (available from anywhere)
 
 | Command | What it does |
-|---------|-------------|
+|---------|--------------|
 | `cc` | Command Centre TUI — 3x3 tile grid with multi-select, today list, pagination |
 | `outbot` | OutBot text chat (Opus 4.6) |
 | `outbot voice` | OutBot voice chat |
@@ -22,18 +22,18 @@
 | Key | Action |
 |-----|--------|
 | Arrow keys | Move focus between tiles |
-| Enter | **Drill down** — parent task → show children; leaf task → open Focus View |
+| Enter | Drill down — parent task → show children; leaf task → open Focus View |
 | Space | Toggle select on focused tile |
 | 1-9 | Jump to tile by position |
+| [ / ] | Page left / right |
 | a | Select all on page |
 | n | Deselect all |
-| / | **Command Palette** — all commands, agents, and skills in a filterable list |
-| c | Toggle **chat panel** — persistent OutBot conversation sidebar |
+| / | Command Palette — all commands, agents, and skills in a filterable list |
+| c | Toggle chat panel (talk to OutBot) |
 | t | Add selected (or focused) to today |
 | d | Mark done (local + iOS) |
 | e | Edit focused task (modal) |
 | v | Toggle voice mode |
-| [ / ] | Page left / right |
 | : | Filter mode (:q1, :overdue, :today, :search) |
 | ? | Show help overlay |
 | Escape | Back one level → clear filter → clear selection → double-tap to quit |
@@ -75,19 +75,19 @@ Arrow down past Description to the **Notes & Research** section. Press Enter to 
 ### Command Centre Slash Commands (inside `cc` command bar)
 
 | Command | What it does |
-|---------|-------------|
+|---------|--------------|
 | `/done` | Mark selected tasks done (local + iOS + git) |
 | `/today` | Add selected to today list |
 | `/remove` | Remove selected from today list |
-| `/q1` .. `/q4` | Move selected to Eisenhower quadrant |
+| `/q1 .. /q4` | Move selected to Eisenhower quadrant |
 | `/enrich` | Improve task descriptions via Claude |
 | `/research` | Fetch URLs from tasks + summarise findings via Claude |
-| `/daily` or `/dailyreview` | Run daily review (reminders + email + dashboard) |
+| `/daily` | Run daily review (reminders + email + dashboard) |
 | `/inbox` | Check email inbox (Gmail) |
-| `/import` or `/import-emails` | Import unread emails as tasks (syncs to iOS) |
+| `/import` | Import unread emails as tasks (syncs to iOS) |
 | `/email <msg>` | Send an email via OutBot (Claude extracts details) |
-| `/agent` | List available agents (or `/agent <name>` for details) |
-| `/skill` | List available skills (or `/skill <name>` for details) |
+| `/agent` | List available agents (or /agent <name> for details) |
+| `/skill` | List available skills (or /skill <name> for details) |
 | `/remember <text>` | Save a memory (shared with OutBot) |
 | `/forget <text>` | Remove a stored memory |
 | `/telegram <msg>` | Send a Telegram message |
@@ -95,12 +95,12 @@ Arrow down past Description to the **Notes & Research** section. Press Enter to 
 
 ### Predictions (on launch)
 
-On launch, the brain analyses `brain-log.yml` for day-of-week patterns, frequently selected tasks, and unfinished tasks from yesterday. If suggestions are found, the context panel shows "Brain suggests" with `y` to accept (adds to today) or `n` to dismiss.
+On launch, the brain analyses brain-log.yml for day-of-week patterns, frequently selected tasks, and unfinished tasks from yesterday. If suggestions are found, the context panel shows "Brain suggests" with y to accept (adds to today) or n to dismiss.
 
 ## Slash Commands (inside Claude Code)
 
 | Command | What it does |
-|---------|-------------|
+|---------|--------------|
 | `/daily-review` | Import reminders, generate Eisenhower dashboard, show Q1 priorities |
 | `/using-superpowers` | Load the superpowers workflow for skills-driven development |
 | `/debug` | Apply expert debugging methodology to investigate a specific issue |
@@ -136,7 +136,7 @@ On launch, the brain analyses `brain-log.yml` for day-of-week patterns, frequent
 ## Reminders CLI (from project root)
 
 | Command | What it does |
-|---------|-------------|
+|---------|--------------|
 | `cd .claude/reminders && python3 -m reminders.plugins.cli sync` | Pull reminders from iOS and create work items |
 | `cd .claude/reminders && python3 -m reminders.plugins.cli list` | List all active reminders |
 | `cd .claude/reminders && python3 -m reminders.plugins.cli show OUT-XXX` | Show detailed info for a task |
@@ -150,7 +150,7 @@ On launch, the brain analyses `brain-log.yml` for day-of-week patterns, frequent
 ## Agents (available inside Claude Code)
 
 | Agent | What it does |
-|-------|-------------|
+|-------|--------------|
 | overseer | Top-level task orchestration and delegation |
 | work-tracker | Create and update work items |
 | work-item-enricher | Enrich vague tasks with AI suggestions |
@@ -164,7 +164,7 @@ On launch, the brain analyses `brain-log.yml` for day-of-week patterns, frequent
 ## Skills (available inside Claude Code)
 
 | Skill | What it does |
-|-------|-------------|
+|-------|--------------|
 | daily-review | Import reminders, dashboard, priorities |
 | superpowers | Skills-driven development workflow |
 | pptx | Create, read, edit PowerPoint files |
@@ -203,3 +203,4 @@ On launch, the brain analyses `brain-log.yml` for day-of-week patterns, frequent
 1. `cc` — Command Centre (spatial tile grid)
 2. `/daily-review` — full morning review (import, dashboard, priorities)
 3. `outbot` — chat with OutBot
+

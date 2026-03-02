@@ -12,6 +12,18 @@
       }
     ],
 
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\ncmd = data.get('tool_input', {}).get('command', '')\nif 'git commit' in cmd and '--amend' not in cmd:\n    import subprocess\n    r = subprocess.run(['python3', '-m', 'brain.command_centre.help_gen', '--check'], capture_output=True, text=True)\n    if r.returncode != 0:\n        print(json.dumps({'decision': 'block', 'reason': 'Help outputs are stale. Run: python3 -m brain.command_centre.help_gen'}))\n        sys.exit(0)\nprint(json.dumps({}))\n\""
+          }
+        ]
+      }
+    ],
+
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
@@ -28,12 +40,36 @@
       {
         "matcher": "Edit|Write",
         "conditions": {
-          "filePattern": "brain/command_centre/(router|handlers/|action_menu|task_editor|note_modal)"
+          "filePattern": "brain/command_centre/help_data\\.yml$"
         },
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"hookSpecificOutput\":{\"notification\":\"MANDATORY: You MUST update ALL 3 help sources before committing: (1) HELP.md (2) _HELP_TEXT in app.py (3) /help output in router.py. Also update docs/ARCHITECTURE.md if adding new features.\"}}'"
+            "command": "echo '{\"hookSpecificOutput\":{\"notification\":\"help_data.yml modified. Run: python3 -m brain.command_centre.help_gen to update HELP.md and app.py. Then stage the outputs.\"}}'"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "conditions": {
+          "filePattern": "brain/command_centre/.*\\.py$"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"notification\":\"CC Python file modified. If you added/changed a slash command, update help_data.yml and run: python3 -m brain.command_centre.help_gen. Run tests before committing: python3 -m pytest brain/tests/test_command_centre/ -x -q\"}}'"
+          }
+        ]
+      }
+    ],
+
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport subprocess, json, sys\n# Check if any CC files are staged\nr = subprocess.run(['git', 'diff', '--cached', '--name-only'], capture_output=True, text=True)\nstaged = r.stdout.strip()\nif 'brain/command_centre/' in staged:\n    # Run help check\n    h = subprocess.run(['python3', '-m', 'brain.command_centre.help_gen', '--check'], capture_output=True, text=True)\n    if h.returncode != 0:\n        print(json.dumps({'decision': 'block', 'reason': 'STOP: CC files are staged but help outputs are stale. Run: python3 -m brain.command_centre.help_gen'}))\n        sys.exit(0)\n    # Run tests\n    t = subprocess.run(['python3', '-m', 'pytest', 'brain/tests/test_command_centre/', '-x', '-q'], capture_output=True, text=True)\n    if t.returncode != 0:\n        print(json.dumps({'decision': 'block', 'reason': 'STOP: CC tests are failing. Fix before finishing:\\n' + t.stdout}))\n        sys.exit(0)\nprint(json.dumps({}))\n\""
           }
         ]
       }
@@ -45,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "osascript -e 'display notification \"Claude Code needs your attention\" with title \"Claude Code\"'"
+            "command": "osascript -e 'display notification \"Claude Code needs your attention\" with title \"Claude Code\"' 2>/dev/null || true"
           }
         ]
       }
