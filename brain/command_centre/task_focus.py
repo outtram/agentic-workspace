@@ -144,8 +144,12 @@ class TaskFocusView(Widget):
         """Enter edit mode for the currently focused field."""
         if not self._task_data or self._editing:
             return
-        # Notes section is read-only
+
+        # Notes/research section — open full content read-only
         if self._field_cursor >= len(_FIELDS):
+            self._editing = True
+            self._edit_field = "_notes_research"
+            self._show_textarea("_notes_research")
             return
 
         key, _label, field_type = _FIELDS[self._field_cursor]
@@ -181,6 +185,15 @@ class TaskFocusView(Widget):
             return
 
         key = self._edit_field
+
+        # Notes/research is read-only — just close the viewer
+        if key == "_notes_research":
+            self._editing = False
+            self._edit_field = None
+            self._hide_editors()
+            self._refresh_display()
+            return
+
         old_val = self._get_display_value(key)
 
         if value.strip() != old_val.strip():
@@ -272,8 +285,9 @@ class TaskFocusView(Widget):
         lines.append("[#333333]" + "\u2501" * 48 + "[/]")
         notes = self._get_notes()
         arrow = "[bold #FF6B35]\u25b8 [/]" if notes_focused else "  "
+        hint = " [dim](Enter to view)[/]" if notes_focused else ""
         if notes:
-            lines.append(f"{arrow}[bold]NOTES & RESEARCH[/]")
+            lines.append(f"{arrow}[bold]NOTES & RESEARCH[/]{hint}")
             for note in notes[-6:]:
                 safe_note = note.replace("[", r"\[")
                 lines.append(f"    {safe_note}")
@@ -299,6 +313,8 @@ class TaskFocusView(Widget):
         """Get the display string for a field."""
         if not self._task_data:
             return ""
+        if key == "_notes_research":
+            return self._get_full_research()
         val = self._task_data.get(key, "")
         if val is None:
             return ""
@@ -382,6 +398,9 @@ class TaskFocusView(Widget):
         try:
             area = self.query_one("#focus-edit-area", TextArea)
             area.load_text(self._get_display_value(key))
+            area.read_only = key == "_notes_research"
+            # Taller for notes/research so you can see the content
+            area.styles.height = 16 if key == "_notes_research" else 8
             area.styles.display = "block"
             area.focus()
         except Exception:
@@ -394,7 +413,10 @@ class TaskFocusView(Widget):
         except Exception:
             pass
         try:
-            self.query_one("#focus-edit-area", TextArea).styles.display = "none"
+            area = self.query_one("#focus-edit-area", TextArea)
+            area.styles.display = "none"
+            area.read_only = False
+            area.styles.height = 8
         except Exception:
             pass
 
@@ -436,6 +458,36 @@ class TaskFocusView(Widget):
             return entries
         except Exception:
             return []
+
+    def _get_full_research(self) -> str:
+        """Get full research + notes content from the task file."""
+        if not self._task_data:
+            return ""
+        task_id = self._task_data.get("id", "")
+        if not task_id:
+            return ""
+        task_file = find_task_file(task_id)
+        if not task_file:
+            return ""
+        try:
+            content = task_file.read_text()
+            sections: list[str] = []
+            lines = content.split("\n")
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                if line.startswith("## Research") or line.startswith("## Note"):
+                    section_lines = [line]
+                    i += 1
+                    while i < len(lines) and not lines[i].startswith("## "):
+                        section_lines.append(lines[i])
+                        i += 1
+                    sections.append("\n".join(section_lines).strip())
+                    continue
+                i += 1
+            return "\n\n".join(sections) if sections else "(no notes or research)"
+        except Exception:
+            return ""
 
     def _debounced_save(self) -> None:
         """Debounce file writes — waits 0.5s after last change before saving."""

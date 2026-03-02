@@ -49,7 +49,7 @@
 | d | Mark done |
 | Space | Toggle select |
 
-Notes & research findings from `/research` are shown at the bottom of the focus view.
+Arrow down past Description to the **Notes & Research** section. Press Enter to view full content.
 
 ### Command Palette (/ key)
 
