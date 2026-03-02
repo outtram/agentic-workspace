@@ -49,6 +49,8 @@
 | d | Mark done |
 | Space | Toggle select |
 
+Notes & research findings from `/research` are shown at the bottom of the focus view.
+
 ### Command Palette (/ key)
 
 | Key | Action |

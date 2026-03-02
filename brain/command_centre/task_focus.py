@@ -115,11 +115,17 @@ class TaskFocusView(Widget):
         self._refresh_display()
 
     def clear(self) -> None:
-        """Clear the focus view."""
+        """Clear the focus view and release any editor focus."""
         self._task_data = None
         self._field_cursor = 0
         self._editing = False
         self._edit_field = None
+        self._hide_editors()
+        # Blur any focused child widget so keys return to the app
+        try:
+            self.app.screen.set_focus(None)
+        except Exception:
+            pass
 
     def move_cursor(self, direction: int) -> None:
         """Move field cursor up (-1) or down (+1)."""
@@ -258,9 +264,10 @@ class TaskFocusView(Widget):
         lines.append("[#333333]" + "\u2501" * 48 + "[/]")
         notes = self._get_notes()
         if notes:
-            lines.append("[bold]NOTES[/]")
-            for note in notes[-3:]:
-                lines.append(f"[dim]{note}[/]")
+            lines.append("[bold]NOTES & RESEARCH[/]")
+            for note in notes[-6:]:
+                safe_note = note.replace("[", r"\[")
+                lines.append(f"[dim]{safe_note}[/]")
         else:
             lines.append("[dim]No notes yet[/]")
 
@@ -383,7 +390,7 @@ class TaskFocusView(Widget):
             pass
 
     def _get_notes(self) -> list[str]:
-        """Extract note headings from the task file."""
+        """Extract note and research sections from the task file."""
         if not self._task_data:
             return []
         task_id = self._task_data.get("id", "")
@@ -394,11 +401,30 @@ class TaskFocusView(Widget):
             return []
         try:
             content = task_file.read_text()
-            notes = []
-            for line in content.split("\n"):
+            entries: list[str] = []
+            lines = content.split("\n")
+            i = 0
+            while i < len(lines):
+                line = lines[i]
                 if line.startswith("## Note"):
-                    notes.append(line.replace("## ", ""))
-            return notes
+                    entries.append(line.replace("## ", ""))
+                elif line.startswith("## Research"):
+                    # Show first 3 lines of research content
+                    entries.append("Research findings:")
+                    j = i + 1
+                    # Skip blank lines after heading
+                    while j < len(lines) and not lines[j].strip():
+                        j += 1
+                    shown = 0
+                    while j < len(lines) and shown < 3:
+                        if lines[j].startswith("##"):
+                            break
+                        if lines[j].strip():
+                            entries.append(f"  {lines[j].strip()[:60]}")
+                            shown += 1
+                        j += 1
+                i += 1
+            return entries
         except Exception:
             return []
 
