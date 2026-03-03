@@ -194,9 +194,6 @@ class CommandCentreApp(App):
         self._progress_start: float | None = None
         self._progress_timer = None
 
-        # Modal dismiss guard — prevents Enter/Escape bleed-through
-        self._modal_just_dismissed = False
-
         # Subsystems
         self.router = Router()
         self.voice = VoiceHandler()
@@ -399,11 +396,9 @@ class CommandCentreApp(App):
     # --- Key handling ---
 
     def on_key(self, event: events.Key):
-        # Guard: skip Enter/Escape that bleed through from a just-dismissed modal
-        if self._modal_just_dismissed:
-            self._modal_just_dismissed = False
-            if event.key in ("enter", "escape"):
-                return
+        # Don't handle keys when a modal is active — let the modal handle them
+        if len(self.screen_stack) > 1:
+            return
 
         # If the focus-edit-input or focus-edit-area is active, let them handle keys
         if self._view_mode == "focus":
@@ -751,7 +746,6 @@ class CommandCentreApp(App):
         task = self._focused_task
 
         def on_dismiss(result: str | None) -> None:
-            self._modal_just_dismissed = True
             if result is None:
                 return
             if result == "edit":
@@ -770,7 +764,6 @@ class CommandCentreApp(App):
         """Open the filter picker modal (replaces : command bar prefill)."""
 
         def on_dismiss(result: str | None) -> None:
-            self._modal_just_dismissed = True
             if result is not None:
                 self._handle_filter(result)
 
