@@ -127,20 +127,10 @@ class FilterPicker(ModalScreen[str | None]):
                 self._render_list()
             event.prevent_default()
             event.stop()
-        elif event.key == "enter":
-            # Always consume Enter so it never reaches the grid
+        elif event.key == "escape":
             event.prevent_default()
             event.stop()
-            # If input doesn't have focus, handle selection here
-            try:
-                inp = self.query_one("#filter-input", Input)
-                if not inp.has_focus:
-                    if self._filtered and 0 <= self._cursor < len(self._filtered):
-                        self._deferred_dismiss(self._filtered[self._cursor][0])
-            except Exception:
-                pass
-            # If input has focus, Input widget already posted Submitted
-            # before this handler ran (events bubble up from focused widget)
+            self._deferred_dismiss(None)
 
     def _render_list(self) -> None:
         """Render the filtered list with cursor highlighting."""

@@ -220,20 +220,10 @@ class CommandPalette(ModalScreen[str | None]):
                 self._scroll_to_cursor()
             event.prevent_default()
             event.stop()
-        elif event.key == "enter":
-            # Always consume Enter so it never reaches the grid
+        elif event.key == "escape":
             event.prevent_default()
             event.stop()
-            # If input doesn't have focus, handle selection here
-            try:
-                inp = self.query_one("#palette-input", Input)
-                if not inp.has_focus:
-                    if self._filtered and 0 <= self._cursor < len(self._filtered):
-                        self._deferred_dismiss(self._filtered[self._cursor].command)
-            except Exception:
-                pass
-            # If input has focus, Input widget already posted Submitted
-            # before this handler ran (events bubble up from focused widget)
+            self._deferred_dismiss(None)
 
     def _scroll_to_cursor(self):
         """Ensure the cursor item is visible."""
