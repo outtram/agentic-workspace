@@ -99,6 +99,13 @@ def generate_help_md(data: dict) -> str:
     lines.append("")
     lines.append("Arrow down past Description to the **Notes & Research** section. Press Enter to view full content.")
 
+    # Filter picker
+    lines.extend(["", "### Filter Picker (: key)", ""])
+    lines.append(_table(
+        ["Key", "Action"],
+        [[k["key"], k["action"]] for k in data["filter_picker_keys"]],
+    ))
+
     # Command palette
     lines.extend(["", "### Command Palette (/ key)", ""])
     lines.append(_table(
@@ -210,6 +217,11 @@ def generate_help_text_rich(data: dict) -> str:
         lines.append(f'  {k["key"]:<14s}{k["action"]}')
 
     lines.append('')
+    lines.append('[bold]Filter Picker[/]  (: key)')
+    for k in data["filter_picker_keys"]:
+        lines.append(f'  {k["key"]:<14s}{k["action"]}')
+
+    lines.append('')
     lines.append('[bold]Voice Mode[/]  (when active)')
     for k in data["voice_mode_keys"]:
         lines.append(f'  {k["key"]:<14s}{k["action"]}')
@@ -248,7 +260,7 @@ def generate_help_router(data: dict) -> str:
 
     lines.extend([
         '',
-        '[bold]Filters[/]',
+        '[bold]Filters[/]  (: opens Filter Picker)',
         '  :q1 :q2 :q3 :q4   Filter by quadrant',
         '  :overdue          Overdue tasks',
         '  :today            Today list',

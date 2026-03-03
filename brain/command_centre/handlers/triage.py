@@ -5,7 +5,7 @@ import yaml
 
 from .. import PROJECT_ROOT
 from ..brain_logger import log_action
-from ..task_loader import find_task_file
+from ..task_loader import find_task_file, save_today_list
 
 
 async def handle_done(task_ids: list[str]) -> str:
@@ -46,6 +46,7 @@ def handle_today(task_ids: list[str], today_ids: list[str]) -> str:
             today_ids.append(tid)
             added += 1
 
+    save_today_list(today_ids)
     log_action("added_to_today", task_ids=task_ids)
     return f"Added {added} to today"
 
@@ -61,6 +62,7 @@ def handle_remove(task_ids: list[str], today_ids: list[str]) -> str:
             today_ids.remove(tid)
             removed += 1
 
+    save_today_list(today_ids)
     log_action("removed_from_today", task_ids=task_ids)
     return f"Removed {removed} from today"
 

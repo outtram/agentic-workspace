@@ -139,8 +139,11 @@ class Router:
             subprocess.Popen(["open", str(arch_path)])
             return "[green]Opened architecture diagram in browser[/]"
         elif cmd == "/help":
-            from .help_gen import generate_help_router, _load_yaml, HELP_DATA
-            return generate_help_router(_load_yaml(HELP_DATA))
+            try:
+                from .help_gen import generate_help_router, _load_yaml, HELP_DATA
+                return generate_help_router(_load_yaml(HELP_DATA))
+            except Exception:
+                return "[red]Help data unavailable[/]"
         else:
             return f"Unknown command: {cmd}. Type /help for available commands."
 

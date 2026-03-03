@@ -57,7 +57,7 @@ grid_view_keys:
     - key: "v"
       action: "Toggle voice mode"
     - key: ":"
-      action: "Filter mode (:q1, :overdue, :today, :search)"
+      action: "Filter Picker — select from quadrants, overdue, today, or search"
     - key: "?"
       action: "Show help overlay"
     - key: "Escape"
@@ -84,6 +84,16 @@ focus_view_keys:
     action: "Mark done"
   - key: "Space"
     action: "Toggle select"
+
+filter_picker_keys:
+  - key: "↑ / ↓"
+    action: "Navigate between filters"
+  - key: "Enter"
+    action: "Apply selected filter"
+  - key: "Type"
+    action: "Filter list or freetext search"
+  - key: "Escape"
+    action: "Close picker"
 
 command_palette_keys:
   - key: "↑ / ↓"

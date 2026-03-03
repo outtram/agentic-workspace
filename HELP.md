@@ -34,7 +34,7 @@
 | d | Mark done (local + iOS) |
 | e | Edit focused task (modal) |
 | v | Toggle voice mode |
-| : | Filter mode (:q1, :overdue, :today, :search) |
+| : | Filter Picker — select from quadrants, overdue, today, or search |
 | ? | Show help overlay |
 | Escape | Back one level → clear filter → clear selection → double-tap to quit |
 
@@ -54,6 +54,15 @@
 | Space | Toggle select |
 
 Arrow down past Description to the **Notes & Research** section. Press Enter to view full content.
+
+### Filter Picker (: key)
+
+| Key | Action |
+|-----|--------|
+| ↑ / ↓ | Navigate between filters |
+| Enter | Apply selected filter |
+| Type | Filter list or freetext search |
+| Escape | Close picker |
 
 ### Command Palette (/ key)
 

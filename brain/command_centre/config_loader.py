@@ -21,6 +21,7 @@ _DEFAULTS = {
         "edit_task": "e",
         "toggle_voice": "v",
         "action_menu": "x",
+        "chat_toggle": "c",
     },
     "display": {
         "tiles_per_row": 3,

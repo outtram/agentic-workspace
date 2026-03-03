@@ -40,6 +40,7 @@ from .router import Router
 from .task_editor import TaskEditScreen
 from .predictions import generate_predictions
 from .command_palette import CommandPalette
+from .filter_picker import FilterPicker
 from .task_focus import TaskFocusView
 from .handlers.voice import VoiceHandler, VOICE_AVAILABLE
 from .telegram_bridge import TelegramBridge
@@ -73,7 +74,7 @@ _HELP_TEXT = """\
   d             Mark done (local + iOS)
   e             Edit focused task (modal)
   v             Toggle voice mode
-  :             Filter mode (:q1, :overdue, :today, :search)
+  :             Filter Picker — select from quadrants, overdue, today, or search
   ?             Show help overlay
   Escape        Back one level → clear filter → clear selection → double-tap to quit
 
@@ -88,6 +89,12 @@ _HELP_TEXT = """\
   t             Add to today
   d             Mark done
   Space         Toggle select
+
+[bold]Filter Picker[/]  (: key)
+  ↑ / ↓         Navigate between filters
+  Enter         Apply selected filter
+  Type          Filter list or freetext search
+  Escape        Close picker
 
 [bold]Voice Mode[/]  (when active)
   Enter         Start / stop recording
@@ -489,7 +496,7 @@ class CommandCentreApp(App):
         elif char == hk.get("chat_toggle", "c"):
             self._toggle_chat()
         elif char == hk.get("filter_mode", ":"):
-            self._focus_command_bar(":")
+            self._open_filter_picker()
 
     def _handle_focus_key(self, key: str, char: str | None, hk: dict):
         """Handle keys in focus view."""
@@ -531,7 +538,7 @@ class CommandCentreApp(App):
         elif char == hk.get("help", "?"):
             self.push_screen(HelpOverlay())
         elif char == hk.get("filter_mode", ":"):
-            self._focus_command_bar(":")
+            self._open_filter_picker()
         elif char == hk.get("chat_toggle", "c"):
             self._toggle_chat()
         elif char == hk.get("toggle_voice", "v"):
@@ -748,6 +755,15 @@ class CommandCentreApp(App):
             asyncio.create_task(self._run_palette_action(result, task))
 
         self.push_screen(CommandPalette(task=task), callback=on_dismiss)
+
+    def _open_filter_picker(self):
+        """Open the filter picker modal (replaces : command bar prefill)."""
+
+        def on_dismiss(result: str | None) -> None:
+            if result is not None:
+                self._handle_filter(result)
+
+        self.push_screen(FilterPicker(), callback=on_dismiss)
 
     async def _run_palette_action(self, command: str, task: dict | None):
         """Execute a command from the palette."""
@@ -1161,6 +1177,7 @@ class CommandCentreApp(App):
         if self.focus_index >= len(self.page_tasks):
             self.focus_index = max(0, len(self.page_tasks) - 1)
 
+        save_today_list(self.today_ids)
         log_action("done", task_ids=ids_to_complete)
         self.notify(f"Completed {completed} task{'s' if completed != 1 else ''}")
         self._refresh_all()
@@ -1191,6 +1208,7 @@ class CommandCentreApp(App):
                     log_action("removed_from_today", task_ids=[tid])
                     self.notify(f"Removed {tid} from today", severity="warning")
         self._escape_pending = False
+        save_today_list(self.today_ids)
         self._refresh_all()
 
     # --- Voice ---
@@ -1305,6 +1323,7 @@ class CommandCentreApp(App):
                 self.today_ids.append(tid)
                 added += 1
         self._predictions_pending = False
+        save_today_list(self.today_ids)
         self._panel_mode = "detail"
         self._refresh_all()
         self.notify(f"Added {added} suggested tasks to today")
