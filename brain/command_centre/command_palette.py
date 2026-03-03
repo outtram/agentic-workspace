@@ -216,6 +216,8 @@ class CommandPalette(ModalScreen[str | None]):
             event.prevent_default()
             event.stop()
         elif event.key == "enter":
+            event.prevent_default()
+            event.stop()
             # Handled by on_input_submitted if input focused
             # But also handle if focus is elsewhere
             try:

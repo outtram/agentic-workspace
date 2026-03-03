@@ -22,6 +22,7 @@ The Command Centre is a keyboard-driven terminal TUI (built with Textual) that u
 - **Hierarchical drill-down**: Enter on parent → shows children; Enter on leaf → Task Focus View
 - **Task Focus View**: single-task control centre with field-by-field editing, notes, PRD promotion, and research viewer (Up/Down, Enter to edit, n to add note, p to open/create PRD, Escape to back out)
 - **Command Palette**: / key opens navigable modal with commands, agents, and skills (arrow keys + filter)
+- **Filter Picker**: : key opens navigable modal with quadrant, overdue, today filters + freetext search
 - **AI Progress Log**: step-by-step progress with elapsed timer (not just "Thinking...")
 - **Navigation stack**: Escape goes back through levels (focus → children → parent → all tasks)
 - Space = select, Enter = drill down (separated from v1 where both toggled select)
@@ -232,6 +233,7 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Router** | `router.py` | Routes input to slash handlers or OutBot natural language |
 | **Task Editor** | `task_editor.py` | Modal for editing task fields (title, quadrant, due, etc.) |
 | **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key) |
+| **Filter Picker** | `filter_picker.py` | Navigable modal: q1-q4, overdue, today filters (: key) |
 | **Task Focus** | `task_focus.py` | Single-task view with field editing + research/notes viewer |
 | **Telegram Bridge** | `telegram_bridge.py` | Background Telegram connection + message forwarding |
 | **Heartbeat Bridge** | `heartbeat_bridge.py` | Background 60s scheduler — checks overdue tasks, shows toast notifications |

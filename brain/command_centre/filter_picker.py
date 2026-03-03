@@ -124,6 +124,8 @@ class FilterPicker(ModalScreen[str | None]):
             event.prevent_default()
             event.stop()
         elif event.key == "enter":
+            event.prevent_default()
+            event.stop()
             try:
                 inp = self.query_one("#filter-input", Input)
                 if not inp.has_focus:
