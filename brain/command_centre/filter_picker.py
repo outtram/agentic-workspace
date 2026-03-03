@@ -98,18 +98,21 @@ class FilterPicker(ModalScreen[str | None]):
         self._cursor = 0
         self._render_list()
 
+    def _deferred_dismiss(self, result: str | None) -> None:
+        """Dismiss after current event cycle to prevent key bleed-through."""
+        self.call_later(self.dismiss, result)
+
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "filter-input":
             return
         event.stop()
         text = event.value.strip()
         if self._filtered and 0 <= self._cursor < len(self._filtered):
-            self.dismiss(self._filtered[self._cursor][0])
+            self._deferred_dismiss(self._filtered[self._cursor][0])
         elif text:
-            # Freetext fallback — pass through as search term
-            self.dismiss(text)
+            self._deferred_dismiss(text)
         else:
-            self.dismiss(None)
+            self._deferred_dismiss(None)
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "up":
@@ -125,15 +128,19 @@ class FilterPicker(ModalScreen[str | None]):
             event.prevent_default()
             event.stop()
         elif event.key == "enter":
+            # Always consume Enter so it never reaches the grid
+            event.prevent_default()
+            event.stop()
+            # If input doesn't have focus, handle selection here
             try:
                 inp = self.query_one("#filter-input", Input)
                 if not inp.has_focus:
-                    event.prevent_default()
-                    event.stop()
                     if self._filtered and 0 <= self._cursor < len(self._filtered):
-                        self.dismiss(self._filtered[self._cursor][0])
+                        self._deferred_dismiss(self._filtered[self._cursor][0])
             except Exception:
                 pass
+            # If input has focus, Input widget already posted Submitted
+            # before this handler ran (events bubble up from focused widget)
 
     def _render_list(self) -> None:
         """Render the filtered list with cursor highlighting."""

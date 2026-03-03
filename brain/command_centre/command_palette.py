@@ -188,6 +188,10 @@ class CommandPalette(ModalScreen[str | None]):
         self._cursor = 0
         self._render_list()
 
+    def _deferred_dismiss(self, result: str | None) -> None:
+        """Dismiss after current event cycle to prevent key bleed-through."""
+        self.call_later(self.dismiss, result)
+
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "palette-input":
             return
@@ -195,11 +199,11 @@ class CommandPalette(ModalScreen[str | None]):
         # If there's a filter value and no filtered items, treat as raw command
         text = event.value.strip()
         if self._filtered and 0 <= self._cursor < len(self._filtered):
-            self.dismiss(self._filtered[self._cursor].command)
+            self._deferred_dismiss(self._filtered[self._cursor].command)
         elif text:
-            self.dismiss(text)
+            self._deferred_dismiss(text)
         else:
-            self.dismiss(None)
+            self._deferred_dismiss(None)
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "up":
@@ -217,24 +221,24 @@ class CommandPalette(ModalScreen[str | None]):
             event.prevent_default()
             event.stop()
         elif event.key == "enter":
-            # Handled by on_input_submitted if input focused
-            # But also handle if focus is elsewhere
+            # Always consume Enter so it never reaches the grid
+            event.prevent_default()
+            event.stop()
+            # If input doesn't have focus, handle selection here
             try:
                 inp = self.query_one("#palette-input", Input)
                 if not inp.has_focus:
-                    event.prevent_default()
-                    event.stop()
                     if self._filtered and 0 <= self._cursor < len(self._filtered):
-                        self.dismiss(self._filtered[self._cursor].command)
+                        self._deferred_dismiss(self._filtered[self._cursor].command)
             except Exception:
                 pass
+            # If input has focus, Input widget already posted Submitted
+            # before this handler ran (events bubble up from focused widget)
 
     def _scroll_to_cursor(self):
         """Ensure the cursor item is visible."""
         try:
             scroll = self.query_one("#palette-list", VerticalScroll)
-            # Approximate: each item ~1-2 lines, categories add lines
-            # Just scroll to a rough position
             scroll.scroll_to(y=max(0, self._cursor - 5), animate=False)
         except Exception:
             pass
