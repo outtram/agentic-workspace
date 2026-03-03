@@ -98,21 +98,17 @@ class FilterPicker(ModalScreen[str | None]):
         self._cursor = 0
         self._render_list()
 
-    def _deferred_dismiss(self, result: str | None) -> None:
-        """Dismiss after current event cycle to prevent key bleed-through."""
-        self.call_later(self.dismiss, result)
-
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "filter-input":
             return
         event.stop()
         text = event.value.strip()
         if self._filtered and 0 <= self._cursor < len(self._filtered):
-            self._deferred_dismiss(self._filtered[self._cursor][0])
+            self.dismiss(self._filtered[self._cursor][0])
         elif text:
-            self._deferred_dismiss(text)
+            self.dismiss(text)
         else:
-            self._deferred_dismiss(None)
+            self.dismiss(None)
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "up":
@@ -130,7 +126,7 @@ class FilterPicker(ModalScreen[str | None]):
         elif event.key == "escape":
             event.prevent_default()
             event.stop()
-            self._deferred_dismiss(None)
+            self.dismiss(None)
 
     def _render_list(self) -> None:
         """Render the filtered list with cursor highlighting."""
