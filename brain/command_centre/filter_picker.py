@@ -101,6 +101,7 @@ class FilterPicker(ModalScreen[str | None]):
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "filter-input":
             return
+        event.stop()
         text = event.value.strip()
         if self._filtered and 0 <= self._cursor < len(self._filtered):
             self.dismiss(self._filtered[self._cursor][0])
@@ -124,11 +125,11 @@ class FilterPicker(ModalScreen[str | None]):
             event.prevent_default()
             event.stop()
         elif event.key == "enter":
-            event.prevent_default()
-            event.stop()
             try:
                 inp = self.query_one("#filter-input", Input)
                 if not inp.has_focus:
+                    event.prevent_default()
+                    event.stop()
                     if self._filtered and 0 <= self._cursor < len(self._filtered):
                         self.dismiss(self._filtered[self._cursor][0])
             except Exception:

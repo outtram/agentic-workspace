@@ -232,8 +232,8 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Status Bar** | `status_bar.py` | Hints + counts (tasks, today, overdue, telegram, voice) |
 | **Router** | `router.py` | Routes input to slash handlers or OutBot natural language |
 | **Task Editor** | `task_editor.py` | Modal for editing task fields (title, quadrant, due, etc.) |
-| **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key) |
-| **Filter Picker** | `filter_picker.py` | Navigable modal: q1-q4, overdue, today filters (: key) |
+| **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key). Enter events stopped to prevent grid bleed-through |
+| **Filter Picker** | `filter_picker.py` | Navigable modal: q1-q4, overdue, today filters (: key). Enter events stopped to prevent grid bleed-through |
 | **Task Focus** | `task_focus.py` | Single-task view with field editing + research/notes viewer |
 | **Telegram Bridge** | `telegram_bridge.py` | Background Telegram connection + message forwarding |
 | **Heartbeat Bridge** | `heartbeat_bridge.py` | Background 60s scheduler — checks overdue tasks, shows toast notifications |

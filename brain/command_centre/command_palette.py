@@ -191,6 +191,7 @@ class CommandPalette(ModalScreen[str | None]):
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "palette-input":
             return
+        event.stop()
         # If there's a filter value and no filtered items, treat as raw command
         text = event.value.strip()
         if self._filtered and 0 <= self._cursor < len(self._filtered):
@@ -216,13 +217,13 @@ class CommandPalette(ModalScreen[str | None]):
             event.prevent_default()
             event.stop()
         elif event.key == "enter":
-            event.prevent_default()
-            event.stop()
             # Handled by on_input_submitted if input focused
             # But also handle if focus is elsewhere
             try:
                 inp = self.query_one("#palette-input", Input)
                 if not inp.has_focus:
+                    event.prevent_default()
+                    event.stop()
                     if self._filtered and 0 <= self._cursor < len(self._filtered):
                         self.dismiss(self._filtered[self._cursor].command)
             except Exception:
