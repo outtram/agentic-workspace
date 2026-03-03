@@ -1223,11 +1223,17 @@ class CommandCentreApp(App):
     def _voice_stop(self):
         audio = self.voice.stop_recording()
         if audio is None:
+            self._progress_log.clear()
+            self._progress_start = None
             self._last_response = "[dim]Too short or too quiet — try again[/]"
+            self._panel_mode = "response"
             self._refresh_all()
             return
 
+        self._progress_log.clear()
+        self._progress_start = None
         self._last_response = "[dim]Transcribing...[/]"
+        self._panel_mode = "response"
         self._refresh_all()
         asyncio.create_task(self._voice_pipeline(audio))
 

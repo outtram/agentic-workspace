@@ -20,17 +20,19 @@
 You are performing Troy's daily task review. Execute these steps in order:
 
 ### Step 1: Import Reminders
-Run the new reminders CLI sync command:
+Run the reminders CLI sync with `--quick` flag (only checks last 24h, avoids timeout):
 ```bash
-cd .claude/reminders && python3 -m reminders.plugins.cli sync
+cd .claude/reminders && python3 -m reminders.plugins.cli sync --quick
 ```
 
 The sync command will:
-- Fetch all active reminders from macOS Reminders.app
+- Fetch recently created/modified reminders from macOS Reminders.app
 - Create work items in `.claude/work/tasks/`
 - Skip duplicates automatically
 - Classify into Eisenhower quadrants
 - Report stats (new imported, duplicates skipped, breakdown by quadrant)
+
+**Note:** Use `sync` (without `--quick`) for a full reconciliation if needed.
 
 ### Step 2: Generate Dashboard
 Run the dashboard generator:

@@ -80,6 +80,54 @@ end tell
 '''
         self._execute(script)
 
+    def fetch_recent_reminders(self, since_days: int = 1) -> list[dict]:
+        """Fetch only reminders created or modified in the last N days.
+
+        Uses AppleScript's `whose` clause for native filtering — Reminders.app
+        filters internally without iterating every reminder in our script.
+        Much faster than fetch_all_reminders().
+        """
+        script = f'''
+tell application "Reminders"
+    set output to ""
+    set fieldSep to (ASCII character 30) -- record separator
+    set recSep to (ASCII character 29) -- group separator
+    set cutoffDate to (current date) - ({since_days} * days)
+    repeat with aList in lists
+        set listName to name of aList
+        try
+            set recentOnes to (reminders of aList whose completed is false and modification date > cutoffDate)
+        on error
+            set recentOnes to {{}}
+        end try
+        repeat with aReminder in recentOnes
+            set rId to id of aReminder
+            set rName to name of aReminder
+            try
+                set rBody to body of aReminder
+                set {{oldDelims, AppleScript's text item delimiters}} to {{AppleScript's text item delimiters, return}}
+                set bodyParts to text items of rBody
+                set AppleScript's text item delimiters to "\\\\n"
+                set rBody to bodyParts as string
+                set AppleScript's text item delimiters to oldDelims
+            on error
+                set rBody to ""
+            end try
+            try
+                set rDueDate to due date of aReminder as string
+            on error
+                set rDueDate to ""
+            end try
+            set rPriority to priority of aReminder
+            set output to output & listName & fieldSep & rId & fieldSep & rName & fieldSep & rBody & fieldSep & rDueDate & fieldSep & rPriority & recSep
+        end repeat
+    end repeat
+    return output
+end tell
+'''
+        result = self._execute(script)
+        return self._parse_reminders(result)
+
     def fetch_all_reminders(self) -> list[dict]:
         """Fetch all active (non-completed) reminders"""
         # Use ␞ (ASCII record separator) as field delimiter and ␟ (unit separator)

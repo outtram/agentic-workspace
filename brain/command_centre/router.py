@@ -133,6 +133,11 @@ class Router:
             if self._telegram_bridge:
                 return await self._telegram_bridge.send(args)
             return "[red]Telegram bridge not running[/]"
+        elif cmd == "/arch":
+            import subprocess
+            arch_path = PROJECT_ROOT / "docs" / "architecture-diagram.html"
+            subprocess.Popen(["open", str(arch_path)])
+            return "[green]Opened architecture diagram in browser[/]"
         elif cmd == "/help":
             from .help_gen import generate_help_router, _load_yaml, HELP_DATA
             return generate_help_router(_load_yaml(HELP_DATA))

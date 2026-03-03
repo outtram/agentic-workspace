@@ -15,6 +15,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
+<!-- Mermaid -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
 <style>
   /* ═══════════════════════════════════════════
      DESIGN TOKENS — Vapor Clinic Preset
@@ -38,6 +41,7 @@
     --green: #2DD4A0;
     --orange: #FF9F43;
     --yellow: #FFD93D;
+    --teal: #00D4AA;
 
     /* Spacing */
     --section-gap: 8rem;
@@ -411,7 +415,30 @@
   }
 
   /* ═══════════════════════════════════════════
-     TWO SYSTEMS — Stacking Cards
+     MERMAID DIAGRAM SECTION
+     ═══════════════════════════════════════════ */
+  .diagram-section {
+    padding: var(--section-gap) 0;
+    background: var(--primary);
+  }
+
+  .mermaid-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    overflow-x: auto;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ═══════════════════════════════════════════
+     THREE SYSTEMS — Stacking Cards
      ═══════════════════════════════════════════ */
   .systems-section {
     padding: var(--section-gap) 0;
@@ -419,7 +446,7 @@
 
   .system-card {
     position: relative;
-    min-height: 80vh;
+    min-height: 70vh;
     border-radius: var(--radius);
     padding: 3.5rem;
     display: flex;
@@ -431,6 +458,11 @@
 
   .system-card-inner {
     max-width: 640px;
+  }
+
+  .system-card.command-centre {
+    background: linear-gradient(135deg, #1a0f0a 0%, var(--surface) 100%);
+    border: 1px solid rgba(255, 107, 53, 0.2);
   }
 
   .system-card.claude-code {
@@ -485,6 +517,12 @@
     transform: scale(1.03);
   }
 
+  .pipeline-step.orange {
+    background: rgba(255, 107, 53, 0.12);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    color: var(--orange);
+  }
+
   .pipeline-step.pink {
     background: rgba(233, 69, 96, 0.12);
     border: 1px solid rgba(233, 69, 96, 0.3);
@@ -526,9 +564,11 @@
     border-color: var(--border-hover);
   }
 
+  .tag.orange { border-color: rgba(255, 107, 53, 0.35); color: var(--orange); }
   .tag.pink { border-color: rgba(233, 69, 96, 0.35); color: var(--pink); }
   .tag.blue { border-color: rgba(74, 158, 255, 0.35); color: var(--blue); }
   .tag.green { border-color: rgba(45, 212, 160, 0.35); color: var(--green); }
+  .tag.teal { border-color: rgba(0, 212, 170, 0.35); color: var(--teal); }
 
   .tags-label {
     font-size: 0.72rem;
@@ -559,7 +599,7 @@
 
   .capability-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
     margin-top: 2rem;
   }
@@ -573,7 +613,8 @@
     transform: translateY(30px);
   }
 
-  .capability-col.cc { border-color: rgba(233, 69, 96, 0.2); }
+  .capability-col.cc { border-color: rgba(255, 107, 53, 0.2); }
+  .capability-col.claude { border-color: rgba(233, 69, 96, 0.2); }
   .capability-col.ob { border-color: rgba(74, 158, 255, 0.2); }
 
   .capability-col-title {
@@ -630,7 +671,7 @@
     color: var(--text);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     .capability-grid {
       grid-template-columns: 1fr;
     }
@@ -764,6 +805,40 @@
   }
 
   .service-name.planned { opacity: 0.5; }
+
+  /* ═══════════════════════════════════════════
+     STATS SECTION
+     ═══════════════════════════════════════════ */
+  .stats-section {
+    padding: var(--section-gap) 0;
+    background: var(--surface);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+  }
+
+  .stat-item {
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .stat-number {
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
 
   /* ═══════════════════════════════════════════
      PROGRESS — Telemetry Display
@@ -979,13 +1054,13 @@
 <nav class="navbar" id="navbar">
   <a href="#" class="nav-logo">AAGLOBAL</a>
   <ul class="nav-links">
+    <li><a href="#diagram">Architecture</a></li>
     <li><a href="#systems">Systems</a></li>
     <li><a href="#capabilities">Capabilities</a></li>
     <li><a href="#brain">The Brain</a></li>
-    <li><a href="#services">Services</a></li>
     <li><a href="#progress">Progress</a></li>
   </ul>
-  <a href="#progress" class="nav-cta font-mono">~86% Complete</a>
+  <a href="#progress" class="nav-cta font-mono">~93% Complete</a>
 </nav>
 
 <!-- ═══════════════════════════════════════════
@@ -995,10 +1070,10 @@
   <div class="hero-bg"></div>
   <div class="hero-glow"></div>
   <div class="container hero-content">
-    <div class="hero-label font-mono">System Architecture · 26 Feb 2026</div>
+    <div class="hero-label font-mono">System Architecture · 3 Mar 2026</div>
     <h1 class="hero-title-line1 font-heading">Architecture beyond</h1>
     <h1 class="hero-title-line2 font-drama">Complexity.</h1>
-    <p class="hero-sub">Two interfaces, one shared brain. Claude Code agents and OutBot converge on a file-native memory system — zero external dependencies, pure signal.</p>
+    <p class="hero-sub">Three interfaces, one shared brain. Command Centre TUI, Claude Code agents, and OutBot converge on a file-native memory system — zero external dependencies, pure signal.</p>
     <div class="hero-meta">
       <div class="hero-meta-item">
         <div class="hero-meta-dot"></div>
@@ -1010,7 +1085,11 @@
       </div>
       <div class="hero-meta-item">
         <div class="hero-meta-dot"></div>
-        <span class="hero-meta-text font-mono"><span>4</span> Entry Points</span>
+        <span class="hero-meta-text font-mono"><span>60</span> Tasks</span>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-dot"></div>
+        <span class="hero-meta-text font-mono"><span>5</span> Entry Points</span>
       </div>
     </div>
   </div>
@@ -1023,10 +1102,17 @@
   <div class="container">
     <div class="section-header">
       <div class="section-tag font-mono">How You Use It</div>
-      <h2 class="section-title font-heading">Four <span class="drama font-drama">entry points.</span></h2>
+      <h2 class="section-title font-heading">Five <span class="drama font-drama">entry points.</span></h2>
     </div>
 
     <div class="entry-grid">
+      <div class="entry-card">
+        <div class="entry-card-icon" style="background: rgba(255,107,53,0.12); color: var(--orange);">&#9632;</div>
+        <h3 class="entry-card-title">Command Centre</h3>
+        <p class="entry-card-desc">Unified TUI hub. 3×3 tile grid, slash commands, OutBot chat, voice mode, chat panel, heartbeat, Telegram bridge, email — all in one terminal.</p>
+        <div class="entry-card-cmd font-mono">cc</div>
+      </div>
+
       <div class="entry-card">
         <div class="entry-card-icon" style="background: rgba(233,69,96,0.12); color: var(--pink);">&#9881;</div>
         <h3 class="entry-card-title">Claude Code</h3>
@@ -1059,16 +1145,165 @@
 </section>
 
 <!-- ═══════════════════════════════════════════
-     TWO SYSTEMS
+     ARCHITECTURE DIAGRAM
+     ═══════════════════════════════════════════ -->
+<section class="diagram-section" id="diagram">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">System Map</div>
+      <h2 class="section-title font-heading">The full <span class="drama font-drama">architecture.</span></h2>
+    </div>
+
+    <div class="mermaid-container">
+      <div class="mermaid">
+graph TB
+    subgraph USER["Troy"]
+        CC["Terminal<br/><b>cc</b>"]
+        Terminal["Terminal<br/><b>claude</b>"]
+        Chat["Terminal<br/><b>outbot</b>"]
+        Telegram["Telegram<br/>(phone)"]
+        CursorIDE["Cursor IDE"]
+    end
+
+    subgraph COMMAND_CENTRE["Command Centre TUI"]
+        direction TB
+        TileGrid["Tile Grid<br/><i>3×3 task tiles</i>"]
+        ContextPanel["Context Panel<br/><i>info + chat modes</i>"]
+        CommandBar["Command Bar<br/><i>slash commands + OutBot</i>"]
+        VoiceMode["Voice Mode<br/><i>record + transcribe</i>"]
+        ChatPanel["Chat Panel<br/><i>persistent conversation</i>"]
+        HeartbeatBridge["Heartbeat Bridge<br/><i>proactive nudges</i>"]
+        TGBridge["Telegram Bridge<br/><i>background connection</i>"]
+        EmailHandler["Email Handler<br/><i>inbox + outbox</i>"]
+    end
+
+    subgraph CLAUDE_CODE["Claude Code (Agent System)"]
+        direction TB
+        Overseer["Overseer<br/><i>orchestrator</i>"]
+
+        subgraph PIPELINE["Daily Review Pipeline"]
+            direction LR
+            Importer["Reminders<br/>Importer"]
+            Enricher["Work Item<br/>Enricher"]
+            Wrangler["Overdue<br/>Wrangler"]
+            Dashboard["Dashboard<br/>Generator"]
+        end
+
+        subgraph ON_DEMAND["On-Demand Agents"]
+            Tracker["Work<br/>Tracker"]
+            MemWriter["Memory<br/>Writer"]
+            NavUpdater["Navigator<br/>Updater"]
+        end
+
+        Overseer --> PIPELINE
+        Overseer --> ON_DEMAND
+    end
+
+    subgraph OUTBOT["OutBot (Conversational AI)"]
+        direction TB
+        CLIChat["CLI Chat"]
+        Voice["Voice Mode"]
+        TGBot["Telegram Bot"]
+        Heartbeat["Heartbeat<br/>Scheduler"]
+
+        subgraph CAPABILITIES["Capabilities"]
+            Remember["Remember"]
+            Recall["Recall"]
+            Mail["Email"]
+        end
+    end
+
+    subgraph SHARED["Shared File System"]
+        direction TB
+        Memory[".claude/memory/"]
+        Work[".claude/work/"]
+        Skills[".claude/skills/"]
+        Dashboards[".claude/dashboards/"]
+    end
+
+    CC --> COMMAND_CENTRE
+    Terminal --> CLAUDE_CODE
+    Chat --> CLIChat
+    Telegram --> TGBot
+
+    COMMAND_CENTRE --> SHARED
+    CLAUDE_CODE --> SHARED
+    OUTBOT --> SHARED
+
+    style COMMAND_CENTRE fill:#1a1a2e,stroke:#FF6B35,color:#fff
+    style CLAUDE_CODE fill:#1a1a2e,stroke:#e94560,color:#fff
+    style OUTBOT fill:#1a1a2e,stroke:#4A9EFF,color:#fff
+    style SHARED fill:#16213e,stroke:#7B61FF,color:#fff
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     THREE SYSTEMS
      ═══════════════════════════════════════════ -->
 <section class="systems-section" id="systems">
   <div class="container">
     <div class="section-header">
       <div class="section-tag font-mono">Core Systems</div>
-      <h2 class="section-title font-heading">Two systems, <span class="drama font-drama">one brain.</span></h2>
+      <h2 class="section-title font-heading">Three systems, <span class="drama font-drama">one brain.</span></h2>
     </div>
 
-    <!-- System 1: Claude Code -->
+    <!-- System 1: Command Centre -->
+    <div class="system-card command-centre">
+      <svg class="system-canvas" width="200" height="200" viewBox="0 0 200 200">
+        <rect x="30" y="30" width="140" height="140" rx="8" fill="none" stroke="rgba(255,107,53,0.2)" stroke-width="1"/>
+        <rect x="40" y="40" width="38" height="38" rx="4" fill="rgba(255,107,53,0.1)"/>
+        <rect x="82" y="40" width="38" height="38" rx="4" fill="rgba(255,107,53,0.08)"/>
+        <rect x="124" y="40" width="38" height="38" rx="4" fill="rgba(255,107,53,0.06)"/>
+        <rect x="40" y="82" width="38" height="38" rx="4" fill="rgba(255,107,53,0.08)"/>
+        <rect x="82" y="82" width="38" height="38" rx="4" fill="rgba(255,107,53,0.15)"/>
+        <rect x="124" y="82" width="38" height="38" rx="4" fill="rgba(255,107,53,0.08)"/>
+        <rect x="40" y="124" width="38" height="38" rx="4" fill="rgba(255,107,53,0.06)"/>
+        <rect x="82" y="124" width="38" height="38" rx="4" fill="rgba(255,107,53,0.08)"/>
+        <rect x="124" y="124" width="38" height="38" rx="4" fill="rgba(255,107,53,0.1)"/>
+      </svg>
+
+      <div class="system-card-inner">
+        <div class="system-number font-mono" style="color: var(--orange);">System 01 — Unified Hub</div>
+        <h3 class="system-name font-heading">Command <span class="font-drama" style="color: var(--orange);">Centre</span></h3>
+        <p class="system-desc">The unified terminal TUI. 3×3 tile grid, hierarchical drill-down, slash commands, OutBot chat, chat panel, voice mode, heartbeat, Telegram bridge, email inbox/outbox — all keyboard-driven.</p>
+
+        <div class="tags-label">Key Features</div>
+        <div class="pipeline">
+          <span class="pipeline-step orange">Tile Grid</span>
+          <span class="pipeline-arrow">+</span>
+          <span class="pipeline-step orange">Task Focus</span>
+          <span class="pipeline-arrow">+</span>
+          <span class="pipeline-step orange">Command Palette</span>
+          <span class="pipeline-arrow">+</span>
+          <span class="pipeline-step orange">Voice Mode</span>
+          <span class="pipeline-arrow">+</span>
+          <span class="pipeline-step orange">Chat Panel</span>
+          <span class="pipeline-arrow">+</span>
+          <span class="pipeline-step orange">Heartbeat</span>
+        </div>
+
+        <div class="tags-label">Slash Commands</div>
+        <div class="tags">
+          <span class="tag orange">/done</span>
+          <span class="tag orange">/today</span>
+          <span class="tag orange">/enrich</span>
+          <span class="tag orange">/research</span>
+          <span class="tag orange">/daily</span>
+          <span class="tag orange">/inbox</span>
+          <span class="tag orange">/email</span>
+          <span class="tag orange">/agent</span>
+          <span class="tag orange">/skill</span>
+          <span class="tag orange">/telegram</span>
+          <span class="tag orange">/remember</span>
+          <span class="tag orange">/forget</span>
+          <span class="tag orange">/help</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- System 2: Claude Code -->
     <div class="system-card claude-code">
       <svg class="system-canvas" width="200" height="200" viewBox="0 0 200 200">
         <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(233,69,96,0.15)" stroke-width="1"/>
@@ -1081,7 +1316,7 @@
       </svg>
 
       <div class="system-card-inner">
-        <div class="system-number font-mono" style="color: var(--pink);">System 01 — Task Management</div>
+        <div class="system-number font-mono" style="color: var(--pink);">System 02 — Task Management</div>
         <h3 class="system-name font-heading">Claude Code <span class="font-drama" style="color: var(--pink);">Agents</span></h3>
         <p class="system-desc">9 agents orchestrated by the Overseer. Run from terminal. Say "do my daily review" to trigger the full pipeline.</p>
 
@@ -1113,7 +1348,7 @@
       </div>
     </div>
 
-    <!-- System 2: OutBot -->
+    <!-- System 3: OutBot -->
     <div class="system-card outbot">
       <svg class="system-canvas" width="200" height="200" viewBox="0 0 200 200">
         <path d="M 20 100 Q 60 60, 100 100 T 180 100" fill="none" stroke="rgba(74,158,255,0.2)" stroke-width="2">
@@ -1125,9 +1360,9 @@
       </svg>
 
       <div class="system-card-inner">
-        <div class="system-number font-mono" style="color: var(--blue);">System 02 — Conversational AI</div>
+        <div class="system-number font-mono" style="color: var(--blue);">System 03 — Conversational AI</div>
         <h3 class="system-name font-heading">Out<span class="font-drama" style="color: var(--blue);">Bot</span></h3>
-        <p class="system-desc">Chat with personality, memory, email, and daily review. Works via CLI, voice, or Telegram. The "always reachable" layer. 22 active tasks synced bi-directionally with iOS.</p>
+        <p class="system-desc">Chat with personality, memory, email, and daily review. Works via CLI, voice, or Telegram. The "always reachable" layer. 60 active tasks synced bi-directionally with iOS.</p>
 
         <div class="tags-label">Daily Review (shared workflow)</div>
         <div class="pipeline">
@@ -1180,19 +1415,37 @@
 
     <div class="capability-grid">
       <div class="capability-col cc">
+        <div class="capability-col-title" style="color: var(--orange);">
+          <span style="font-size: 1.2rem;">&#9632;</span> Command Centre
+        </div>
+        <ul class="capability-list">
+          <li><span>Unified hub</span> — one terminal for everything</li>
+          <li><span>Tile grid</span> — 3×3 spatial task view</li>
+          <li><span>Task Focus</span> — drill-down editing</li>
+          <li><span>Slash commands</span> — quick actions</li>
+          <li><span>Voice mode</span> — inline recording</li>
+          <li><span>Chat panel</span> — persistent conversation</li>
+          <li><span>Heartbeat bridge</span> — proactive nudges</li>
+          <li><span>Memory commands</span> — /remember, /forget</li>
+          <li><span>Telegram bridge</span> — live connection</li>
+          <li><span>Email inbox</span> — import as tasks</li>
+          <li><span>Brain predictions</span> — suggested today</li>
+        </ul>
+      </div>
+
+      <div class="capability-col claude">
         <div class="capability-col-title" style="color: var(--pink);">
           <span style="font-size: 1.2rem;">&#9881;</span> Claude Code
         </div>
         <ul class="capability-list">
-          <li><span>Write code</span> — edit files, run tests, build features</li>
-          <li><span>Structured memory</span> — YAML domains via memory-writer agent</li>
-          <li><span>Enrich tasks</span> — add steps, categories, Eisenhower classification</li>
-          <li><span>Wrangle overdue</span> — reschedule, archive, escalate</li>
-          <li><span>26 skills</span> — pptx, xlsx, TDD, design, cinematic, etc.</li>
-          <li><span>9 agents</span> — overseer-orchestrated pipelines</li>
-          <li><span>Git operations</span> — commits, PRs, branches</li>
-          <li><span>Plan mode</span> — explore, plan, approve, implement</li>
-          <li><span>MCP tools</span> — Playwright, desktop-commander, Pencil</li>
+          <li><span>Write code</span> — edit files, run tests</li>
+          <li><span>Structured memory</span> — YAML domains</li>
+          <li><span>Enrich tasks</span> — add steps, classify</li>
+          <li><span>Wrangle overdue</span> — reschedule, archive</li>
+          <li><span>26 skills</span> — pptx, TDD, design, etc.</li>
+          <li><span>9 agents</span> — orchestrated pipelines</li>
+          <li><span>Git operations</span> — commits, PRs</li>
+          <li><span>Plan mode</span> — explore, approve</li>
         </ul>
       </div>
 
@@ -1201,23 +1454,23 @@
           <span style="font-size: 1.2rem;">&#9993;</span> OutBot
         </div>
         <ul class="capability-list">
-          <li><span>Always-on Telegram</span> — 24/7 long-polling, responds anytime</li>
-          <li><span>Proactive heartbeat</span> — 60s checks, unprompted nudges</li>
-          <li><span>Email (read + send)</span> — Gmail IMAP/SMTP integration</li>
-          <li><span>Voice mode</span> — Whisper ASR + macOS TTS, hands-free</li>
-          <li><span>Task creation</span> — "create task" via Telegram chat</li>
-          <li><span>Remember / forget</span> — store facts to USER.md, LEARNED.md</li>
-          <li><span>Session continuity</span> — SQLite DB, 20-message context</li>
-          <li><span>Memory recall</span> — search past conversations</li>
-          <li><span>Quiet hours</span> — no notifications 10pm-7am</li>
+          <li><span>Always-on Telegram</span> — 24/7 polling</li>
+          <li><span>Proactive heartbeat</span> — unprompted nudges</li>
+          <li><span>Email (read + send)</span> — Gmail integration</li>
+          <li><span>Voice mode</span> — Whisper + TTS</li>
+          <li><span>Task creation</span> — via Telegram</li>
+          <li><span>Remember / forget</span> — store facts</li>
+          <li><span>Session continuity</span> — SQLite DB</li>
+          <li><span>Quiet hours</span> — 10pm-7am</li>
         </ul>
       </div>
     </div>
 
     <div class="capability-insight">
       <p class="capability-insight-text font-mono">
-        <strong>Claude Code</strong> = BUILD things (code, docs, dashboards, tasks) &nbsp;&middot;&nbsp;
-        <strong>OutBot</strong> = REACH you (notifications, email, voice, mobile)
+        <strong>Command Centre</strong> = UNIFIED hub &nbsp;&middot;&nbsp;
+        <strong>Claude Code</strong> = BUILD things &nbsp;&middot;&nbsp;
+        <strong>OutBot</strong> = REACH you
       </p>
     </div>
   </div>
@@ -1239,8 +1492,8 @@
     </div>
 
     <div class="brain-statement">
-      <p class="brain-statement-muted">Both Claude Code agents and OutBot read and write the same files.</p>
-      <h3 class="brain-statement-bold font-heading">Changes from one are <span class="highlight font-drama">instantly visible</span> to the other.</h3>
+      <p class="brain-statement-muted">All three systems read and write the same files.</p>
+      <h3 class="brain-statement-bold font-heading">Changes from one are <span class="highlight font-drama">instantly visible</span> to the others.</h3>
     </div>
 
     <div class="brain-grid">
@@ -1250,7 +1503,7 @@
       </div>
       <div class="brain-item">
         <div class="brain-item-title font-mono">work/</div>
-        <div class="brain-item-desc">Tasks, bugs, PRDs — markdown with YAML frontmatter</div>
+        <div class="brain-item-desc">60 tasks, bugs, PRDs — markdown with YAML frontmatter</div>
       </div>
       <div class="brain-item">
         <div class="brain-item-title font-mono">agents/</div>
@@ -1269,8 +1522,38 @@
         <div class="brain-item-desc">macOS Reminders.app sync pipeline</div>
       </div>
       <div class="brain-item">
-        <div class="brain-item-title font-mono">workflows/</div>
-        <div class="brain-item-desc">Shared Python pipelines in brain/workflows/</div>
+        <div class="brain-item-title font-mono">config/</div>
+        <div class="brain-item-desc">Command Centre hotkeys + display settings</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STATS
+     ═══════════════════════════════════════════ -->
+<section class="stats-section" id="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number font-drama" style="color: var(--orange);">60</div>
+        <div class="stat-label">Active Tasks</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number font-drama" style="color: var(--pink);">9</div>
+        <div class="stat-label">Agents</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number font-drama" style="color: var(--blue);">24</div>
+        <div class="stat-label">Skills</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number font-drama" style="color: var(--accent);">19</div>
+        <div class="stat-label">CC Modules</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number font-drama" style="color: var(--green);">5</div>
+        <div class="stat-label">Today</div>
       </div>
     </div>
   </div>
@@ -1321,7 +1604,7 @@
 <section class="progress-section" id="progress">
   <div class="container">
     <div class="section-header">
-      <div class="section-tag font-mono">OpenClaw Implementation</div>
+      <div class="section-tag font-mono">Implementation Status</div>
       <div class="progress-header">
         <span class="progress-pct font-drama" id="progressPct">0</span>
         <h2 class="section-title font-heading" style="font-size: clamp(1.25rem, 2vw, 1.75rem);">of the original plan <span class="drama font-drama">complete.</span></h2>
@@ -1337,22 +1620,23 @@
       <div class="progress-item"><div class="progress-dot done"></div> Personality Injection (SOUL.md)</div>
       <div class="progress-item"><div class="progress-dot done"></div> Session Continuity</div>
       <div class="progress-item"><div class="progress-dot done"></div> Gmail Integration (CLI + Telegram)</div>
-      <div class="progress-item"><div class="progress-dot done"></div> Voice Mode (bonus)</div>
-      <div class="progress-item"><div class="progress-dot done"></div> Agent System (bonus, 9 agents)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Voice Mode</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Agent System (9 agents)</div>
       <div class="progress-item"><div class="progress-dot done"></div> Heartbeat (Telegram)</div>
       <div class="progress-item"><div class="progress-dot done"></div> Telegram Bot Adapter</div>
       <div class="progress-item"><div class="progress-dot done"></div> Shared Workflows (daily review)</div>
       <div class="progress-item"><div class="progress-dot done"></div> Portable Paths (auto-detected)</div>
-      <div class="progress-item"><div class="progress-dot done"></div> OutBot Task Creation (via Telegram)</div>
-      <div class="progress-item"><div class="progress-dot done"></div> OutBot Memory Writing (remember/forget)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> OutBot Task Creation</div>
+      <div class="progress-item"><div class="progress-dot done"></div> OutBot Memory Writing</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Command Centre TUI (Phase 1-4)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> CC Phase 5 (Chat Panel, Heartbeat, Memory)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Quick Sync (AppleScript whose clause)</div>
+      <div class="progress-item"><div class="progress-dot done"></div> Help Generator (help_data.yml SSOT)</div>
       <div class="progress-item"><div class="progress-dot not-started"></div> Calendar Integration (not started)</div>
-      <div class="progress-item"><div class="progress-dot not-started"></div> Hybrid Search (correctly deferred)</div>
     </div>
 
     <div class="progress-legend">
       <div class="legend-item"><div class="legend-dot" style="background: var(--green);"></div> Done</div>
-      <div class="legend-item"><div class="legend-dot" style="background: var(--orange);"></div> Partial</div>
-      <div class="legend-item"><div class="legend-dot" style="background: var(--pink);"></div> Blocked</div>
       <div class="legend-item"><div class="legend-dot" style="background: var(--text-muted); opacity: 0.4;"></div> Not started</div>
     </div>
   </div>
@@ -1372,13 +1656,35 @@
       <span class="footer-status-text font-mono">System Operational</span>
     </div>
   </div>
-  <div class="footer-date font-mono">Last updated: 26 Feb 2026</div>
+  <div class="footer-date font-mono">Last updated: 3 Mar 2026</div>
 </footer>
 
 <!-- ═══════════════════════════════════════════
-     GSAP ANIMATIONS
+     SCRIPTS
      ═══════════════════════════════════════════ -->
 <script>
+  // Initialize Mermaid
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#7B61FF',
+      primaryTextColor: '#F0EFF4',
+      primaryBorderColor: 'rgba(123, 97, 255, 0.3)',
+      lineColor: '#6B6B80',
+      secondaryColor: '#2DD4A0',
+      tertiaryColor: '#0F0F1A',
+      background: '#08080F',
+      mainBkg: '#0F0F1A',
+      nodeBorder: 'rgba(123, 97, 255, 0.3)',
+      clusterBkg: '#151525',
+      clusterBorder: 'rgba(123, 97, 255, 0.2)',
+      titleColor: '#F0EFF4',
+      edgeLabelBackground: '#0F0F1A',
+      fontSize: '14px'
+    }
+  });
+
   gsap.registerPlugin(ScrollTrigger);
 
   const ctx = gsap.context(() => {
@@ -1400,7 +1706,6 @@
       .to('.hero-sub',         { opacity: 1, y: 0 }, 0.8)
       .to('.hero-meta',        { opacity: 1, y: 0 }, 1.0);
 
-    // Set initial hero states
     gsap.set(['.hero-label', '.hero-title-line1', '.hero-title-line2', '.hero-sub', '.hero-meta'], {
       y: 40
     });
@@ -1414,6 +1719,18 @@
       ease: 'power3.out',
       scrollTrigger: {
         trigger: '.entry-grid',
+        start: 'top 80%',
+      }
+    });
+
+    // ── Mermaid diagram ──
+    gsap.to('.mermaid-container', {
+      opacity: 1,
+      y: 0,
+      duration: 1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.mermaid-container',
         start: 'top 80%',
       }
     });
@@ -1482,6 +1799,19 @@
       }
     });
 
+    // ── Stats ──
+    gsap.to('.stat-item', {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.stats-grid',
+        start: 'top 80%',
+      }
+    });
+
     // ── Service cards ──
     gsap.to('.service-card', {
       opacity: 1,
@@ -1513,16 +1843,15 @@
       trigger: '.progress-bar-track',
       start: 'top 80%',
       onEnter: () => {
-        document.getElementById('progressBar').style.width = '86%';
+        document.getElementById('progressBar').style.width = '93%';
 
-        // Animate counter
         const target = { val: 0 };
         gsap.to(target, {
-          val: 86,
+          val: 93,
           duration: 1.5,
           ease: 'power2.out',
           onUpdate: () => {
-            document.getElementById('progressPct').textContent = '~' + Math.round(target.val) + '%'; // 12 of 14 items done
+            document.getElementById('progressPct').textContent = '~' + Math.round(target.val) + '%';
           }
         });
       },

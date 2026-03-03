@@ -178,15 +178,20 @@ def show(ctx, work_item_id):
 @main.command()
 @click.option('--dry-run', is_flag=True, help='Show what would be imported without creating files')
 @click.option('--enrich', is_flag=True, help='Show enrichment suggestions for vague tasks')
+@click.option('--quick', is_flag=True, help='Only fetch reminders created/modified in the last day (faster)')
 @click.pass_context
-def sync(ctx, dry_run, enrich):
+def sync(ctx, dry_run, enrich, quick):
     """Pull reminders from Reminders.app and create work items"""
     manager = ctx.obj['manager']
     enricher = TaskEnricher()
 
-    # Fetch all reminders from Reminders.app
-    click.echo("Fetching reminders from Reminders.app...")
-    reminders = manager.applescript.fetch_all_reminders()
+    # Fetch reminders from Reminders.app
+    if quick:
+        click.echo("Fetching recent reminders (last 24h)...")
+        reminders = manager.applescript.fetch_recent_reminders(since_days=1)
+    else:
+        click.echo("Fetching all reminders from Reminders.app...")
+        reminders = manager.applescript.fetch_all_reminders()
 
     if not reminders:
         click.echo("No active reminders found.")
@@ -243,19 +248,22 @@ def sync(ctx, dry_run, enrich):
                 vague_tasks.append((work_item.id, enrichment))
 
     # Reverse sync: detect iOS completions/deletions
-    active_ios_ids = {r["id"] for r in reminders}
-    stale_ids = manager.reverse_sync(active_ios_ids, dry_run=dry_run)
-    stale_count = len(stale_ids)
+    # Skip when --quick since we don't have the full active ID set
+    stale_count = 0
+    if not quick:
+        active_ios_ids = {r["id"] for r in reminders}
+        stale_ids = manager.reverse_sync(active_ios_ids, dry_run=dry_run)
+        stale_count = len(stale_ids)
 
-    if stale_count > 0:
-        if dry_run:
-            click.echo(f"\nWould mark {stale_count} stale task(s) as done:")
-        else:
-            click.echo(f"\nMarked {stale_count} stale task(s) as done (completed/deleted in iOS):")
-        for out_id in stale_ids[:10]:
-            click.echo(f"  - {out_id}")
-        if stale_count > 10:
-            click.echo(f"  ... and {stale_count - 10} more")
+        if stale_count > 0:
+            if dry_run:
+                click.echo(f"\nWould mark {stale_count} stale task(s) as done:")
+            else:
+                click.echo(f"\nMarked {stale_count} stale task(s) as done (completed/deleted in iOS):")
+            for out_id in stale_ids[:10]:
+                click.echo(f"  - {out_id}")
+            if stale_count > 10:
+                click.echo(f"  ... and {stale_count - 10} more")
 
     # Report stats
     click.echo(f"\n{'='*60}")

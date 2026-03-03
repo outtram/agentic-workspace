@@ -1,6 +1,6 @@
 # System Architecture
 
-> Last updated: 2026-03-01 (Command Centre TUI added)
+> Last updated: 2026-03-03 (Phase 5: heartbeat, chat, memory commands, voice upgrades)
 > This document describes the full AAGLOBAL system for Troy, Claude Code agents, Cursor, and OutBot.
 
 ## How to Use This System
@@ -30,10 +30,14 @@ The Command Centre is a keyboard-driven terminal TUI (built with Textual) that u
 - Voice mode — record audio, transcribe, route through OutBot
 - Brain predictions on launch (day-of-week patterns, incomplete yesterday)
 - Task editing modal (title, quadrant, priority, due date, description)
-- Telegram bridge — live connection status, incoming message notifications
+- **Chat panel** — togglable sidebar (c key) with persistent conversation history, task-aware context
+- **Heartbeat bridge** — background scheduler checks for overdue tasks, shows notifications in-app
+- **Telegram bridge** — live connection status, incoming message notifications
+- **Memory commands** — /remember and /forget for explicit memory management (shared with OutBot)
 - Email inbox/outbox via Gmail, import unread emails as tasks (syncs to iOS)
 - Add timestamped notes to tasks via command palette
-- Slash commands: /done, /today, /enrich, /research, /daily, /inbox, /import, /email, /agent, /skill, /telegram
+- **Quick sync** — `sync --quick` fetches only last 24h of reminders (avoids timeout with large reminder counts)
+- Slash commands: /done, /today, /enrich, /research, /daily, /inbox, /import, /email, /agent, /skill, /remember, /forget, /telegram, /help
 
 ### 2. Claude Code Agents (the task management system)
 
@@ -168,7 +172,7 @@ graph TB
         direction TB
         Memory[".claude/memory/<br/>SOUL.md, USER.md,<br/>NAVIGATOR.md, AGENTS.md"]
         Work[".claude/work/<br/>tasks/, bugs/, prd/"]
-        Skills[".claude/skills/<br/>18 skills"]
+        Skills[".claude/skills/<br/>26 skills"]
         Dashboards[".claude/dashboards/<br/>Eisenhower HTML"]
         Reminders[".claude/reminders/<br/>macOS sync"]
         Config[".claude/config/<br/>settings"]
@@ -230,9 +234,12 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key) |
 | **Task Focus** | `task_focus.py` | Single-task view with field editing + research/notes viewer |
 | **Telegram Bridge** | `telegram_bridge.py` | Background Telegram connection + message forwarding |
+| **Heartbeat Bridge** | `heartbeat_bridge.py` | Background 60s scheduler — checks overdue tasks, shows toast notifications |
+| **Voice Handler** | `handlers/voice.py` | Recording via sounddevice, transcription via faster-whisper, TTS via macOS say |
 | **Predictions** | `predictions.py` | Brain-log analysis for launch-time suggestions |
 | **Skill Matcher** | `skill_matcher.py` | Keyword matching for agent/skill suggestions |
-| **Handlers** | `handlers/` | Slash command implementations (triage, enrich, research, email, agents) |
+| **Help Generator** | `help_gen.py` | Generates HELP.md, _HELP_TEXT, /help from `help_data.yml` (single source of truth) |
+| **Handlers** | `handlers/` | Slash command implementations (triage, enrich, research, email, agents, memory, voice) |
 
 ### Claude Code Agents
 

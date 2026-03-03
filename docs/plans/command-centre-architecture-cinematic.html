@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Command Centre — Architecture</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- Mermaid -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-elevated: #1a1a24;
+    --border: rgba(255, 107, 53, 0.15);
+    --border-hover: rgba(255, 107, 53, 0.35);
+    --text: #f0eff4;
+    --text-muted: #6b6b80;
+    
+    --orange: #FF6B35;
+    --teal: #00D4AA;
+    --pink: #E94560;
+    --blue: #4A9EFF;
+    --purple: #7B61FF;
+    --green: #2DD4A0;
+    
+    --accent: var(--orange);
+    --accent-glow: rgba(255, 107, 53, 0.2);
+    
+    --section-gap: 7rem;
+    --container-max: 1100px;
+    --radius: 1.5rem;
+    --radius-sm: 1rem;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.03;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  }
+
+  .font-heading { font-family: 'Sora', sans-serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+  .font-drama { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+  .font-mono { font-family: 'Fira Code', monospace; }
+
+  .container { max-width: var(--container-max); margin: 0 auto; padding: 0 2rem; }
+
+  /* ═══════════════════════════════════════════
+     NAVBAR
+     ═══════════════════════════════════════════ */
+  .navbar {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.6rem 1.5rem;
+    border-radius: 100px;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.4s ease;
+  }
+
+  .navbar.scrolled {
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(20px);
+    border-color: var(--border);
+  }
+
+  .nav-logo {
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    color: var(--orange);
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.25rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    background: var(--orange);
+    color: var(--bg);
+  }
+
+  /* ═══════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════ */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 6rem 0;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 80%, var(--accent-glow) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(0, 212, 170, 0.1) 0%, transparent 40%),
+      var(--bg);
+  }
+
+  .hero-grid-visual {
+    position: absolute;
+    right: -5%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 500px;
+    height: 500px;
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+  }
+
+  .hero-tag {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    margin-bottom: 1rem;
+    opacity: 0;
+  }
+
+  .hero-title .accent { color: var(--orange); }
+  .hero-title .teal { color: var(--teal); }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 540px;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    opacity: 0;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 2.5rem;
+    opacity: 0;
+  }
+
+  .hero-stat {
+    text-align: center;
+  }
+
+  .hero-stat-num {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .hero-stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.25rem;
+  }
+
+  /* ═══════════════════════════════════════════
+     SECTION HEADERS
+     ═══════════════════════════════════════════ */
+  .section-header {
+    margin-bottom: 3rem;
+  }
+
+  .section-tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-tag::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--orange);
+  }
+
+  .section-title {
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+  }
+
+  .section-title .drama { color: var(--orange); }
+
+  /* ═══════════════════════════════════════════
+     VISUAL LAYOUT DIAGRAM
+     ═══════════════════════════════════════════ */
+  .layout-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .layout-diagram {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .layout-header {
+    text-align: center;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .layout-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--orange);
+    letter-spacing: 0.1em;
+  }
+
+  .layout-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-left: 0.75rem;
+  }
+
+  .layout-body {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .layout-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .layout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .layout-tile {
+    aspect-ratio: 1.3;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .layout-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .layout-tile.q1::before { background: var(--orange); }
+  .layout-tile.q2::before { background: var(--teal); }
+  .layout-tile.q3::before { background: #666; }
+  .layout-tile.q4::before { background: #444; }
+
+  .layout-tile.selected {
+    border-color: var(--teal);
+    box-shadow: 0 0 15px rgba(0, 212, 170, 0.2);
+    background: rgba(0, 212, 170, 0.05);
+  }
+
+  .tile-num {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+  }
+
+  .tile-q {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .layout-tile.selected .tile-q {
+    color: var(--teal);
+  }
+
+  .layout-label {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+
+  .layout-context {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .context-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .context-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .context-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .context-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .context-dot.today { background: var(--green); }
+  .context-dot.detail { background: var(--blue); }
+  .context-dot.response { background: var(--purple); }
+  .context-dot.agent { background: var(--orange); }
+
+  .layout-command {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .command-icon {
+    color: var(--orange);
+    font-size: 1.1rem;
+  }
+
+  .command-text {
+    font-size: 0.75rem;
+    color: var(--teal);
+    letter-spacing: 0.02em;
+  }
+
+  .layout-status {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+  }
+
+  .status-item {
+    color: var(--text-muted);
+  }
+
+  .status-num {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .status-divider {
+    color: var(--border);
+  }
+
+  .status-off {
+    color: var(--text-muted);
+  }
+
+  .status-model {
+    color: var(--purple);
+  }
+
+  @media (max-width: 700px) {
+    .layout-body {
+      grid-template-columns: 1fr;
+    }
+    
+    .layout-context {
+      order: -1;
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     MERMAID DIAGRAM
+     ═══════════════════════════════════════════ */
+  .diagram-section {
+    padding: var(--section-gap) 0;
+    background: var(--surface);
+  }
+
+  .mermaid-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    overflow-x: auto;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ═══════════════════════════════════════════
+     TILE GRID SECTION
+     ═══════════════════════════════════════════ */
+  .tile-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .tile-demo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    max-width: 500px;
+    margin: 0 auto 3rem;
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  .tile-demo-item {
+    aspect-ratio: 1.2;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tile-demo-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+
+  .tile-demo-item.q1::before { background: var(--orange); }
+  .tile-demo-item.q2::before { background: var(--teal); }
+  .tile-demo-item.q3::before { background: #777; }
+  .tile-demo-item.q4::before { background: #3d3d3d; }
+
+  .tile-demo-item.focused {
+    border-color: var(--orange);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .tile-demo-item.selected {
+    border-color: var(--teal);
+    background: rgba(0, 212, 170, 0.05);
+  }
+
+  .tile-demo-item.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    color: var(--teal);
+    font-weight: bold;
+  }
+
+  .tile-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .tile-meta {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+  }
+
+  .tile-states-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .tile-state-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .tile-state-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .tile-state-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════════════
+     HOTKEYS SECTION
+     ═══════════════════════════════════════════ */
+  .hotkeys-section {
+    padding: var(--section-gap) 0;
+    background: var(--surface);
+  }
+
+  .hotkeys-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .hotkey-group {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .hotkey-group-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hotkey-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hotkey-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+  }
+
+  .hotkey-key {
+    min-width: 60px;
+    padding: 0.3rem 0.6rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem;
+    color: var(--orange);
+    text-align: center;
+  }
+
+  .hotkey-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* ═══════════════════════════════════════════
+     COMMANDS SECTION
+     ═══════════════════════════════════════════ */
+  .commands-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .command-bar-demo {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.5rem;
+    margin-bottom: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .command-bar-icon {
+    color: var(--orange);
+    font-size: 1.2rem;
+  }
+
+  .command-bar-input {
+    flex: 1;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    color: var(--teal);
+  }
+
+  .command-bar-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .commands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .command-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .command-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+
+  .command-name {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    color: var(--orange);
+    min-width: 80px;
+  }
+
+  .command-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* ═══════════════════════════════════════════
+     PHASES SECTION
+     ═══════════════════════════════════════════ */
+  .phases-section {
+    padding: var(--section-gap) 0;
+    background: var(--surface);
+  }
+
+  .phases-timeline {
+    position: relative;
+    padding-left: 3rem;
+  }
+
+  .phases-timeline::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--orange), var(--teal));
+    border-radius: 2px;
+  }
+
+  .phase-card {
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  .phase-card::before {
+    content: '';
+    position: absolute;
+    left: -2.5rem;
+    top: 2rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 10px rgba(0, 212, 170, 0.4);
+  }
+
+  .phase-number {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 0.5rem;
+  }
+
+  .phase-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .phase-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .phase-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .phase-file {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    background: rgba(0, 212, 170, 0.1);
+    border: 1px solid rgba(0, 212, 170, 0.2);
+    border-radius: 4px;
+    color: var(--teal);
+  }
+
+  .phase-status {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    background: var(--teal);
+    color: var(--bg);
+  }
+
+  /* ═══════════════════════════════════════════
+     FILE STRUCTURE
+     ═══════════════════════════════════════════ */
+  .files-section {
+    padding: var(--section-gap) 0;
+  }
+
+  .file-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .file-tree .folder { color: var(--orange); }
+  .file-tree .file { color: var(--text-muted); }
+  .file-tree .new { color: var(--teal); }
+  .file-tree .comment { color: var(--text-muted); font-style: italic; opacity: 0.7; }
+
+  /* ═══════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════ */
+  .footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 3rem 2rem;
+    margin-top: var(--section-gap);
+    text-align: center;
+  }
+
+  .footer-brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--orange);
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-tagline {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .footer-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin-top: 1.5rem;
+  }
+
+  /* ═══════════════════════════════════════════
+     RESPONSIVE
+     ═══════════════════════════════════════════ */
+  @media (max-width: 768px) {
+    :root { --section-gap: 4rem; }
+    .navbar { display: none; }
+    .hero-grid-visual { display: none; }
+    .tile-demo { max-width: 100%; }
+    .phases-timeline { padding-left: 2rem; }
+    .phases-timeline::before { left: 0.5rem; }
+    .phase-card::before { left: -1.75rem; width: 12px; height: 12px; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <a href="#" class="nav-logo">COMMAND CENTRE</a>
+  <ul class="nav-links">
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#tiles">Tile Grid</a></li>
+    <li><a href="#hotkeys">Hotkeys</a></li>
+    <li><a href="#commands">Commands</a></li>
+    <li><a href="#phases">Phases</a></li>
+  </ul>
+  <span class="nav-badge font-mono">v1.0</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  
+  <svg class="hero-grid-visual" viewBox="0 0 500 500">
+    <defs>
+      <linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:0.3"/>
+        <stop offset="100%" style="stop-color:#00D4AA;stop-opacity:0.1"/>
+      </linearGradient>
+    </defs>
+    <rect x="50" y="50" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(255,107,53,0.3)" stroke-width="2"/>
+    <rect x="190" y="50" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(255,107,53,0.2)" stroke-width="1"/>
+    <rect x="330" y="50" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(255,107,53,0.15)" stroke-width="1"/>
+    <rect x="50" y="190" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(255,107,53,0.2)" stroke-width="1"/>
+    <rect x="190" y="190" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(0,212,170,0.4)" stroke-width="2">
+      <animate attributeName="stroke-opacity" values="0.4;0.8;0.4" dur="2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="330" y="190" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(255,107,53,0.2)" stroke-width="1"/>
+    <rect x="50" y="330" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(255,107,53,0.15)" stroke-width="1"/>
+    <rect x="190" y="330" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(255,107,53,0.2)" stroke-width="1"/>
+    <rect x="330" y="330" width="120" height="120" rx="12" fill="url(#gridGrad)" stroke="rgba(255,107,53,0.3)" stroke-width="2"/>
+  </svg>
+
+  <div class="container hero-content">
+    <div class="hero-tag font-mono">Architecture Document · 3 Mar 2026</div>
+    <h1 class="hero-title font-heading">
+      <span class="accent">Command</span> Centre<br>
+      <span class="font-drama teal">Architecture</span>
+    </h1>
+    <p class="hero-sub">A unified terminal interface that merges the task picker, OutBot brain, voice mode, agents, and skills into a single keyboard-driven TUI. One app. One process. Every capability accessible via hotkeys or natural language.</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num font-drama" style="color: var(--orange);">19</div>
+        <div class="hero-stat-label">Modules</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num font-drama" style="color: var(--teal);">9</div>
+        <div class="hero-stat-label">Handlers</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num font-drama" style="color: var(--purple);">20+</div>
+        <div class="hero-stat-label">Slash Cmds</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num font-drama" style="color: var(--green);">5</div>
+        <div class="hero-stat-label">Phases</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VISUAL LAYOUT -->
+<section class="layout-section" id="overview">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Visual Layout</div>
+      <h2 class="section-title font-heading">The <span class="drama font-drama">interface.</span></h2>
+    </div>
+
+    <div class="layout-diagram">
+      <div class="layout-header">
+        <span class="layout-title font-mono">COMMAND CENTRE</span>
+        <span class="layout-subtitle">Textual TUI</span>
+      </div>
+      
+      <div class="layout-body">
+        <div class="layout-main">
+          <div class="layout-grid">
+            <div class="layout-tile q1"><span class="tile-num">1</span><span class="tile-q">Q1</span></div>
+            <div class="layout-tile q2"><span class="tile-num">2</span><span class="tile-q">Q2</span></div>
+            <div class="layout-tile q1"><span class="tile-num">3</span><span class="tile-q">Q1</span></div>
+            <div class="layout-tile q3"><span class="tile-num">4</span><span class="tile-q">Q3</span></div>
+            <div class="layout-tile q2 selected"><span class="tile-num">5</span><span class="tile-q">SEL</span></div>
+            <div class="layout-tile q2"><span class="tile-num">6</span><span class="tile-q">Q2</span></div>
+            <div class="layout-tile q4"><span class="tile-num">7</span><span class="tile-q">Q4</span></div>
+            <div class="layout-tile q3"><span class="tile-num">8</span><span class="tile-q">Q3</span></div>
+            <div class="layout-tile q1"><span class="tile-num">9</span><span class="tile-q">Q1</span></div>
+          </div>
+          <div class="layout-label">3×3 TILE GRID</div>
+        </div>
+        
+        <div class="layout-context">
+          <div class="context-header font-mono">CONTEXT PANEL</div>
+          <div class="context-items">
+            <div class="context-item"><span class="context-dot today"></span>Today shortlist</div>
+            <div class="context-item"><span class="context-dot detail"></span>Task detail</div>
+            <div class="context-item"><span class="context-dot response"></span>OutBot response</div>
+            <div class="context-item"><span class="context-dot agent"></span>Agent output</div>
+            <div class="context-item"><span class="context-dot today"></span>Chat mode (c key)</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="layout-command">
+        <span class="command-icon">⌘</span>
+        <span class="command-text font-mono">COMMAND BAR: type here to talk to OutBot / run agents</span>
+      </div>
+      
+      <div class="layout-status">
+        <span class="status-item"><span class="status-num">60</span> tasks</span>
+        <span class="status-divider">│</span>
+        <span class="status-item"><span class="status-num">5</span> today</span>
+        <span class="status-divider">│</span>
+        <span class="status-item">voice: <span class="status-off">off</span></span>
+        <span class="status-divider">│</span>
+        <span class="status-item">model: <span class="status-model">opus</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MERMAID DIAGRAM -->
+<section class="diagram-section" id="architecture">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Component Map</div>
+      <h2 class="section-title font-heading">System <span class="drama font-drama">architecture.</span></h2>
+    </div>
+
+    <div class="mermaid-box">
+      <div class="mermaid">
+graph TB
+    subgraph TUI["Command Centre (Textual App)"]
+        TileGrid["Tile Grid<br/><i>3×3 visible tasks</i>"]
+        ContextPanel["Context Panel<br/><i>detail/response/today</i>"]
+        CommandBar["Command Bar<br/><i>natural language input</i>"]
+        StatusBar["Status Bar<br/><i>counts, mode, model</i>"]
+        TaskFocus["Task Focus<br/><i>single-task editing</i>"]
+        CommandPalette["Command Palette<br/><i>/ key modal</i>"]
+    end
+
+    subgraph ENGINE["Brain Engine"]
+        Router["Intent Router<br/><i>command → handler</i>"]
+        Claude["Claude Client<br/><i>claude --print</i>"]
+        Memory["Memory System<br/><i>remember/recall</i>"]
+        EventBus["Event Bus<br/><i>publish/subscribe</i>"]
+        BrainLogger["Brain Logger<br/><i>pattern learning</i>"]
+    end
+
+    subgraph ADAPTERS["Channel Adapters"]
+        Telegram["Telegram Bridge<br/><i>background connection</i>"]
+        Voice["Voice Mode<br/><i>Whisper + macOS say</i>"]
+        Email["Email Handler<br/><i>Gmail IMAP/SMTP</i>"]
+        HeartbeatBridge["Heartbeat Bridge<br/><i>proactive nudges</i>"]
+        ChatPanel["Chat Panel<br/><i>persistent conversation</i>"]
+    end
+
+    subgraph HANDLERS["Slash Handlers"]
+        Triage["triage.py<br/><i>done, today, quadrant</i>"]
+        Enrich["enrich.py<br/><i>Claude enrichment</i>"]
+        Research["research.py<br/><i>URL research</i>"]
+        DailyReview["daily_review.py<br/><i>full pipeline</i>"]
+        AgentRunner["agent_runner.py<br/><i>invoke agents</i>"]
+        MemoryHandler["memory.py<br/><i>remember / forget</i>"]
+    end
+
+    CommandBar --> Router
+    TileGrid --> EventBus
+    Router --> Claude
+    Router --> HANDLERS
+    EventBus --> Memory
+    EventBus --> BrainLogger
+    Voice --> CommandBar
+    Telegram --> EventBus
+    Email --> EventBus
+
+    style TUI fill:#1a1a2e,stroke:#FF6B35,color:#fff
+    style ENGINE fill:#1a1a2e,stroke:#00D4AA,color:#fff
+    style ADAPTERS fill:#1a1a2e,stroke:#4A9EFF,color:#fff
+    style HANDLERS fill:#1a1a2e,stroke:#7B61FF,color:#fff
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TILE GRID -->
+<section class="tile-section" id="tiles">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Spatial Navigation</div>
+      <h2 class="section-title font-heading">The 3×3 <span class="drama font-drama">tile grid.</span></h2>
+    </div>
+
+    <div class="tile-demo">
+      <div class="tile-demo-item q1">
+        <div class="tile-title">Morgan LinkedIn</div>
+        <div class="tile-meta">Q1 · Due today</div>
+      </div>
+      <div class="tile-demo-item q2 selected">
+        <div class="tile-title">Tent poles</div>
+        <div class="tile-meta">Q2 · No due</div>
+      </div>
+      <div class="tile-demo-item q1">
+        <div class="tile-title">Client deck</div>
+        <div class="tile-meta">Q1 · Due Mon</div>
+      </div>
+      <div class="tile-demo-item q3">
+        <div class="tile-title">Email Kate</div>
+        <div class="tile-meta">Q3 · No due</div>
+      </div>
+      <div class="tile-demo-item q2 focused">
+        <div class="tile-title">Get shit done</div>
+        <div class="tile-meta">Q2 · Due today</div>
+      </div>
+      <div class="tile-demo-item q2">
+        <div class="tile-title">Research AI</div>
+        <div class="tile-meta">Q2 · No due</div>
+      </div>
+      <div class="tile-demo-item q4">
+        <div class="tile-title">Clean desk</div>
+        <div class="tile-meta">Q4 · No due</div>
+      </div>
+      <div class="tile-demo-item q3">
+        <div class="tile-title">Book dentist</div>
+        <div class="tile-meta">Q3 · Overdue</div>
+      </div>
+      <div class="tile-demo-item q1 selected">
+        <div class="tile-title">Sprint review</div>
+        <div class="tile-meta">Q1 · Due Tue</div>
+      </div>
+    </div>
+
+    <div class="tile-states-grid">
+      <div class="tile-state-card">
+        <div class="tile-state-name" style="color: var(--text-muted);">Normal</div>
+        <div class="tile-state-desc">Dim border. Default state for all tiles.</div>
+      </div>
+      <div class="tile-state-card">
+        <div class="tile-state-name" style="color: var(--orange);">Focused</div>
+        <div class="tile-state-desc">Bright orange border with glow. Arrow keys or 1-9 to focus.</div>
+      </div>
+      <div class="tile-state-card">
+        <div class="tile-state-name" style="color: var(--teal);">Selected</div>
+        <div class="tile-state-desc">Teal border with checkmark. Space to toggle. Multi-select supported.</div>
+      </div>
+      <div class="tile-state-card">
+        <div class="tile-state-name" style="color: var(--green);">Today</div>
+        <div class="tile-state-desc">Green dot in corner. Already in today shortlist.</div>
+      </div>
+      <div class="tile-state-card">
+        <div class="tile-state-name" style="color: var(--pink);">Overdue</div>
+        <div class="tile-state-desc">Red pulse badge. Automatic from due date.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOTKEYS -->
+<section class="hotkeys-section" id="hotkeys">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Keyboard-Driven</div>
+      <h2 class="section-title font-heading">Hotkey <span class="drama font-drama">map.</span></h2>
+    </div>
+
+    <div class="hotkeys-grid">
+      <div class="hotkey-group">
+        <div class="hotkey-group-title">Global</div>
+        <div class="hotkey-list">
+          <div class="hotkey-item"><span class="hotkey-key">Esc</span><span class="hotkey-desc">Clear selection / close panel / quit</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">Tab</span><span class="hotkey-desc">Cycle focus: grid → command bar → context</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">v</span><span class="hotkey-desc">Toggle voice mode</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">/</span><span class="hotkey-desc">Open command palette</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">:</span><span class="hotkey-desc">Focus command bar (filter mode)</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">?</span><span class="hotkey-desc">Show help overlay</span></div>
+        </div>
+      </div>
+
+      <div class="hotkey-group">
+        <div class="hotkey-group-title">Grid Navigation</div>
+        <div class="hotkey-list">
+          <div class="hotkey-item"><span class="hotkey-key">1-9</span><span class="hotkey-desc">Focus tile by position</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">↑↓←→</span><span class="hotkey-desc">Move focus between tiles</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">Space</span><span class="hotkey-desc">Toggle select on focused tile</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">Enter</span><span class="hotkey-desc">Drill down (parent → children → focus)</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">[ ]</span><span class="hotkey-desc">Page left / right</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">a / n</span><span class="hotkey-desc">Select all / deselect all</span></div>
+        </div>
+      </div>
+
+      <div class="hotkey-group">
+        <div class="hotkey-group-title">Quick Actions</div>
+        <div class="hotkey-list">
+          <div class="hotkey-item"><span class="hotkey-key">t</span><span class="hotkey-desc">Add selected to today</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">d</span><span class="hotkey-desc">Mark selected as done</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">e</span><span class="hotkey-desc">Edit focused task</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">r</span><span class="hotkey-desc">Open task detail in context panel</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">c</span><span class="hotkey-desc">Toggle chat panel</span></div>
+        </div>
+      </div>
+
+      <div class="hotkey-group">
+        <div class="hotkey-group-title">Voice Mode</div>
+        <div class="hotkey-list">
+          <div class="hotkey-item"><span class="hotkey-key">v</span><span class="hotkey-desc">Stop voice mode</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">Enter</span><span class="hotkey-desc">Start/stop recording</span></div>
+          <div class="hotkey-item"><span class="hotkey-key">Esc</span><span class="hotkey-desc">Cancel current recording</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMANDS -->
+<section class="commands-section" id="commands">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Command Bar</div>
+      <h2 class="section-title font-heading">Slash <span class="drama font-drama">commands.</span></h2>
+    </div>
+
+    <div class="command-bar-demo">
+      <span class="command-bar-icon">⌘</span>
+      <span class="command-bar-input">/enrich selected tasks...</span>
+      <span class="command-bar-hint font-mono">Enter to submit</span>
+    </div>
+
+    <div class="commands-grid">
+      <div class="command-card"><span class="command-name">/daily</span><span class="command-desc">Run daily review pipeline</span></div>
+      <div class="command-card"><span class="command-name">/voice</span><span class="command-desc">Toggle voice mode on/off</span></div>
+      <div class="command-card"><span class="command-name">/enrich</span><span class="command-desc">Run enricher on selected tasks</span></div>
+      <div class="command-card"><span class="command-name">/research</span><span class="command-desc">Run agent-browser on URL tasks</span></div>
+      <div class="command-card"><span class="command-name">/email</span><span class="command-desc">Draft email about selected tasks</span></div>
+      <div class="command-card"><span class="command-name">/done</span><span class="command-desc">Mark selected as done</span></div>
+      <div class="command-card"><span class="command-name">/today</span><span class="command-desc">Add selected to today</span></div>
+      <div class="command-card"><span class="command-name">/remove</span><span class="command-desc">Remove selected from today</span></div>
+      <div class="command-card"><span class="command-name">/q1-q4</span><span class="command-desc">Move selected to quadrant</span></div>
+      <div class="command-card"><span class="command-name">/inbox</span><span class="command-desc">Check email inbox</span></div>
+      <div class="command-card"><span class="command-name">/import</span><span class="command-desc">Import emails as tasks</span></div>
+      <div class="command-card"><span class="command-name">/agent</span><span class="command-desc">Run a specific agent</span></div>
+      <div class="command-card"><span class="command-name">/skill</span><span class="command-desc">Invoke a skill</span></div>
+      <div class="command-card"><span class="command-name">/telegram</span><span class="command-desc">Send message via Telegram</span></div>
+      <div class="command-card"><span class="command-name">/remember</span><span class="command-desc">Save a memory (shared with OutBot)</span></div>
+      <div class="command-card"><span class="command-name">/forget</span><span class="command-desc">Remove a stored memory</span></div>
+      <div class="command-card"><span class="command-name">/help</span><span class="command-desc">Show all commands</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PHASES -->
+<section class="phases-section" id="phases">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Build Roadmap</div>
+      <h2 class="section-title font-heading">Implementation <span class="drama font-drama">phases.</span></h2>
+    </div>
+
+    <div class="phases-timeline">
+      <div class="phase-card">
+        <span class="phase-status">Complete</span>
+        <div class="phase-number font-mono">Phase 01</div>
+        <div class="phase-title font-heading">Shell (the container)</div>
+        <div class="phase-desc">Textual app with 2-column layout, 3×3 tile grid with quadrant colours, arrow/number navigation, pagination, space to select, today shortlist in context panel.</div>
+        <div class="phase-files">
+          <span class="phase-file">app.py</span>
+          <span class="phase-file">tile_grid.py</span>
+          <span class="phase-file">context_panel.py</span>
+          <span class="phase-file">command_bar.py</span>
+          <span class="phase-file">status_bar.py</span>
+          <span class="phase-file">task_loader.py</span>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <span class="phase-status">Complete</span>
+        <div class="phase-number font-mono">Phase 02</div>
+        <div class="phase-title font-heading">Brain (command bar + OutBot)</div>
+        <div class="phase-desc">Command bar accepts text input, intent router parses natural language vs /slash vs :filters, Claude responses in context panel, brain logger records actions.</div>
+        <div class="phase-files">
+          <span class="phase-file">router.py</span>
+          <span class="phase-file">brain_logger.py</span>
+          <span class="phase-file">handlers/triage.py</span>
+          <span class="phase-file">handlers/enrich.py</span>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <span class="phase-status">Complete</span>
+        <div class="phase-number font-mono">Phase 03</div>
+        <div class="phase-title font-heading">Voice + Predictions</div>
+        <div class="phase-desc">Voice mode toggle with v key, Whisper transcription, URL task detection + research handler, brain predictions on launch based on patterns.</div>
+        <div class="phase-files">
+          <span class="phase-file">handlers/voice.py</span>
+          <span class="phase-file">handlers/research.py</span>
+          <span class="phase-file">predictions.py</span>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <span class="phase-status">Complete</span>
+        <div class="phase-number font-mono">Phase 04</div>
+        <div class="phase-title font-heading">Polish + Agents/Skills</div>
+        <div class="phase-desc">All agents invocable via /agent, email drafting, Telegram bridge, help overlay, error handling, Task Focus view, Command Palette.</div>
+        <div class="phase-files">
+          <span class="phase-file">handlers/agent_runner.py</span>
+          <span class="phase-file">handlers/email.py</span>
+          <span class="phase-file">telegram_bridge.py</span>
+          <span class="phase-file">task_focus.py</span>
+          <span class="phase-file">command_palette.py</span>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <span class="phase-status">Complete</span>
+        <div class="phase-number font-mono">Phase 05</div>
+        <div class="phase-title font-heading">Heartbeat, Memory, Chat</div>
+        <div class="phase-desc">Chat panel (c key toggle), heartbeat bridge for proactive nudges, /remember and /forget commands, help_data.yml single source of truth, quick sync with AppleScript whose clause.</div>
+        <div class="phase-files">
+          <span class="phase-file">heartbeat_bridge.py</span>
+          <span class="phase-file">handlers/memory.py</span>
+          <span class="phase-file">help_data.yml</span>
+          <span class="phase-file">help_gen.py</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FILE STRUCTURE -->
+<section class="files-section" id="files">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag font-mono">Codebase</div>
+      <h2 class="section-title font-heading">File <span class="drama font-drama">structure.</span></h2>
+    </div>
+
+    <div class="file-tree"><span class="folder">brain/command_centre/</span>          <span class="comment"># The unified TUI</span>
+├── <span class="new">app.py</span>              <span class="comment"># Main Textual App (entry point)</span>
+├── <span class="new">tile_grid.py</span>        <span class="comment"># 3×3 tile grid widget</span>
+├── <span class="new">context_panel.py</span>    <span class="comment"># Right-side detail/response panel</span>
+├── <span class="new">command_bar.py</span>      <span class="comment"># Bottom command input</span>
+├── <span class="new">status_bar.py</span>       <span class="comment"># Bottom status strip</span>
+├── <span class="new">router.py</span>           <span class="comment"># Intent routing (command → handler)</span>
+├── <span class="new">brain_logger.py</span>     <span class="comment"># Event logging for pattern learning</span>
+├── <span class="new">task_loader.py</span>      <span class="comment"># Load/sort/filter tasks</span>
+├── <span class="new">task_focus.py</span>       <span class="comment"># Single-task editing view</span>
+├── <span class="new">command_palette.py</span>  <span class="comment"># / key navigable modal</span>
+├── <span class="new">predictions.py</span>      <span class="comment"># Brain-log analysis</span>
+├── <span class="new">sanitiser.py</span>        <span class="comment"># Client name protection</span>
+├── <span class="new">config_loader.py</span>    <span class="comment"># Loads hotkeys + display from YAML</span>
+├── <span class="new">telegram_bridge.py</span>  <span class="comment"># Background Telegram connection</span>
+├── <span class="new">heartbeat_bridge.py</span> <span class="comment"># Proactive nudge scheduler</span>
+├── <span class="new">help_data.yml</span>       <span class="comment"># Single source of truth for help</span>
+├── <span class="new">help_gen.py</span>         <span class="comment"># Generates HELP.md + app.py help text</span>
+└── <span class="folder">handlers/</span>
+    ├── <span class="new">triage.py</span>       <span class="comment"># Select, today, done, quadrant moves</span>
+    ├── <span class="new">enrich.py</span>       <span class="comment"># Claude enrichment of tasks</span>
+    ├── <span class="new">research.py</span>     <span class="comment"># URL research via agent-browser</span>
+    ├── <span class="new">email.py</span>        <span class="comment"># Email drafting + inbox</span>
+    ├── <span class="new">voice.py</span>        <span class="comment"># Voice mode toggle + pipeline</span>
+    ├── <span class="new">daily_review.py</span> <span class="comment"># Daily review pipeline</span>
+    ├── <span class="new">agent_runner.py</span> <span class="comment"># Generic agent/skill runner</span>
+    └── <span class="new">memory.py</span>       <span class="comment"># /remember and /forget commands</span>
+
+<span class="folder">.claude/config/</span>
+└── <span class="new">command-centre.yml</span>  <span class="comment"># Hotkeys, display, behaviour config</span>
+
+<span class="folder">.claude/dashboards/</span>
+├── <span class="file">today.yml</span>           <span class="comment"># Today shortlist</span>
+├── <span class="new">brain-log.yml</span>       <span class="comment"># Interaction event log</span>
+└── <span class="new">predictions.yml</span>     <span class="comment"># Predicted today list</span></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-brand font-heading">Command Centre</div>
+  <div class="footer-tagline">One app. One process. Every capability.</div>
+  <div class="footer-date font-mono">Last updated: 3 Mar 2026</div>
+</footer>
+
+<!-- SCRIPTS -->
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#FF6B35',
+      primaryTextColor: '#f0eff4',
+      primaryBorderColor: 'rgba(255, 107, 53, 0.3)',
+      lineColor: '#6b6b80',
+      secondaryColor: '#00D4AA',
+      tertiaryColor: '#12121a',
+      background: '#0a0a0f',
+      mainBkg: '#12121a',
+      nodeBorder: 'rgba(255, 107, 53, 0.3)',
+      clusterBkg: '#1a1a24',
+      clusterBorder: 'rgba(255, 107, 53, 0.2)',
+      titleColor: '#f0eff4',
+      edgeLabelBackground: '#12121a',
+      fontSize: '13px'
+    }
+  });
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  gsap.context(() => {
+    // Navbar
+    ScrollTrigger.create({
+      trigger: '#hero',
+      start: 'bottom 80px',
+      onEnter: () => document.getElementById('navbar').classList.add('scrolled'),
+      onLeaveBack: () => document.getElementById('navbar').classList.remove('scrolled'),
+    });
+
+    // Hero
+    gsap.set(['.hero-tag', '.hero-title', '.hero-sub', '.hero-stats'], { y: 40 });
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 1 } });
+    heroTl
+      .to('.hero-tag', { opacity: 1, y: 0 }, 0.2)
+      .to('.hero-title', { opacity: 1, y: 0 }, 0.4)
+      .to('.hero-sub', { opacity: 1, y: 0 }, 0.6)
+      .to('.hero-stats', { opacity: 1, y: 0 }, 0.8);
+
+    // Layout diagram
+    gsap.to('.layout-diagram', {
+      opacity: 1, y: 0, duration: 1, ease: 'power3.out',
+      scrollTrigger: { trigger: '.layout-diagram', start: 'top 80%' }
+    });
+
+    // Mermaid box
+    gsap.to('.mermaid-box', {
+      opacity: 1, y: 0, duration: 1, ease: 'power3.out',
+      scrollTrigger: { trigger: '.mermaid-box', start: 'top 80%' }
+    });
+
+    // Tile demo
+    gsap.to('.tile-demo', {
+      opacity: 1, scale: 1, duration: 0.8, ease: 'power3.out',
+      scrollTrigger: { trigger: '.tile-demo', start: 'top 80%' }
+    });
+
+    // Tile state cards
+    gsap.to('.tile-state-card', {
+      opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power3.out',
+      scrollTrigger: { trigger: '.tile-states-grid', start: 'top 80%' }
+    });
+
+    // Hotkey groups
+    gsap.to('.hotkey-group', {
+      opacity: 1, y: 0, duration: 0.7, stagger: 0.15, ease: 'power3.out',
+      scrollTrigger: { trigger: '.hotkeys-grid', start: 'top 80%' }
+    });
+
+    // Command bar demo
+    gsap.to('.command-bar-demo', {
+      opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+      scrollTrigger: { trigger: '.command-bar-demo', start: 'top 85%' }
+    });
+
+    // Command cards
+    gsap.to('.command-card', {
+      opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: 'power3.out',
+      scrollTrigger: { trigger: '.commands-grid', start: 'top 80%' }
+    });
+
+    // Phase cards
+    gsap.to('.phase-card', {
+      opacity: 1, x: 0, duration: 0.8, stagger: 0.2, ease: 'power3.out',
+      scrollTrigger: { trigger: '.phases-timeline', start: 'top 80%' }
+    });
+
+    // File tree
+    gsap.to('.file-tree', {
+      opacity: 1, y: 0, duration: 1, ease: 'power3.out',
+      scrollTrigger: { trigger: '.file-tree', start: 'top 80%' }
+    });
+  });
+</script>
+
+</body>
+</html>

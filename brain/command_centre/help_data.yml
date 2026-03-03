@@ -136,6 +136,8 @@ cc_slash_commands:
     desc: "Remove a stored memory"
   - cmd: "/telegram <msg>"
     desc: "Send a Telegram message"
+  - cmd: "/arch"
+    desc: "Open architecture diagram in browser"
   - cmd: "/help"
     desc: "Show available commands"
 
@@ -207,8 +209,10 @@ claude_code_slash_commands:
     desc: "Apply Pareto's principle (80/20 rule) to current discussion"
 
 reminders_cli_commands:
+  - cmd: "cd .claude/reminders && python3 -m reminders.plugins.cli sync --quick"
+    desc: "Pull recent reminders from iOS (fast, last 24h)"
   - cmd: "cd .claude/reminders && python3 -m reminders.plugins.cli sync"
-    desc: "Pull reminders from iOS and create work items"
+    desc: "Full sync — pull all reminders from iOS (slow)"
   - cmd: "cd .claude/reminders && python3 -m reminders.plugins.cli list"
     desc: "List all active reminders"
   - cmd: "cd .claude/reminders && python3 -m reminders.plugins.cli show OUT-XXX"
@@ -303,3 +307,9 @@ dashboards:
     desc: "Mobile Eisenhower dashboard (auto-updates on /daily-review)"
   - cmd: "open .claude/dashboards/eisenhower-latest.html"
     desc: "Local Eisenhower dashboard"
+  - cmd: "open docs/architecture-diagram.html"
+    desc: "System architecture (cinematic overview)"
+  - cmd: "open docs/plans/command-centre-architecture-cinematic.html"
+    desc: "Command Centre architecture (cinematic)"
+  - cmd: "open docs/plans/command-centre-architecture-viewer.html"
+    desc: "Command Centre architecture (detailed viewer)"

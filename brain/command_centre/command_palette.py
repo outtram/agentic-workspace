@@ -30,6 +30,7 @@ _COMMANDS = [
     ("/remember", "Save a memory (shared with OutBot)"),
     ("/forget", "Remove a stored memory"),
     ("/telegram", "Send a Telegram message"),
+    ("/arch", "Open architecture diagram in browser"),
     ("/import-emails", "Import unread emails as tasks"),
     ("/help", "Show available commands"),
 ]

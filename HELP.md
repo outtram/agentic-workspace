@@ -91,6 +91,7 @@ Arrow down past Description to the **Notes & Research** section. Press Enter to 
 | `/remember <text>` | Save a memory (shared with OutBot) |
 | `/forget <text>` | Remove a stored memory |
 | `/telegram <msg>` | Send a Telegram message |
+| `/arch` | Open architecture diagram in browser |
 | `/help` | Show available commands |
 
 ### Predictions (on launch)
@@ -137,7 +138,8 @@ On launch, the brain analyses brain-log.yml for day-of-week patterns, frequently
 
 | Command | What it does |
 |---------|--------------|
-| `cd .claude/reminders && python3 -m reminders.plugins.cli sync` | Pull reminders from iOS and create work items |
+| `cd .claude/reminders && python3 -m reminders.plugins.cli sync --quick` | Pull recent reminders from iOS (fast, last 24h) |
+| `cd .claude/reminders && python3 -m reminders.plugins.cli sync` | Full sync — pull all reminders from iOS (slow) |
 | `cd .claude/reminders && python3 -m reminders.plugins.cli list` | List all active reminders |
 | `cd .claude/reminders && python3 -m reminders.plugins.cli show OUT-XXX` | Show detailed info for a task |
 | `cd .claude/reminders && python3 -m reminders.plugins.cli add "title"` | Create a new reminder (syncs to iOS) |
@@ -197,6 +199,9 @@ On launch, the brain analyses brain-log.yml for day-of-week patterns, frequently
 |-----|---------------|
 | https://gist.githack.com/outtram/20f5befb1e2f8cef427b784e6860ddf8/raw/eisenhower-dashboard.html | Mobile Eisenhower dashboard (auto-updates on /daily-review) |
 | `open .claude/dashboards/eisenhower-latest.html` | Local Eisenhower dashboard |
+| `open docs/architecture-diagram.html` | System architecture (cinematic overview) |
+| `open docs/plans/command-centre-architecture-cinematic.html` | Command Centre architecture (cinematic) |
+| `open docs/plans/command-centre-architecture-viewer.html` | Command Centre architecture (detailed viewer) |
 
 ## Quick Start
 

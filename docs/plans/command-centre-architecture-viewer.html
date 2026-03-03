@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Centre Architecture</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-orange: #FF6B35;
+            --accent-teal: #00D4AA;
+            --border-color: #30363d;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-bottom: 3px solid var(--accent-orange);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .meta-badge {
+            display: inline-block;
+            background: var(--accent-teal);
+            color: var(--bg-primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        
+        .meta-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        /* Navigation */
+        nav {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+        
+        nav h3 {
+            margin: 0 0 0.75rem 0;
+            color: var(--accent-orange);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.35rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            background: var(--bg-tertiary);
+        }
+        
+        nav a:hover {
+            background: var(--accent-orange);
+            color: var(--bg-primary);
+        }
+        
+        /* Sections */
+        section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        h2 {
+            color: var(--accent-orange);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        
+        h3 {
+            color: var(--accent-teal);
+            margin-top: 1.5rem;
+        }
+        
+        h4 {
+            color: var(--text-primary);
+            margin-top: 1.25rem;
+        }
+        
+        /* Code blocks */
+        pre {
+            background: var(--bg-primary) !important;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem !important;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        
+        code {
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        }
+        
+        :not(pre) > code {
+            background: var(--bg-tertiary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent-teal);
+        }
+        
+        /* ASCII diagrams */
+        .ascii-diagram {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--accent-teal);
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-orange);
+            text-align: left;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        td {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        tr:nth-child(even) {
+            background: var(--bg-primary);
+        }
+        
+        /* Lists */
+        ul, ol {
+            padding-left: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Blockquotes */
+        blockquote {
+            border-left: 4px solid var(--accent-orange);
+            margin: 1rem 0;
+            padding: 0.5rem 1rem;
+            background: var(--bg-primary);
+            border-radius: 0 6px 6px 0;
+        }
+        
+        blockquote p {
+            margin: 0.5rem 0;
+        }
+        
+        /* Mermaid diagrams */
+        .mermaid {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        /* Phase cards */
+        .phase-card {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+        
+        .phase-card.done {
+            border-color: var(--accent-teal);
+        }
+        
+        .phase-card h4 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .phase-number {
+            background: var(--accent-orange);
+            color: var(--bg-primary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        /* Hotkey badges */
+        kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.15rem 0.4rem;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.85em;
+            color: var(--accent-orange);
+        }
+        
+        /* File tree */
+        .file-tree {
+            font-family: 'SF Mono', monospace;
+            font-size: 0.85rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            line-height: 1.6;
+        }
+        
+        .file-tree .folder {
+            color: var(--accent-orange);
+        }
+        
+        .file-tree .file {
+            color: var(--text-secondary);
+        }
+        
+        .file-tree .new {
+            color: var(--accent-teal);
+        }
+        
+        .file-tree .comment {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.75rem;
+            }
+            
+            nav {
+                position: static;
+            }
+            
+            table {
+                font-size: 0.8rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Command Centre Architecture</h1>
+            <div>
+                <span class="meta-badge">APPROVED DESIGN</span>
+                <span class="meta-badge" style="background: var(--accent-orange);">Ready for Build</span>
+            </div>
+            <div class="meta-info">
+                <strong>Created:</strong> 2026-02-28 &nbsp;|&nbsp;
+                <strong>Author:</strong> Troy + Claude (Cursor) &nbsp;|&nbsp;
+                <strong>Build target:</strong> Claude Code (terminal TUI)
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <nav>
+            <h3>Quick Navigation</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#tile-grid">Tile Grid</a></li>
+                <li><a href="#context-panel">Context Panel</a></li>
+                <li><a href="#command-bar">Command Bar</a></li>
+                <li><a href="#hotkeys">Hotkeys</a></li>
+                <li><a href="#brain">Brain Integration</a></li>
+                <li><a href="#voice">Voice</a></li>
+                <li><a href="#phases">Build Phases</a></li>
+                <li><a href="#files">File Structure</a></li>
+                <li><a href="#telegram">Telegram</a></li>
+                <li><a href="#config">Config</a></li>
+            </ul>
+        </nav>
+        
+        <section id="overview">
+            <h2>1. What We're Building</h2>
+            <p>A <strong>unified terminal interface</strong> — codename "Command Centre" — that merges the task picker, OutBot brain, voice mode, agents, and skills into a single keyboard-driven TUI.</p>
+            <p><strong>One app. One process. Every capability accessible via hotkeys or natural language.</strong></p>
+            
+            <h3>What Dies</h3>
+            <ul>
+                <li><code>task-picker.py</code> (standalone script) → absorbed into Command Centre</li>
+                <li><code>brain/chat.py</code> (standalone CLI) → absorbed into Command Centre</li>
+                <li><code>brain/voice.py</code> (standalone voice) → absorbed as a mode toggle</li>
+            </ul>
+            
+            <h3>What Lives (unchanged)</h3>
+            <ul>
+                <li><code>brain/main.py</code> → Telegram bot standalone mode (optional, can also run in-process)</li>
+                <li><code>brain/orchestrator.py</code> → reused as the brain engine</li>
+                <li>All agents, skills, memory, events → wired in, not rewritten</li>
+                <li><code>brain/telegram/bot.py</code> → Telegram adapter (reused by in-process bridge)</li>
+                <li><code>brain/core/</code> → config, events, models, db all reused</li>
+            </ul>
+        </section>
+        
+        <section id="architecture">
+            <h2>2. Architecture Overview</h2>
+            
+            <div class="ascii-diagram">┌──────────────────────────────────────────────────────────────┐
+│                    COMMAND CENTRE (Textual TUI)               │
+│                                                               │
+│  ┌─────────┬─────────┬─────────┐  ┌─────────────────────┐   │
+│  │  Tile 1 │  Tile 2 │  Tile 3 │  │                     │   │
+│  │         │         │         │  │   CONTEXT PANEL      │   │
+│  ├─────────┼─────────┼─────────┤  │                     │   │
+│  │  Tile 4 │  Tile 5 │  Tile 6 │  │  - Today shortlist  │   │
+│  │         │         │         │  │  - Task detail       │   │
+│  ├─────────┼─────────┼─────────┤  │  - OutBot response   │   │
+│  │  Tile 7 │  Tile 8 │  Tile 9 │  │  - Agent output      │   │
+│  │         │         │         │  │                     │   │
+│  └─────────┴─────────┴─────────┘  └─────────────────────┘   │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │ ⌘ COMMAND BAR: type here to talk to OutBot / run agents │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │ STATUS: 25 tasks │ 3 today │ voice: off │ model: opus  │ │
+│  └─────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────┘</div>
+            
+            <h3>Component Map</h3>
+            <div class="mermaid">
+graph TB
+    subgraph TUI["Command Centre (Textual App)"]
+        TileGrid["Tile Grid<br/>3x3 visible tasks"]
+        ContextPanel["Context Panel<br/>detail/response/today"]
+        CommandBar["Command Bar<br/>natural language input"]
+        StatusBar["Status Bar<br/>counts, mode, model"]
+    end
+
+    subgraph ENGINE["Brain Engine (reused from OutBot)"]
+        Router["Intent Router<br/>command → handler"]
+        Claude["Claude Client<br/>claude --print"]
+        Memory["Memory System<br/>remember/recall/reflect"]
+        EventBus["Event Bus<br/>publish/subscribe"]
+    end
+
+    subgraph ADAPTERS["Channel Adapters"]
+        Telegram["Telegram Bot<br/>(separate daemon)"]
+        Voice["Voice Mode<br/>Whisper + macOS say"]
+        HeartbeatBridge["Heartbeat Bridge<br/>proactive nudges"]
+        ChatPanel["Chat Panel<br/>persistent conversation"]
+    end
+
+    subgraph DATA["Shared Files"]
+        Tasks[".claude/work/tasks/"]
+        Today[".claude/dashboards/today.yml"]
+        Brain[".claude/dashboards/brain-log.yml"]
+        MemFiles[".claude/memory/"]
+    end
+
+    subgraph CAPABILITIES["Capabilities (wired in)"]
+        Agents["9 Agents"]
+        Skills["26 Skills"]
+        Email["Email In/Out"]
+        Heartbeat["Heartbeat"]
+        DailyReview["Daily Review"]
+    end
+
+    CommandBar --> Router
+    TileGrid -->|selection events| EventBus
+    Router --> Claude
+    Router --> Agents
+    Router --> Skills
+    Router --> Email
+    Router --> DailyReview
+    EventBus --> Memory
+    EventBus --> Brain
+    Voice -.->|toggle on/off| CommandBar
+    Telegram -.->|separate process| EventBus
+    ENGINE --> DATA
+    TUI --> DATA
+            </div>
+        </section>
+        
+        <section id="tile-grid">
+            <h2>3. Tile Grid Design</h2>
+            
+            <h3>Layout: 3×3 Grid with Pagination</h3>
+            <ul>
+                <li><strong>9 tiles visible</strong> at any time</li>
+                <li>Each tile shows: quadrant colour band, title (truncated), priority badge, due badge</li>
+                <li><strong>Page left/right</strong> with <kbd>[</kbd> and <kbd>]</kbd> to see more tasks (pages of 9)</li>
+                <li><strong>Page indicator:</strong> "Page 1 of 3 (25 tasks)"</li>
+            </ul>
+            
+            <h3>Tile States</h3>
+            <table>
+                <thead>
+                    <tr><th>State</th><th>Visual</th><th>How to enter</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Normal</strong></td><td>Dim border</td><td>Default</td></tr>
+                    <tr><td><strong>Focused</strong></td><td>Bright border, slight highlight</td><td>Arrow keys / number keys 1-9</td></tr>
+                    <tr><td><strong>Selected</strong></td><td>Green check overlay, bold border</td><td><kbd>Space</kbd> or <kbd>Enter</kbd> on focused tile</td></tr>
+                    <tr><td><strong>Today</strong></td><td>Green dot in corner</td><td>Already in today list</td></tr>
+                    <tr><td><strong>Overdue</strong></td><td>Red pulse/badge</td><td>Automatic from due date</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Selection Model (Multi-Select)</h3>
+            <ul>
+                <li><kbd>1</kbd>-<kbd>9</kbd> — focus tile by position</li>
+                <li><kbd>Space</kbd> — toggle select on focused tile</li>
+                <li><kbd>Enter</kbd> — <strong>drill down</strong>: parent task → show children, leaf task → open Task Focus View</li>
+                <li><kbd>a</kbd> — select all on current page</li>
+                <li><kbd>n</kbd> — deselect all</li>
+                <li>Arrow keys — move focus between tiles</li>
+                <li><kbd>[</kbd> / <kbd>]</kbd> — page left / page right</li>
+            </ul>
+            
+            <h3>What Happens with Selections</h3>
+            <p>Once tiles are selected (green check), the <strong>command bar</strong> becomes contextual:</p>
+            <table>
+                <thead>
+                    <tr><th>You type</th><th>What happens</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><em>(just press <kbd>t</kbd>)</em></td><td>Add selected to today shortlist</td></tr>
+                    <tr><td><code>make these better</code></td><td>Claude enriches selected task descriptions</td></tr>
+                    <tr><td><code>research this</code></td><td>Agent-browser fetches URLs from selected tasks</td></tr>
+                    <tr><td><code>what should I prioritise?</code></td><td>Claude analyses selected + gives recommendation</td></tr>
+                    <tr><td><code>email Kate about these</code></td><td>OutBot drafts email with selected task summaries</td></tr>
+                    <tr><td><code>done</code></td><td>Mark selected as complete</td></tr>
+                    <tr><td><code>schedule for monday</code></td><td>Set due dates on selected</td></tr>
+                    <tr><td><code>move to q1</code></td><td>Reclassify Eisenhower quadrant</td></tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <section id="context-panel">
+            <h2>4. Context Panel (Right Side)</h2>
+            <p>The right panel changes based on what's happening:</p>
+            
+            <table>
+                <thead>
+                    <tr><th>Mode</th><th>Shows</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Default</strong></td><td>Today shortlist (always visible at top) + task count summary</td></tr>
+                    <tr><td><strong>Single focus</strong></td><td>Full task detail — description, steps, dates, parent/children</td></tr>
+                    <tr><td><strong>OutBot response</strong></td><td>Claude's reply after a command bar message</td></tr>
+                    <tr><td><strong>Agent output</strong></td><td>Live output from running agent/skill</td></tr>
+                    <tr><td><strong>Voice active</strong></td><td>Waveform / "Listening..." / transcription</td></tr>
+                    <tr><td><strong>Chat mode</strong></td><td>Persistent conversation with OutBot (toggle with <kbd>c</kbd>)</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Today Shortlist (always pinned at top of context panel)</h3>
+            <div class="ascii-diagram">TODAY (3 tasks)
+━━━━━━━━━━━━━━━━━━
+● Morgan LinkedIn Post          Q1
+● Tent poles                    Q3
+● Get shit done                 Q2
+━━━━━━━━━━━━━━━━━━</div>
+        </section>
+        
+        <section id="command-bar">
+            <h2>5. Command Bar</h2>
+            <p>Always visible at the bottom. Press <kbd>/</kbd> or <kbd>:</kbd> or just start typing to focus it.</p>
+            
+            <h3>Command Types</h3>
+            <table>
+                <thead>
+                    <tr><th>Prefix</th><th>Purpose</th><th>Example</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><em>(none)</em></td><td>Natural language to OutBot</td><td><code>what should I focus on?</code></td></tr>
+                    <tr><td><kbd>/</kbd></td><td>Slash commands (quick actions)</td><td><code>/daily</code>, <code>/voice</code>, <code>/enrich</code></td></tr>
+                    <tr><td><kbd>:</kbd></td><td>Filter/search tasks</td><td><code>:overdue</code>, <code>:q1</code>, <code>:kate</code></td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Slash Commands</h3>
+            <table>
+                <thead>
+                    <tr><th>Command</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>/daily</code></td><td>Run daily review pipeline</td></tr>
+                    <tr><td><code>/voice</code> or <code>/v</code></td><td>Toggle voice mode on/off</td></tr>
+                    <tr><td><code>/enrich</code></td><td>Run enricher on selected tasks</td></tr>
+                    <tr><td><code>/research</code></td><td>Run agent-browser on URL tasks</td></tr>
+                    <tr><td><code>/email [person]</code></td><td>Draft email about selected tasks</td></tr>
+                    <tr><td><code>/done</code></td><td>Mark selected as done</td></tr>
+                    <tr><td><code>/today</code></td><td>Add selected to today</td></tr>
+                    <tr><td><code>/remove</code></td><td>Remove selected from today</td></tr>
+                    <tr><td><code>/q1</code> <code>/q2</code> <code>/q3</code> <code>/q4</code></td><td>Move selected to quadrant</td></tr>
+                    <tr><td><code>/sort [weight|alpha|due]</code></td><td>Change sort order</td></tr>
+                    <tr><td><code>/filter [quadrant|overdue|tag]</code></td><td>Filter tile grid</td></tr>
+                    <tr><td><code>/agent [name]</code></td><td>Run a specific agent</td></tr>
+                    <tr><td><code>/skill [name]</code></td><td>Invoke a skill</td></tr>
+                    <tr><td><code>/remember [text]</code></td><td>Save a memory (shared with OutBot)</td></tr>
+                    <tr><td><code>/forget [text]</code></td><td>Remove a stored memory</td></tr>
+                    <tr><td><code>/telegram [msg]</code></td><td>Send message via Telegram</td></tr>
+                    <tr><td><code>/help</code></td><td>Show all commands</td></tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <section id="hotkeys">
+            <h2>6. Hotkey Map</h2>
+            
+            <h3>Global (work everywhere)</h3>
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><kbd>Escape</kbd></td><td>Clear selection / close panel / quit (double-tap)</td></tr>
+                    <tr><td><kbd>Tab</kbd></td><td>Cycle focus: grid → command bar → context panel</td></tr>
+                    <tr><td><kbd>v</kbd></td><td>Toggle voice mode</td></tr>
+                    <tr><td><kbd>c</kbd></td><td>Toggle chat panel</td></tr>
+                    <tr><td><kbd>/</kbd></td><td>Focus command bar</td></tr>
+                    <tr><td><kbd>:</kbd></td><td>Focus command bar (filter mode)</td></tr>
+                    <tr><td><kbd>?</kbd></td><td>Show hotkey help overlay</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Grid Navigation</h3>
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><kbd>1</kbd>-<kbd>9</kbd></td><td>Focus tile by position</td></tr>
+                    <tr><td>Arrow keys</td><td>Move focus</td></tr>
+                    <tr><td><kbd>Space</kbd> / <kbd>Enter</kbd></td><td>Toggle select on focused tile</td></tr>
+                    <tr><td><kbd>a</kbd></td><td>Select all (current page)</td></tr>
+                    <tr><td><kbd>n</kbd></td><td>Deselect all</td></tr>
+                    <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Page left / right</td></tr>
+                    <tr><td><kbd>t</kbd></td><td>Add selected to today</td></tr>
+                    <tr><td><kbd>d</kbd></td><td>Mark selected as done</td></tr>
+                    <tr><td><kbd>r</kbd></td><td>Open task detail in context panel</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Voice Mode (when active)</h3>
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><kbd>v</kbd></td><td>Stop voice mode</td></tr>
+                    <tr><td><kbd>Enter</kbd></td><td>Start/stop recording</td></tr>
+                    <tr><td><kbd>Escape</kbd></td><td>Cancel current recording</td></tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <section id="brain">
+            <h2>7. Brain Integration (the smart part)</h2>
+            
+            <h3>Event Logging</h3>
+            <p>New file: <code>.claude/dashboards/brain-log.yml</code></p>
+            <p>Every interaction is logged:</p>
+            
+            <pre><code class="language-yaml">- timestamp: "2026-02-28T22:15:00"
+  action: selected
+  task_ids: [OUT-256, OUT-310]
+  context: "morning triage"
+
+- timestamp: "2026-02-28T22:15:30"
+  action: command
+  input: "make these better"
+  task_ids: [OUT-256, OUT-310]
+  result: enriched
+
+- timestamp: "2026-02-28T22:16:00"
+  action: added_to_today
+  task_ids: [OUT-256]</code></pre>
+            
+            <h3>Pattern Learning</h3>
+            <p>The brain watches the log and learns:</p>
+            <ul>
+                <li><strong>Time patterns:</strong> "Troy picks work tasks in the morning, personal in the evening"</li>
+                <li><strong>Grouping patterns:</strong> "These tasks often get selected together"</li>
+                <li><strong>Completion patterns:</strong> "Q1 tasks get done, Q4 tasks get skipped repeatedly"</li>
+                <li><strong>Prediction:</strong> On next launch, pre-sort tiles by predicted likelihood of selection</li>
+            </ul>
+            
+            <h3>Predictive Today (Phase 3+)</h3>
+            <p>On launch, the brain suggests a "predicted today" based on:</p>
+            <ol>
+                <li>Day of week patterns</li>
+                <li>What's overdue</li>
+                <li>What was selected but not completed yesterday</li>
+                <li>Tasks similar to recently completed ones</li>
+            </ol>
+            <p>Shown as: <code>[Brain suggests: OUT-256, OUT-310, OUT-308] Accept? (y/n)</code></p>
+        </section>
+        
+        <section id="voice">
+            <h2>8. Voice Integration</h2>
+            <p>Voice is a <strong>mode</strong>, not a separate app. Toggle with <kbd>v</kbd>.</p>
+            
+            <h3>When Voice is Active</h3>
+            <ul>
+                <li>Status bar shows: <code>🎙️ VOICE ON</code></li>
+                <li>Command bar label changes to: <code>⌘ SPEAK (Enter to record, v to stop voice)</code></li>
+                <li><kbd>Enter</kbd> starts recording → <kbd>Enter</kbd> stops → transcription fills command bar → auto-submit</li>
+                <li>OutBot replies are spoken via <code>macOS say</code> AND displayed in context panel</li>
+                <li>All tile hotkeys still work (spatial + voice together)</li>
+            </ul>
+            
+            <h3>Voice Pipeline</h3>
+            <div class="ascii-diagram">[Enter] → record audio → Whisper STT → fill command bar → route intent → Claude → TTS (say) + display</div>
+            <p>Uses existing <code>brain/voice.py</code> functions: <code>record()</code>, <code>transcribe()</code>, <code>speak()</code> — just imported, not run as separate process.</p>
+        </section>
+        
+        <section id="phases">
+            <h2>12. Build Phases</h2>
+            
+            <div class="phase-card done">
+                <h4><span class="phase-number">1</span> Shell (the container)</h4>
+                <p><strong>✅ Done =</strong> app launches, tiles render, you can navigate</p>
+                <p><strong>Files:</strong> <code>app.py</code>, <code>tile_grid.py</code>, <code>context_panel.py</code>, <code>command_bar.py</code>, <code>status_bar.py</code>, <code>task_loader.py</code></p>
+                <p><strong>What it does:</strong></p>
+                <ul>
+                    <li>Textual app with 2-column layout (grid + context)</li>
+                    <li>Loads tasks from <code>.claude/work/tasks/</code></li>
+                    <li>Renders 3×3 tile grid with quadrant colours</li>
+                    <li>Arrow keys / 1-9 to navigate</li>
+                    <li><kbd>[</kbd> <kbd>]</kbd> to paginate</li>
+                    <li><kbd>Space</kbd> to select/deselect</li>
+                    <li>Today shortlist in context panel</li>
+                    <li><kbd>t</kbd> to add to today</li>
+                </ul>
+                <p><strong>Estimated effort:</strong> 3-4 hours</p>
+            </div>
+            
+            <div class="phase-card done">
+                <h4><span class="phase-number">2</span> Brain (the command bar + OutBot)</h4>
+                <p><strong>✅ Done =</strong> you can type commands and get Claude responses</p>
+                <p><strong>Files:</strong> <code>command_bar.py</code> (enhanced), <code>router.py</code>, <code>handlers/triage.py</code>, <code>handlers/enrich.py</code>, <code>brain_logger.py</code></p>
+                <p><strong>What it does:</strong></p>
+                <ul>
+                    <li>Command bar accepts text input</li>
+                    <li>Intent router parses: natural language vs <code>/slash</code> commands vs <code>:filters</code></li>
+                    <li>Natural language → Claude via existing <code>ClaudeClient</code></li>
+                    <li><code>/daily</code> runs daily review</li>
+                    <li><code>/enrich</code> enriches selected tasks</li>
+                    <li>Brain logger records every action</li>
+                </ul>
+                <p><strong>Estimated effort:</strong> 4-5 hours</p>
+            </div>
+            
+            <div class="phase-card done">
+                <h4><span class="phase-number">3</span> Voice + Predictions</h4>
+                <p><strong>✅ Done =</strong> voice works inline, brain suggests tomorrow's focus</p>
+                <p><strong>Files:</strong> <code>handlers/voice.py</code>, <code>handlers/research.py</code>, <code>predictions.yml</code></p>
+                <p><strong>What it does:</strong></p>
+                <ul>
+                    <li><kbd>v</kbd> toggles voice mode</li>
+                    <li>Record → Whisper → command bar → route → response → speak</li>
+                    <li>URL task detection + research handler</li>
+                    <li>Brain reads <code>brain-log.yml</code> on launch, suggests predicted today</li>
+                </ul>
+                <p><strong>Estimated effort:</strong> 4-5 hours</p>
+            </div>
+            
+            <div class="phase-card done">
+                <h4><span class="phase-number">4</span> Polish + Agents/Skills</h4>
+                <p><strong>✅ Done =</strong> full system, all capabilities accessible</p>
+                <p><strong>Files:</strong> <code>handlers/agent_runner.py</code>, <code>handlers/email.py</code></p>
+                <p><strong>What it does:</strong></p>
+                <ul>
+                    <li><code>/agent overseer</code> runs the overseer pipeline</li>
+                    <li><code>/skill pptx</code> invokes PowerPoint skill</li>
+                    <li><code>/email kate about these</code> drafts email</li>
+                    <li>Telegram integration</li>
+                    <li>Help overlay (<kbd>?</kbd> key)</li>
+                </ul>
+                <p><strong>Estimated effort:</strong> 3-4 hours</p>
+            </div>
+
+            <div class="phase-card done">
+                <h4><span class="phase-number">5</span> Heartbeat, Memory, Chat</h4>
+                <p><strong>✅ Done =</strong> chat panel, heartbeat bridge, memory commands, help generator</p>
+                <p><strong>Files:</strong> <code>heartbeat_bridge.py</code>, <code>handlers/memory.py</code>, <code>help_data.yml</code>, <code>help_gen.py</code></p>
+                <p><strong>What it does:</strong></p>
+                <ul>
+                    <li><kbd>c</kbd> toggles chat panel — persistent conversation with OutBot</li>
+                    <li>Heartbeat bridge runs in background, proactive nudges for overdue tasks</li>
+                    <li><code>/remember</code> and <code>/forget</code> — shared memory with OutBot</li>
+                    <li><code>help_data.yml</code> single source of truth for all help text</li>
+                    <li>Quick sync with AppleScript <code>whose</code> clause (1.4s vs 120s timeout)</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="files">
+            <h2>10. File Structure</h2>
+            
+            <div class="file-tree"><span class="folder">brain/</span>
+├── <span class="folder">command_centre/</span>          <span class="comment"># NEW — the unified TUI</span>
+│   ├── <span class="new">__init__.py</span>
+│   ├── <span class="new">app.py</span>              <span class="comment"># Main Textual App (entry point)</span>
+│   ├── <span class="new">tile_grid.py</span>        <span class="comment"># 3×3 tile grid widget</span>
+│   ├── <span class="new">context_panel.py</span>    <span class="comment"># Right-side detail/response panel</span>
+│   ├── <span class="new">command_bar.py</span>      <span class="comment"># Bottom command input</span>
+│   ├── <span class="new">status_bar.py</span>       <span class="comment"># Bottom status strip</span>
+│   ├── <span class="new">router.py</span>           <span class="comment"># Intent routing (command → handler)</span>
+│   ├── <span class="new">brain_logger.py</span>     <span class="comment"># Event logging for pattern learning</span>
+│   ├── <span class="new">task_loader.py</span>      <span class="comment"># Load/sort/filter tasks</span>
+│   ├── <span class="new">sanitiser.py</span>        <span class="comment"># Cross-cutting client name sanitisation</span>
+│   ├── <span class="new">config_loader.py</span>    <span class="comment"># Loads hotkeys + display from YAML</span>
+│   ├── <span class="new">telegram_bridge.py</span>  <span class="comment"># Runs Telegram in-process</span>
+│   ├── <span class="new">heartbeat_bridge.py</span> <span class="comment"># Proactive nudge scheduler</span>
+│   ├── <span class="new">help_data.yml</span>       <span class="comment"># Single source of truth for help</span>
+│   ├── <span class="new">help_gen.py</span>         <span class="comment"># Generates HELP.md + app.py help text</span>
+│   └── <span class="folder">handlers/</span>
+│       ├── <span class="new">__init__.py</span>
+│       ├── <span class="new">triage.py</span>       <span class="comment"># Select, today, done, quadrant moves</span>
+│       ├── <span class="new">enrich.py</span>       <span class="comment"># Claude enrichment of tasks</span>
+│       ├── <span class="new">research.py</span>     <span class="comment"># URL research via agent-browser</span>
+│       ├── <span class="new">email.py</span>        <span class="comment"># Email drafting</span>
+│       ├── <span class="new">voice.py</span>        <span class="comment"># Voice mode toggle + pipeline</span>
+│       ├── <span class="new">daily_review.py</span> <span class="comment"># Daily review pipeline</span>
+│       ├── <span class="new">agent_runner.py</span> <span class="comment"># Generic agent/skill runner</span>
+│       └── <span class="new">memory.py</span>       <span class="comment"># /remember and /forget commands</span>
+├── <span class="file">chat.py</span>                 <span class="comment"># DEPRECATED (kept for backward compat)</span>
+├── <span class="file">voice.py</span>                <span class="comment"># KEPT (imported by handlers/voice.py)</span>
+├── <span class="file">main.py</span>                 <span class="comment"># KEPT (Telegram standalone mode)</span>
+├── <span class="file">orchestrator.py</span>         <span class="comment"># KEPT (brain engine, reused)</span>
+└── ...                     <span class="comment"># All other brain/ files unchanged</span>
+
+<span class="folder">.claude/config/</span>
+└── <span class="new">command-centre.yml</span>      <span class="comment"># NEW — hotkeys, display, behaviour config</span>
+
+<span class="folder">.claude/dashboards/</span>
+├── <span class="file">today.yml</span>               <span class="comment"># EXISTING — today shortlist</span>
+├── <span class="new">brain-log.yml</span>           <span class="comment"># NEW — interaction event log</span>
+└── <span class="new">predictions.yml</span>         <span class="comment"># NEW (Phase 3) — predicted today list</span></div>
+        </section>
+        
+        <section id="telegram">
+            <h2>16. Telegram In-Process</h2>
+            <p>The Command Centre runs Telegram <strong>inside the same process</strong> as a background async task.</p>
+            
+            <h3>How It Works</h3>
+            <pre><code class="language-python"># On startup, Command Centre does:
+async def start(self):
+    # 1. Start the TUI (foreground)
+    # 2. Start Telegram polling (background task)
+    if config.telegram_token:
+        asyncio.create_task(telegram_bot.start())
+        asyncio.create_task(heartbeat_scheduler.start())</code></pre>
+            
+            <h3>What This Enables</h3>
+            <ul>
+                <li>Launch ONE terminal → get both the tile grid AND Telegram bot</li>
+                <li>Walk away from keyboard → Telegram keeps running on your phone</li>
+                <li>From phone: "what's on my today list?" → OutBot reads <code>today.yml</code></li>
+                <li>From phone: "mark OUT-256 done" → task completed, tiles refresh on return</li>
+                <li>From phone: "add research solar panels" → task created, appears in grid</li>
+                <li>Heartbeat nudges still work (overdue reminders, etc.)</li>
+            </ul>
+            
+            <h3>Lifecycle</h3>
+            <div class="ascii-diagram">Command Centre starts
+├── TUI renders (foreground)
+├── Telegram polling (background)
+├── Heartbeat scheduler (background)
+└── All share: EventBus, Database, Memory, Config
+
+Command Centre stops (Escape twice)
+├── Save today.yml
+├── Archive session
+├── Stop Telegram polling
+├── Stop heartbeat
+└── Clean shutdown</div>
+        </section>
+        
+        <section id="config">
+            <h2>18. Configurable Hotkeys and Interface</h2>
+            <p>All hotkeys and display settings are stored in YAML, not hardcoded.</p>
+            
+            <h3>Config File</h3>
+            <pre><code class="language-yaml"># .claude/config/command-centre.yml
+hotkeys:
+  toggle_voice: "v"
+  add_to_today: "t"
+  mark_done: "d"
+  page_left: "["
+  page_right: "]"
+  command_bar: "/"
+  filter_mode: ":"
+  select_all: "a"
+  deselect_all: "n"
+  help: "?"
+  drill_in: "enter"
+  zoom_out: "backspace"
+
+display:
+  tiles_per_row: 3
+  rows: 3
+  colour_q1: "#FF6B35"
+  colour_q2: "#00D4AA"
+  colour_q3: "#777777"
+  colour_q4: "#3D3D3D"
+  colour_focused: "#FF6B35"
+  colour_selected: "#00D4AA"
+  colour_overdue: "#FF6B35"
+  font_title: "bold"
+  font_meta: "dim"
+
+behaviour:
+  auto_advance_on_select: true
+  show_predictions_on_launch: true
+  telegram_in_process: true
+  voice_model: "small"
+  sanitise_output: true</code></pre>
+            
+            <h3>How It Works</h3>
+            <ul>
+                <li>On launch, Command Centre reads this YAML</li>
+                <li>Textual bindings are built dynamically from the <code>hotkeys</code> section</li>
+                <li>Display settings feed into tile rendering</li>
+                <li>Change a key → restart → done. No code changes.</li>
+                <li>If the file doesn't exist, sensible defaults are used</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2>How to Launch</h2>
+            <pre><code class="language-bash"># The one command to rule them all
+python -m brain.command_centre
+
+# Or with an alias (add to .zshrc)
+alias cc="cd ~/CODE/AAGLOBAL && python -m brain.command_centre"
+
+# Telegram bot is still separate (it's a daemon)
+python brain/main.py</code></pre>
+        </section>
+        
+        <section>
+            <h2>Appendix A: Current System Inventory</h2>
+            
+            <h3>What exists and works today</h3>
+            <table>
+                <thead>
+                    <tr><th>Component</th><th>Status</th><th>Location</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Task picker (card swiper)</td><td>Working, limited</td><td><code>.claude/scripts/task-picker.py</code></td></tr>
+                    <tr><td>OutBot CLI chat</td><td>Working</td><td><code>brain/chat.py</code></td></tr>
+                    <tr><td>OutBot voice</td><td>Working</td><td><code>brain/voice.py</code></td></tr>
+                    <tr><td>OutBot Telegram</td><td>Working</td><td><code>brain/main.py</code> + <code>brain/telegram/bot.py</code></td></tr>
+                    <tr><td>Heartbeat scheduler</td><td>Working</td><td><code>brain/heartbeat/scheduler.py</code></td></tr>
+                    <tr><td>Memory (remember/recall)</td><td>Working</td><td><code>brain/memory/</code></td></tr>
+                    <tr><td>Email (inbox/outbox)</td><td>Working</td><td><code>brain/mail/</code></td></tr>
+                    <tr><td>Daily review</td><td>Working</td><td><code>brain/workflows/daily_review.py</code></td></tr>
+                    <tr><td>9 agents</td><td>Defined, invocable via Claude Code</td><td><code>.claude/agents/</code></td></tr>
+                    <tr><td>26 skills</td><td>Defined, invocable via Claude Code</td><td><code>.claude/skills/</code></td></tr>
+                    <tr><td>Event bus</td><td>Working</td><td><code>brain/core/events.py</code></td></tr>
+                    <tr><td>Task registry</td><td>Working</td><td><code>.claude/work/task-registry.yml</code></td></tr>
+                    <tr><td>Reminders sync</td><td>Working</td><td><code>.claude/reminders/</code></td></tr>
+                </tbody>
+            </table>
+            
+            <h3>What's missing (Command Centre fills these gaps)</h3>
+            <table>
+                <thead>
+                    <tr><th>Gap</th><th>Solution</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>No spatial overview of tasks</td><td>3×3 tile grid</td></tr>
+                    <tr><td>No multi-select</td><td>Space to toggle, <kbd>a</kbd> for all</td></tr>
+                    <tr><td>No command input in picker</td><td>Command bar with natural language</td></tr>
+                    <tr><td>No brain watching selections</td><td>Brain logger + pattern learning</td></tr>
+                    <tr><td>No voice in picker</td><td>Mode toggle with <kbd>v</kbd></td></tr>
+                    <tr><td>No agent/skill access from picker</td><td><code>/agent</code> and <code>/skill</code> commands</td></tr>
+                    <tr><td>No URL task research</td><td><code>/research</code> handler</td></tr>
+                    <tr><td>No predictions</td><td>Brain reads log, suggests today</td></tr>
+                    <tr><td>Picker and OutBot are separate</td><td>One unified app</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+    
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#FF6B35',
+                primaryTextColor: '#e6edf3',
+                primaryBorderColor: '#30363d',
+                lineColor: '#8b949e',
+                secondaryColor: '#00D4AA',
+                tertiaryColor: '#21262d',
+                background: '#0d1117',
+                mainBkg: '#161b22',
+                nodeBorder: '#30363d',
+                clusterBkg: '#21262d',
+                clusterBorder: '#30363d',
+                titleColor: '#e6edf3',
+                edgeLabelBackground: '#161b22'
+            }
+        });
+        
+        // Initialize syntax highlighting
+        hljs.highlightAll();
+        
+        // Smooth scroll for navigation
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
