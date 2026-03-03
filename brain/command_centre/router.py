@@ -50,7 +50,7 @@ class Router:
                 text, task_ids, all_tasks, today_ids, progress
             )
         else:
-            return await self._handle_natural(text, progress)
+            return await self._handle_natural(text, progress, focused_task)
 
     async def _handle_slash(
         self,
@@ -151,6 +151,7 @@ class Router:
         self,
         text: str,
         progress: ProgressCallback = _noop_progress,
+        focused_task: dict | None = None,
     ) -> str:
         """Send natural language to Claude with personality context."""
         await progress("[dim]Loading personality...[/]")
@@ -174,8 +175,23 @@ class Router:
         except ImportError:
             pass
 
-        # Build system prompt with personality + recall context
+        # Build system prompt with personality + task context + recall context
         system = self.personality.load_personality()
+
+        if focused_task:
+            tid = focused_task.get("id", "")
+            title = focused_task.get("title", "")
+            desc = focused_task.get("_description", "")
+            quadrant = focused_task.get("eisenhower_quadrant", "")
+            status = focused_task.get("status", "")
+            task_ctx = f"\n\nCurrent task context:\n- ID: {tid}\n- Title: {title}"
+            if desc:
+                task_ctx += f"\n- Description: {desc}"
+            if quadrant:
+                task_ctx += f"\n- Quadrant: {quadrant.upper()}"
+            if status:
+                task_ctx += f"\n- Status: {status}"
+            system += task_ctx
 
         try:
             from brain.memory.recall import (
