@@ -13,6 +13,7 @@ class TileGrid(Container):
     DEFAULT_CSS = """
     TileGrid {
         padding: 0;
+        overflow: hidden;
     }
     #breadcrumb {
         height: 1;
@@ -31,6 +32,7 @@ class TileGrid(Container):
         border: solid #333333;
         padding: 0 1;
         height: 100%;
+        overflow: hidden;
     }
     .tile.focused {
         border: solid #FF6B35;
