@@ -41,7 +41,7 @@ def sync_reminders() -> dict:
     manager = _get_manager()
 
     try:
-        reminders = manager.applescript.fetch_all_reminders()
+        reminders = manager.applescript.fetch_recent_reminders(since_days=1)
     except Exception as e:
         logger.error("Failed to fetch reminders: %s", e)
         return {"new": 0, "skipped": 0, "quadrants": {}, "error": str(e)}

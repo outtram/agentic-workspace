@@ -230,7 +230,7 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Context Panel** | `context_panel.py` | Task detail, response display, action suggestions |
 | **Command Bar** | `command_bar.py` | Input for slash commands, filters, natural language |
 | **Status Bar** | `status_bar.py` | Hints + counts (tasks, today, overdue, telegram, voice) |
-| **Router** | `router.py` | Routes input to slash handlers or OutBot natural language (injects focused task context) |
+| **Router** | `router.py` | Routes input to slash handlers or OutBot (injects focused task context for chat) |
 | **Task Editor** | `task_editor.py` | Modal for editing task fields (title, quadrant, due, etc.) |
 | **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key) |
 | **Filter Picker** | `filter_picker.py` | Navigable modal: q1-q4, overdue, today filters (: key) |
