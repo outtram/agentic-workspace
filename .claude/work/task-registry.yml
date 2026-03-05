@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 328
-last_synced: '2026-03-01T22:23:48.570486'
+last_synced: '2026-03-05T22:24:44.953749'
 entries:
   OUT-223:
     title: Fire place fix
@@ -287,7 +287,7 @@ entries:
     file: OUT-309-nitin-ccr.md
     source: reminders_import
     reminder_id: x-apple-reminder://E537917D-DA39-47E3-AEA1-A2F2559E8F30
-    status: todo
+    status: done
     created: '2026-02-28T21:15:59.648644'
   OUT-310:
     title: Get shit done
