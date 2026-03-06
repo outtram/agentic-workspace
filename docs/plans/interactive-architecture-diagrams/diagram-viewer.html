@@ -1,0 +1,2630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagram Viewer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-orange: #FF6B35;
+            --accent-teal: #00D4AA;
+            --border-color: #30363d;
+            --grid-cols: 4;
+            --grid-rows: 2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header / Toolbar */
+        #toolbar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 56px;
+        }
+
+        #breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .crumb {
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .crumb:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .crumb.current {
+            color: var(--accent-orange);
+            font-weight: 600;
+            cursor: default;
+        }
+
+        .crumb.current:hover {
+            background: transparent;
+        }
+
+        .separator {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        #diagram-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Canvas */
+        #canvas {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-cols), minmax(120px, 180px));
+            grid-template-rows: repeat(var(--grid-rows), minmax(100px, 140px));
+            gap: 48px;
+            padding: 48px;
+            height: 100%;
+            justify-content: center;
+            align-content: center;
+        }
+
+        #connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Nodes */
+        .node {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            z-index: 2;
+            max-width: 180px;
+            max-height: 140px;
+        }
+
+        .node:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
+        }
+
+        .node.selected {
+            border-color: var(--accent-teal);
+            background: rgba(0, 212, 170, 0.1);
+        }
+
+        .node:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .node.has-children::after {
+            content: '▼';
+            position: absolute;
+            bottom: 6px;
+            right: 10px;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        /* Node Types */
+        .node[data-type="channel"] {
+            border-radius: 50px;
+        }
+
+        .node[data-type="decision"] {
+            border-radius: 0;
+            transform: rotate(45deg);
+        }
+
+        .node[data-type="decision"] > * {
+            transform: rotate(-45deg);
+        }
+
+        .node[data-type="external"] {
+            border-style: dashed;
+        }
+
+        .node[data-type="system"] {
+            border-radius: 4px;
+        }
+
+        /* Node Content */
+        .node-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .node-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .node-label {
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .node-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .node-badge[data-status="live"] {
+            background: rgba(0, 212, 170, 0.2);
+            color: var(--accent-teal);
+        }
+
+        .node-badge[data-status="in-progress"] {
+            background: rgba(255, 107, 53, 0.2);
+            color: var(--accent-orange);
+        }
+
+        .node-badge[data-status="planned"] {
+            background: rgba(139, 148, 158, 0.2);
+            color: var(--text-secondary);
+        }
+
+        /* Status Bar */
+        #status-bar {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+            min-height: 36px;
+        }
+
+        #layer-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        #help-hint {
+            opacity: 0.7;
+        }
+
+        /* Help Overlay */
+        #help-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 17, 23, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        #help-overlay.hidden {
+            display: none;
+        }
+
+        .help-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .help-content h2 {
+            color: var(--accent-orange);
+            margin-bottom: 24px;
+            font-size: 20px;
+        }
+
+        .help-content table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .help-content tr {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .help-content tr:last-child {
+            border-bottom: none;
+        }
+
+        .help-content td {
+            padding: 12px 0;
+            vertical-align: middle;
+        }
+
+        .help-content td:first-child {
+            width: 40%;
+            color: var(--text-secondary);
+        }
+
+        .help-content td:last-child {
+            color: var(--text-primary);
+        }
+
+        .help-content kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        .help-footer {
+            margin-top: 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Connection Labels (HTML overlay) */
+        #connection-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .connection-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 8px;
+            white-space: nowrap;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        /* Connection paths */
+        .connection-path {
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .connection-path.highlighted {
+            stroke-width: 3;
+        }
+
+        /* Toolbar Buttons */
+        #toolbar-buttons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #toolbar-buttons button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            font-size: 13px;
+        }
+
+        #toolbar-buttons button:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        #toolbar-buttons button:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        #toolbar-buttons button:disabled:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        #toolbar-buttons button.active {
+            background: rgba(0, 212, 170, 0.15);
+            border-color: var(--accent-teal);
+            color: var(--accent-teal);
+        }
+
+        #toolbar-buttons button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .tb-sep {
+            width: 1px;
+            height: 24px;
+            background: var(--border-color);
+            margin: 0 4px;
+        }
+
+        /* Editing States */
+        .node.editing {
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.3);
+        }
+
+        .node-label[contenteditable="true"] {
+            outline: none;
+            cursor: text;
+            min-width: 60px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            background: rgba(0, 212, 170, 0.1);
+        }
+
+        /* Drag States */
+        .node.dragging {
+            opacity: 0.8;
+            cursor: grabbing;
+            z-index: 100;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Connection Mode */
+        body.connection-mode #canvas {
+            cursor: crosshair;
+        }
+
+        .node.connection-source {
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.4);
+        }
+
+        body.connection-mode .node {
+            cursor: crosshair;
+        }
+
+        body.connection-mode .node:hover {
+            border-color: var(--accent-teal);
+        }
+
+        /* Status message styles */
+        #status-message {
+            color: var(--accent-teal);
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+
+        #status-message.error {
+            color: #f85149;
+        }
+
+        /* Export Dialog */
+        .export-dialog {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 420px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .export-dialog h2 {
+            color: var(--accent-orange);
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .export-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .export-section h3 {
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .export-options {
+            margin-bottom: 12px;
+        }
+
+        .export-options label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .export-options select,
+        .export-options input[type="checkbox"] {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            padding: 4px 8px;
+            margin-left: 8px;
+        }
+
+        .export-section .export-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-orange);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .export-section .export-btn:hover {
+            opacity: 0.9;
+        }
+
+        .export-close-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .export-close-btn:hover {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header id="toolbar">
+            <nav id="breadcrumb"></nav>
+            <div id="toolbar-buttons">
+                <button id="btn-add" title="Add node (n)"><i data-lucide="plus"></i></button>
+                <button id="btn-connect" title="Connect (c)"><i data-lucide="link"></i></button>
+                <button id="btn-delete" title="Delete (x)"><i data-lucide="trash-2"></i></button>
+                <span class="tb-sep"></span>
+                <button id="btn-undo" title="Undo (Ctrl+Z)" disabled><i data-lucide="undo"></i></button>
+                <button id="btn-redo" title="Redo (Ctrl+Y)" disabled><i data-lucide="redo"></i></button>
+                <span class="tb-sep"></span>
+                <button id="btn-save" title="Save (Ctrl+S)"><i data-lucide="save"></i></button>
+                <button id="btn-load" title="Load JSON"><i data-lucide="folder-open"></i></button>
+                <span class="tb-sep"></span>
+                <button id="btn-export-excel" title="Export to Excel"><i data-lucide="file-spreadsheet"></i></button>
+                <button id="btn-import-excel" title="Import from Excel"><i data-lucide="upload"></i></button>
+                <button id="btn-template" title="Download template"><i data-lucide="file-plus"></i></button>
+                <span class="tb-sep"></span>
+                <button id="btn-export" title="Export (Ctrl+E)"><i data-lucide="download"></i></button>
+            </div>
+            <div id="diagram-title"></div>
+        </header>
+        
+        <main id="canvas">
+            <div id="grid"></div>
+            <div id="connection-labels"></div>
+            <svg id="connections">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#8b949e"/>
+                    </marker>
+                    <marker id="arrowhead-reverse" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+                        <polygon points="10 0, 0 3.5, 10 7" fill="#8b949e"/>
+                    </marker>
+                    <marker id="arrowhead-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#FF6B35"/>
+                    </marker>
+                    <marker id="arrowhead-teal" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#00D4AA"/>
+                    </marker>
+                </defs>
+            </svg>
+        </main>
+        
+        <footer id="status-bar">
+            <div id="layer-info">
+                <span id="node-count"></span>
+                <span id="selection-info"></span>
+                <span id="status-message"></span>
+            </div>
+            <span id="help-hint">Press ? for help</span>
+        </footer>
+        
+        <div id="help-overlay" class="hidden"></div>
+    </div>
+    
+    <script>
+        // ============================================
+        // DIAGRAM DATA (embedded from capability-map.json)
+        // ============================================
+        let DIAGRAM_DATA = {
+            meta: {
+                title: "Program Capability Map",
+                gridMode: "strict",
+                gridCols: 4,
+                gridRows: 2,
+                theme: {
+                    background: "#0d1117",
+                    nodeDefault: "#21262d",
+                    accent1: "#FF6B35",
+                    accent2: "#00D4AA",
+                    text: "#e6edf3",
+                    textMuted: "#8b949e"
+                }
+            },
+            nodes: [
+                {
+                    id: "cap-onboarding",
+                    label: "Customer Onboarding",
+                    description: "End-to-end customer onboarding journey from acquisition to activation",
+                    type: "capability",
+                    icon: "user-plus",
+                    colour: "#FF6B35",
+                    gridPos: {col: 0, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: null,
+                    children: ["cap-kyc", "cap-account", "cap-welcome"],
+                    meta: {owner: "Kate", status: "live", channel: "all"}
+                },
+                {
+                    id: "cap-servicing",
+                    label: "Account Servicing",
+                    description: "Day-to-day account management and self-service capabilities",
+                    type: "capability",
+                    icon: "settings",
+                    colour: "#00D4AA",
+                    gridPos: {col: 1, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: null,
+                    children: ["cap-profile", "cap-statements", "cap-alerts"],
+                    meta: {owner: "Mike", status: "live", channel: "web,mobile"}
+                },
+                {
+                    id: "cap-payments",
+                    label: "Payments",
+                    description: "All payment types including domestic and international transfers",
+                    type: "capability",
+                    icon: "credit-card",
+                    colour: "#FF6B35",
+                    gridPos: {col: 2, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: null,
+                    children: ["cap-bpay", "cap-transfer", "cap-international"],
+                    meta: {owner: "Sarah", status: "in-progress", channel: "all"}
+                },
+                {
+                    id: "cap-support",
+                    label: "Customer Support",
+                    description: "Multi-channel support including chat, phone, and self-service",
+                    type: "capability",
+                    icon: "headphones",
+                    colour: "#00D4AA",
+                    gridPos: {col: 3, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: null,
+                    children: [],
+                    meta: {owner: "Tom", status: "planned", channel: "all"}
+                },
+                {
+                    id: "cap-mobile",
+                    label: "Mobile App",
+                    description: "Native iOS and Android applications",
+                    type: "channel",
+                    icon: "smartphone",
+                    colour: "#8b949e",
+                    gridPos: {col: 0, row: 1, colSpan: 1, rowSpan: 1},
+                    parent: null,
+                    children: [],
+                    meta: {status: "live", platform: "iOS, Android"}
+                },
+                {
+                    id: "cap-web",
+                    label: "Web Portal",
+                    description: "Responsive web application for desktop and tablet",
+                    type: "channel",
+                    icon: "globe",
+                    colour: "#8b949e",
+                    gridPos: {col: 1, row: 1, colSpan: 1, rowSpan: 1},
+                    parent: null,
+                    children: [],
+                    meta: {status: "live", platform: "Web"}
+                },
+                {
+                    id: "cap-api",
+                    label: "Open Banking API",
+                    description: "CDR-compliant APIs for third-party access",
+                    type: "channel",
+                    icon: "code",
+                    colour: "#8b949e",
+                    gridPos: {col: 2, row: 1, colSpan: 1, rowSpan: 1},
+                    parent: null,
+                    children: [],
+                    meta: {status: "in-progress", platform: "REST API"}
+                },
+                {
+                    id: "cap-branch",
+                    label: "Branch Network",
+                    description: "Physical branch and assisted digital channels",
+                    type: "channel",
+                    icon: "building",
+                    colour: "#8b949e",
+                    gridPos: {col: 3, row: 1, colSpan: 1, rowSpan: 1},
+                    parent: null,
+                    children: [],
+                    meta: {status: "live", platform: "Physical"}
+                },
+                // Children of Onboarding
+                {
+                    id: "cap-kyc",
+                    label: "KYC Verification",
+                    description: "Identity verification including document checks and biometrics",
+                    type: "sub-capability",
+                    icon: "shield-check",
+                    colour: "#FF6B35",
+                    gridPos: {col: 0, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-onboarding",
+                    children: [],
+                    meta: {status: "live", vendor: "Onfido"}
+                },
+                {
+                    id: "cap-account",
+                    label: "Account Creation",
+                    description: "Core banking account provisioning and setup",
+                    type: "sub-capability",
+                    icon: "user",
+                    colour: "#FF6B35",
+                    gridPos: {col: 1, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-onboarding",
+                    children: [],
+                    meta: {status: "live"}
+                },
+                {
+                    id: "cap-welcome",
+                    label: "Welcome Journey",
+                    description: "Onboarding communications and feature education",
+                    type: "sub-capability",
+                    icon: "mail",
+                    colour: "#00D4AA",
+                    gridPos: {col: 2, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-onboarding",
+                    children: [],
+                    meta: {status: "in-progress"}
+                },
+                // Children of Servicing
+                {
+                    id: "cap-profile",
+                    label: "Profile Management",
+                    type: "sub-capability",
+                    icon: "user-cog",
+                    colour: "#00D4AA",
+                    gridPos: {col: 0, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-servicing",
+                    children: [],
+                    meta: {status: "live"}
+                },
+                {
+                    id: "cap-statements",
+                    label: "Statements",
+                    type: "sub-capability",
+                    icon: "file-text",
+                    colour: "#00D4AA",
+                    gridPos: {col: 1, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-servicing",
+                    children: [],
+                    meta: {status: "live"}
+                },
+                {
+                    id: "cap-alerts",
+                    label: "Alerts & Notifications",
+                    type: "sub-capability",
+                    icon: "bell",
+                    colour: "#00D4AA",
+                    gridPos: {col: 2, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-servicing",
+                    children: [],
+                    meta: {status: "live"}
+                },
+                // Children of Payments
+                {
+                    id: "cap-bpay",
+                    label: "BPAY",
+                    type: "sub-capability",
+                    icon: "receipt",
+                    colour: "#FF6B35",
+                    gridPos: {col: 0, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-payments",
+                    children: [],
+                    meta: {status: "live"}
+                },
+                {
+                    id: "cap-transfer",
+                    label: "Transfers",
+                    type: "sub-capability",
+                    icon: "arrow-right-left",
+                    colour: "#FF6B35",
+                    gridPos: {col: 1, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-payments",
+                    children: [],
+                    meta: {status: "live"}
+                },
+                {
+                    id: "cap-international",
+                    label: "International",
+                    type: "sub-capability",
+                    icon: "globe",
+                    colour: "#00D4AA",
+                    gridPos: {col: 2, row: 0, colSpan: 1, rowSpan: 1},
+                    parent: "cap-payments",
+                    children: [],
+                    meta: {status: "planned"}
+                }
+            ],
+            connections: [
+                {
+                    id: "conn-1",
+                    from: "cap-onboarding",
+                    to: "cap-servicing",
+                    type: "data-flow",
+                    label: "customer created",
+                    style: "arrow-one-way",
+                    colour: "#8b949e"
+                },
+                {
+                    id: "conn-2",
+                    from: "cap-servicing",
+                    to: "cap-payments",
+                    type: "dependency",
+                    label: "account active",
+                    style: "arrow-one-way",
+                    colour: "#8b949e"
+                },
+                {
+                    id: "conn-3",
+                    from: "cap-payments",
+                    to: "cap-support",
+                    type: "dependency",
+                    label: "disputes",
+                    style: "arrow-two-way",
+                    colour: "#8b949e"
+                },
+                {
+                    id: "conn-4",
+                    from: "cap-mobile",
+                    to: "cap-onboarding",
+                    type: "channel",
+                    label: "",
+                    style: "line",
+                    colour: "#30363d"
+                },
+                {
+                    id: "conn-5",
+                    from: "cap-mobile",
+                    to: "cap-servicing",
+                    type: "channel",
+                    label: "",
+                    style: "line",
+                    colour: "#30363d"
+                },
+                {
+                    id: "conn-6",
+                    from: "cap-mobile",
+                    to: "cap-payments",
+                    type: "channel",
+                    label: "",
+                    style: "line",
+                    colour: "#30363d"
+                },
+                {
+                    id: "conn-7",
+                    from: "cap-web",
+                    to: "cap-onboarding",
+                    type: "channel",
+                    label: "",
+                    style: "line",
+                    colour: "#30363d"
+                },
+                {
+                    id: "conn-8",
+                    from: "cap-web",
+                    to: "cap-servicing",
+                    type: "channel",
+                    label: "",
+                    style: "line",
+                    colour: "#30363d"
+                },
+                {
+                    id: "conn-9",
+                    from: "cap-web",
+                    to: "cap-payments",
+                    type: "channel",
+                    label: "",
+                    style: "line",
+                    colour: "#30363d"
+                },
+                {
+                    id: "conn-10",
+                    from: "cap-api",
+                    to: "cap-servicing",
+                    type: "channel",
+                    label: "",
+                    style: "dashed",
+                    colour: "#30363d"
+                },
+                {
+                    id: "conn-11",
+                    from: "cap-api",
+                    to: "cap-payments",
+                    type: "channel",
+                    label: "",
+                    style: "dashed",
+                    colour: "#30363d"
+                },
+                // Connections within Onboarding layer
+                {
+                    id: "conn-12",
+                    from: "cap-kyc",
+                    to: "cap-account",
+                    type: "sequence",
+                    label: "verified",
+                    style: "arrow-one-way",
+                    colour: "#FF6B35"
+                },
+                {
+                    id: "conn-13",
+                    from: "cap-account",
+                    to: "cap-welcome",
+                    type: "sequence",
+                    label: "created",
+                    style: "arrow-one-way",
+                    colour: "#FF6B35"
+                }
+            ],
+            layers: {
+                overview: {
+                    title: "Program Overview",
+                    visible: ["cap-onboarding", "cap-servicing", "cap-payments", "cap-support", "cap-mobile", "cap-web", "cap-api", "cap-branch"]
+                },
+                "cap-onboarding": {
+                    title: "Customer Onboarding",
+                    visible: ["cap-kyc", "cap-account", "cap-welcome"]
+                },
+                "cap-servicing": {
+                    title: "Account Servicing",
+                    visible: ["cap-profile", "cap-statements", "cap-alerts"]
+                },
+                "cap-payments": {
+                    title: "Payments",
+                    visible: ["cap-bpay", "cap-transfer", "cap-international"]
+                }
+            }
+        };
+
+        // ============================================
+        // STATE
+        // ============================================
+        let focusedNodeIndex = 0;
+        let currentLayer = 'overview';
+        const layerStack = ['overview'];
+        const selectedNodes = new Set();
+        const drillSourceNode = {}; // Track which node we drilled from at each layer
+
+        // Editing state
+        let isEditing = false;
+        let connectionMode = false;
+        let connectionSource = null;
+        let isDragging = false;
+        let dragNode = null;
+        let dragOffset = { x: 0, y: 0 };
+        let dragStartGridPos = null;
+
+        // Undo/redo
+        const undoStack = [];
+        const redoStack = [];
+        const MAX_UNDO = 50;
+
+        // ============================================
+        // UNDO / REDO
+        // ============================================
+        function pushUndoState() {
+            undoStack.push(JSON.stringify(DIAGRAM_DATA));
+            if (undoStack.length > MAX_UNDO) undoStack.shift();
+            redoStack.length = 0;
+            updateUndoRedoButtons();
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            redoStack.push(JSON.stringify(DIAGRAM_DATA));
+            DIAGRAM_DATA = JSON.parse(undoStack.pop());
+            renderLayer(currentLayer);
+            updateBreadcrumb();
+            updateUndoRedoButtons();
+            showStatus('Undone');
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+            undoStack.push(JSON.stringify(DIAGRAM_DATA));
+            DIAGRAM_DATA = JSON.parse(redoStack.pop());
+            renderLayer(currentLayer);
+            updateBreadcrumb();
+            updateUndoRedoButtons();
+            showStatus('Redone');
+        }
+
+        function updateUndoRedoButtons() {
+            const undoBtn = document.getElementById('btn-undo');
+            const redoBtn = document.getElementById('btn-redo');
+            if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+            if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+        }
+
+        // ============================================
+        // STATUS MESSAGES
+        // ============================================
+        let statusTimeout = null;
+        function showStatus(msg, type) {
+            const el = document.getElementById('status-message');
+            if (!el) return;
+            el.textContent = msg;
+            el.className = type === 'error' ? 'error' : '';
+            clearTimeout(statusTimeout);
+            statusTimeout = setTimeout(() => { el.textContent = ''; }, 3000);
+        }
+
+        // ============================================
+        // INLINE EDITING
+        // ============================================
+        function enableInlineEdit(nodeEl) {
+            if (!nodeEl) return;
+            const labelEl = nodeEl.querySelector('.node-label');
+            if (!labelEl) return;
+
+            const originalText = labelEl.textContent;
+            isEditing = true;
+            nodeEl.classList.add('editing');
+            labelEl.contentEditable = 'true';
+            labelEl.focus();
+
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(labelEl);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            function finishEdit() {
+                labelEl.contentEditable = 'false';
+                nodeEl.classList.remove('editing');
+                isEditing = false;
+                const newText = labelEl.textContent.trim();
+                if (newText && newText !== originalText) {
+                    updateNodeLabel(nodeEl.dataset.id, newText);
+                    pushUndoState();
+                    showStatus('Label updated');
+                } else {
+                    labelEl.textContent = originalText;
+                }
+                labelEl.removeEventListener('blur', onBlur);
+                labelEl.removeEventListener('keydown', onKeydown);
+            }
+
+            function onBlur() {
+                finishEdit();
+            }
+
+            function onKeydown(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    labelEl.blur();
+                } else if (e.key === 'Escape') {
+                    labelEl.textContent = originalText;
+                    labelEl.blur();
+                }
+                e.stopPropagation();
+            }
+
+            labelEl.addEventListener('blur', onBlur);
+            labelEl.addEventListener('keydown', onKeydown);
+        }
+
+        function updateNodeLabel(nodeId, newText) {
+            const node = DIAGRAM_DATA.nodes.find(n => n.id === nodeId);
+            if (node) node.label = newText;
+        }
+
+        function getNodeLabel(nodeId) {
+            const node = DIAGRAM_DATA.nodes.find(n => n.id === nodeId);
+            return node ? node.label : nodeId;
+        }
+
+        // ============================================
+        // DRAG TO REPOSITION
+        // ============================================
+        function enableDrag(nodeEl) {
+            nodeEl.addEventListener('mousedown', (e) => {
+                if (isEditing || connectionMode) return;
+                if (e.target.closest('.node-label[contenteditable="true"]')) return;
+
+                isDragging = true;
+                dragNode = nodeEl;
+                const rect = nodeEl.getBoundingClientRect();
+                dragOffset = {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+
+                // Save original grid position for undo
+                const nodeData = DIAGRAM_DATA.nodes.find(n => n.id === nodeEl.dataset.id);
+                dragStartGridPos = nodeData ? { ...nodeData.gridPos } : null;
+
+                nodeEl.classList.add('dragging');
+                e.preventDefault();
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || !dragNode) return;
+
+            const canvas = document.getElementById('canvas');
+            const canvasRect = canvas.getBoundingClientRect();
+            const x = e.clientX - canvasRect.left - dragOffset.x;
+            const y = e.clientY - canvasRect.top - dragOffset.y;
+
+            dragNode.style.position = 'absolute';
+            dragNode.style.left = `${x}px`;
+            dragNode.style.top = `${y}px`;
+            dragNode.style.gridColumn = '';
+            dragNode.style.gridRow = '';
+
+            // Re-render connections while dragging
+            renderConnections(getVisibleNodeIds());
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (!isDragging || !dragNode) return;
+
+            isDragging = false;
+            dragNode.classList.remove('dragging');
+
+            // Snap to nearest grid cell
+            const grid = document.getElementById('grid');
+            const gridRect = grid.getBoundingClientRect();
+            const gridStyles = getComputedStyle(grid);
+            const cols = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-cols')) || 4;
+            const rows = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-rows')) || 2;
+
+            const nodeRect = dragNode.getBoundingClientRect();
+            const nodeCenterX = nodeRect.left + nodeRect.width / 2 - gridRect.left;
+            const nodeCenterY = nodeRect.top + nodeRect.height / 2 - gridRect.top;
+
+            const cellWidth = gridRect.width / cols;
+            const cellHeight = gridRect.height / rows;
+
+            const newCol = Math.max(0, Math.min(cols - 1, Math.floor(nodeCenterX / cellWidth)));
+            const newRow = Math.max(0, Math.min(rows - 1, Math.floor(nodeCenterY / cellHeight)));
+
+            // Update node data
+            const nodeId = dragNode.dataset.id;
+            const nodeData = DIAGRAM_DATA.nodes.find(n => n.id === nodeId);
+            if (nodeData) {
+                nodeData.gridPos.col = newCol;
+                nodeData.gridPos.row = newRow;
+            }
+
+            pushUndoState();
+
+            // Remove absolute positioning and re-render
+            dragNode.style.position = '';
+            dragNode.style.left = '';
+            dragNode.style.top = '';
+            dragNode = null;
+
+            renderLayer(currentLayer);
+            if (nodeId) focusNode(nodeId);
+            showStatus(`Moved to col ${newCol}, row ${newRow}`);
+        });
+
+        // ============================================
+        // CONNECTION MODE
+        // ============================================
+        function startConnectionMode() {
+            connectionMode = true;
+            connectionSource = null;
+            document.body.classList.add('connection-mode');
+            document.getElementById('btn-connect')?.classList.add('active');
+            showStatus('Click source node, then target. Escape to cancel.');
+        }
+
+        function handleNodeClickInConnectionMode(nodeId) {
+            if (!connectionSource) {
+                connectionSource = nodeId;
+                document.querySelector(`[data-id="${nodeId}"]`)?.classList.add('connection-source');
+                showStatus(`Source: ${getNodeLabel(nodeId)}. Now click target.`);
+            } else if (nodeId !== connectionSource) {
+                const newConn = {
+                    id: `conn-${Date.now()}`,
+                    from: connectionSource,
+                    to: nodeId,
+                    type: 'data-flow',
+                    label: '',
+                    style: 'arrow-one-way',
+                    colour: '#8b949e'
+                };
+                DIAGRAM_DATA.connections.push(newConn);
+                pushUndoState();
+                exitConnectionMode();
+                renderConnections(getVisibleNodeIds());
+                showStatus(`Connected: ${getNodeLabel(connectionSource)} → ${getNodeLabel(nodeId)}`);
+            }
+        }
+
+        function exitConnectionMode() {
+            connectionMode = false;
+            connectionSource = null;
+            document.body.classList.remove('connection-mode');
+            document.getElementById('btn-connect')?.classList.remove('active');
+            document.querySelectorAll('.connection-source').forEach(el => el.classList.remove('connection-source'));
+        }
+
+        // ============================================
+        // DELETE
+        // ============================================
+        function deleteSelected() {
+            const visibleNodes = getVisibleNodes();
+            const focusedNode = visibleNodes[focusedNodeIndex];
+
+            if (selectedNodes.size > 0) {
+                selectedNodes.forEach(id => deleteNode(id));
+                selectedNodes.clear();
+            } else if (focusedNode) {
+                deleteNode(focusedNode.id);
+            } else {
+                return;
+            }
+
+            pushUndoState();
+            renderLayer(currentLayer);
+            showStatus('Deleted');
+        }
+
+        function deleteNode(nodeId) {
+            // Remove node
+            DIAGRAM_DATA.nodes = DIAGRAM_DATA.nodes.filter(n => n.id !== nodeId);
+
+            // Remove from all layers
+            Object.values(DIAGRAM_DATA.layers).forEach(layer => {
+                layer.visible = layer.visible.filter(id => id !== nodeId);
+            });
+
+            // Remove connections to/from this node
+            DIAGRAM_DATA.connections = DIAGRAM_DATA.connections.filter(c =>
+                c.from !== nodeId && c.to !== nodeId
+            );
+
+            // Remove from parent's children
+            DIAGRAM_DATA.nodes.forEach(n => {
+                if (n.children) {
+                    n.children = n.children.filter(id => id !== nodeId);
+                }
+            });
+        }
+
+        // ============================================
+        // ADD NEW NODE
+        // ============================================
+        function addNewNode() {
+            const layer = DIAGRAM_DATA.layers[currentLayer];
+            if (!layer) return;
+
+            const visibleNodes = layer.visible.map(id => DIAGRAM_DATA.nodes.find(n => n.id === id)).filter(Boolean);
+            const gridCols = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-cols')) || 4;
+
+            // Find next empty grid position
+            const occupied = new Set();
+            visibleNodes.forEach(n => {
+                occupied.add(`${n.gridPos.col},${n.gridPos.row}`);
+            });
+
+            let col = 0, row = 0;
+            let found = false;
+            for (row = 0; row < 10 && !found; row++) {
+                for (col = 0; col < gridCols && !found; col++) {
+                    if (!occupied.has(`${col},${row}`)) {
+                        found = true;
+                    }
+                }
+            }
+            // Adjust because the loops increment past the found position
+            if (found) { col--; row--; }
+
+            const newNode = {
+                id: `node-${Date.now()}`,
+                label: 'New Node',
+                type: 'capability',
+                icon: 'box',
+                colour: '#8b949e',
+                gridPos: { col, row, colSpan: 1, rowSpan: 1 },
+                parent: currentLayer === 'overview' ? null : currentLayer,
+                children: [],
+                meta: { status: 'planned' }
+            };
+
+            DIAGRAM_DATA.nodes.push(newNode);
+            layer.visible.push(newNode.id);
+            pushUndoState();
+            renderLayer(currentLayer);
+
+            // Focus and start editing the new node
+            setTimeout(() => {
+                const nodeEl = document.querySelector(`[data-id="${newNode.id}"]`);
+                if (nodeEl) {
+                    focusNode(newNode.id);
+                    enableInlineEdit(nodeEl);
+                }
+            }, 100);
+
+            showStatus('New node added — type a name');
+        }
+
+        // ============================================
+        // SAVE / LOAD JSON
+        // ============================================
+        function saveDiagram() {
+            const json = JSON.stringify(DIAGRAM_DATA, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${DIAGRAM_DATA.meta.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+            a.click();
+
+            URL.revokeObjectURL(url);
+            showStatus('Diagram saved as JSON');
+        }
+
+        function loadDiagram() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (!data.meta || !data.nodes || !data.connections || !data.layers) {
+                            throw new Error('Invalid diagram format');
+                        }
+                        DIAGRAM_DATA = data;
+                        currentLayer = 'overview';
+                        layerStack.length = 0;
+                        layerStack.push('overview');
+                        undoStack.length = 0;
+                        redoStack.length = 0;
+                        updateUndoRedoButtons();
+                        renderLayer(currentLayer);
+                        updateBreadcrumb();
+                        showStatus(`Loaded: ${data.meta.title}`);
+                    } catch (err) {
+                        showStatus(`Error: ${err.message}`, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function init() {
+            document.getElementById('diagram-title').textContent = DIAGRAM_DATA.meta.title;
+            renderLayer(currentLayer);
+            updateBreadcrumb();
+            setupEventListeners();
+            setupToolbarButtons();
+            // Push initial state for undo
+            pushUndoState();
+        }
+
+        // ============================================
+        // NODE RENDERING
+        // ============================================
+        function createNodeElement(node) {
+            const div = document.createElement('div');
+            div.className = 'node';
+            div.dataset.id = node.id;
+            div.dataset.type = node.type;
+            div.tabIndex = 0;
+            
+            // Grid positioning
+            const col = node.gridPos.col + 1;
+            const row = node.gridPos.row + 1;
+            const colSpan = node.gridPos.colSpan || 1;
+            const rowSpan = node.gridPos.rowSpan || 1;
+            div.style.gridColumn = `${col} / span ${colSpan}`;
+            div.style.gridRow = `${row} / span ${rowSpan}`;
+            
+            // Has children indicator
+            if (node.children && node.children.length > 0) {
+                div.classList.add('has-children');
+            }
+            
+            // Icon
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'node-icon';
+            iconDiv.style.color = node.colour || '#8b949e';
+            iconDiv.innerHTML = `<i data-lucide="${node.icon || 'box'}"></i>`;
+            div.appendChild(iconDiv);
+            
+            // Label
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'node-label';
+            labelDiv.textContent = node.label;
+            div.appendChild(labelDiv);
+            
+            // Status badge
+            if (node.meta && node.meta.status) {
+                const badge = document.createElement('div');
+                badge.className = 'node-badge';
+                badge.dataset.status = node.meta.status;
+                badge.textContent = node.meta.status.replace('-', ' ');
+                div.appendChild(badge);
+            }
+            
+            // Click handlers
+            div.addEventListener('click', (e) => {
+                if (connectionMode) {
+                    handleNodeClickInConnectionMode(node.id);
+                    return;
+                }
+                focusNode(node.id);
+            });
+
+            div.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                enableInlineEdit(div);
+            });
+
+            // Enable drag
+            enableDrag(div);
+
+            return div;
+        }
+
+        function getVisibleNodeIds() {
+            const layer = DIAGRAM_DATA.layers[currentLayer];
+            return layer ? layer.visible : [];
+        }
+
+        function getVisibleNodes() {
+            const visibleIds = getVisibleNodeIds();
+            return visibleIds.map(id => DIAGRAM_DATA.nodes.find(n => n.id === id)).filter(Boolean);
+        }
+
+        // ============================================
+        // LAYER RENDERING
+        // ============================================
+        function renderLayer(layerId) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            const layer = DIAGRAM_DATA.layers[layerId];
+            if (!layer) return;
+            
+            const visibleNodeIds = layer.visible;
+            const visibleNodes = visibleNodeIds.map(id => DIAGRAM_DATA.nodes.find(n => n.id === id)).filter(Boolean);
+            
+            // Calculate grid dimensions based on nodes
+            let maxCol = 0, maxRow = 0;
+            visibleNodes.forEach(node => {
+                const endCol = node.gridPos.col + (node.gridPos.colSpan || 1);
+                const endRow = node.gridPos.row + (node.gridPos.rowSpan || 1);
+                maxCol = Math.max(maxCol, endCol);
+                maxRow = Math.max(maxRow, endRow);
+            });
+            
+            // Update CSS grid variables
+            document.documentElement.style.setProperty('--grid-cols', Math.max(maxCol, DIAGRAM_DATA.meta.gridCols || 4));
+            document.documentElement.style.setProperty('--grid-rows', Math.max(maxRow, 1));
+            
+            // Render nodes
+            visibleNodes.forEach(node => {
+                grid.appendChild(createNodeElement(node));
+            });
+            
+            // Initialize Lucide icons
+            lucide.createIcons();
+            
+            // Render connections
+            setTimeout(() => {
+                renderConnections(visibleNodeIds);
+            }, 50);
+            
+            // Focus first node
+            focusedNodeIndex = 0;
+            const firstNode = grid.querySelector('.node');
+            if (firstNode) {
+                firstNode.focus();
+            }
+            
+            // Update status bar
+            updateStatusBar(visibleNodes.length);
+        }
+
+        // ============================================
+        // CONNECTION RENDERING
+        // ============================================
+        function renderConnections(visibleNodeIds) {
+            const svg = document.getElementById('connections');
+            const defs = svg.querySelector('defs');
+            svg.innerHTML = '';
+            svg.appendChild(defs);
+
+            const labelsContainer = document.getElementById('connection-labels');
+            labelsContainer.innerHTML = '';
+
+            const visibleConnections = DIAGRAM_DATA.connections.filter(c =>
+                visibleNodeIds.includes(c.from) && visibleNodeIds.includes(c.to)
+            );
+
+            // Determine which nodes belong to the current layer
+            // (only show labels for same-layer connections)
+            const currentLayerNodeIds = new Set(
+                DIAGRAM_DATA.layers[currentLayer]?.visible || []
+            );
+
+            visibleConnections.forEach(conn => {
+                const fromNode = document.querySelector(`[data-id="${conn.from}"]`);
+                const toNode = document.querySelector(`[data-id="${conn.to}"]`);
+
+                if (!fromNode || !toNode) return;
+
+                const fromRect = fromNode.getBoundingClientRect();
+                const toRect = toNode.getBoundingClientRect();
+                const canvasRect = svg.getBoundingClientRect();
+
+                // Calculate connection points (center of nodes)
+                const x1 = fromRect.left + fromRect.width / 2 - canvasRect.left;
+                const y1 = fromRect.top + fromRect.height / 2 - canvasRect.top;
+                const x2 = toRect.left + toRect.width / 2 - canvasRect.left;
+                const y2 = toRect.top + toRect.height / 2 - canvasRect.top;
+
+                // Create path
+                const path = createOrthogonalPath(x1, y1, x2, y2, fromRect, toRect, canvasRect);
+
+                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                pathEl.setAttribute('d', path);
+                pathEl.setAttribute('stroke', conn.colour || '#8b949e');
+                pathEl.setAttribute('stroke-width', conn.style === 'thick' ? '4' : '2');
+                pathEl.setAttribute('fill', 'none');
+
+                // Dashed style
+                if (conn.style === 'dashed') {
+                    pathEl.setAttribute('stroke-dasharray', '6,4');
+                }
+
+                // Arrow markers
+                if (conn.style === 'arrow-one-way' || conn.style === 'arrow-two-way') {
+                    const markerColor = conn.colour === '#FF6B35' ? 'orange' :
+                                       conn.colour === '#00D4AA' ? 'teal' : '';
+                    pathEl.setAttribute('marker-end', `url(#arrowhead${markerColor ? '-' + markerColor : ''})`);
+                }
+                if (conn.style === 'arrow-two-way') {
+                    pathEl.setAttribute('marker-start', 'url(#arrowhead-reverse)');
+                }
+
+                svg.appendChild(pathEl);
+
+                // Only show labels in drill-down views (not overview)
+                if (conn.label && currentLayer !== 'overview') {
+                    // Place label at the gap between node edges
+                    const fromEdgeX = fromRect.right - canvasRect.left;
+                    const toEdgeX = toRect.left - canvasRect.left;
+                    const labelX = (fromEdgeX + toEdgeX) / 2;
+                    const labelY = (y1 + y2) / 2;
+
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'connection-label';
+                    labelDiv.textContent = conn.label;
+                    labelDiv.style.left = `${labelX}px`;
+                    labelDiv.style.top = `${labelY}px`;
+                    labelsContainer.appendChild(labelDiv);
+                }
+            });
+        }
+
+        function createOrthogonalPath(x1, y1, x2, y2, fromRect, toRect, canvasRect) {
+            // Determine best exit/entry points based on relative positions
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            
+            // Simple orthogonal routing
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // Horizontal dominant - go horizontal first, then vertical
+                const midX = x1 + dx / 2;
+                return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
+            } else {
+                // Vertical dominant - go vertical first, then horizontal
+                const midY = y1 + dy / 2;
+                return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+            }
+        }
+
+        // ============================================
+        // NAVIGATION
+        // ============================================
+        function focusNode(nodeId) {
+            const visibleNodes = getVisibleNodes();
+            const index = visibleNodes.findIndex(n => n.id === nodeId);
+            if (index >= 0) {
+                focusedNodeIndex = index;
+                const nodeEl = document.querySelector(`[data-id="${nodeId}"]`);
+                if (nodeEl) {
+                    nodeEl.focus();
+                }
+            }
+        }
+
+        function drillInto(nodeId) {
+            const node = DIAGRAM_DATA.nodes.find(n => n.id === nodeId);
+            if (node && node.children && node.children.length > 0 && DIAGRAM_DATA.layers[nodeId]) {
+                // Remember which node we drilled from
+                drillSourceNode[nodeId] = nodeId;
+                layerStack.push(nodeId);
+                currentLayer = nodeId;
+                focusedNodeIndex = 0;
+                renderLayer(currentLayer);
+                updateBreadcrumb();
+            }
+        }
+
+        function zoomOut() {
+            if (layerStack.length > 1) {
+                const leavingLayer = layerStack.pop();
+                currentLayer = layerStack[layerStack.length - 1];
+                
+                // Return focus to the node we drilled from
+                const returnToNode = drillSourceNode[leavingLayer];
+                renderLayer(currentLayer);
+                updateBreadcrumb();
+                
+                if (returnToNode) {
+                    focusNode(returnToNode);
+                }
+            }
+        }
+
+        function navigateToBreadcrumb(layerId) {
+            const index = layerStack.indexOf(layerId);
+            if (index >= 0 && index < layerStack.length - 1) {
+                // Get the node to return to (the one after the target layer)
+                const returnToNode = index < layerStack.length - 1 ? drillSourceNode[layerStack[index + 1]] : null;
+                
+                layerStack.length = index + 1;
+                currentLayer = layerId;
+                renderLayer(currentLayer);
+                updateBreadcrumb();
+                
+                if (returnToNode) {
+                    focusNode(returnToNode);
+                }
+            }
+        }
+
+        // ============================================
+        // BREADCRUMB
+        // ============================================
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '';
+            
+            layerStack.forEach((layerId, i) => {
+                const layer = DIAGRAM_DATA.layers[layerId];
+                const title = layer?.title || layerId;
+                const isLast = i === layerStack.length - 1;
+                
+                if (i > 0) {
+                    const sep = document.createElement('span');
+                    sep.className = 'separator';
+                    sep.textContent = '›';
+                    breadcrumb.appendChild(sep);
+                }
+                
+                const crumb = document.createElement('span');
+                crumb.className = `crumb ${isLast ? 'current' : ''}`;
+                crumb.textContent = title;
+                crumb.dataset.layer = layerId;
+                
+                if (!isLast) {
+                    crumb.addEventListener('click', () => navigateToBreadcrumb(layerId));
+                }
+                
+                breadcrumb.appendChild(crumb);
+            });
+        }
+
+        // ============================================
+        // STATUS BAR
+        // ============================================
+        function updateStatusBar(nodeCount) {
+            document.getElementById('node-count').textContent = `${nodeCount} nodes`;
+            updateSelectionInfo();
+        }
+
+        function updateSelectionInfo() {
+            const info = document.getElementById('selection-info');
+            if (selectedNodes.size > 0) {
+                info.textContent = `${selectedNodes.size} selected`;
+            } else {
+                info.textContent = '';
+            }
+        }
+
+        // ============================================
+        // SELECTION
+        // ============================================
+        function toggleSelect(nodeId) {
+            if (selectedNodes.has(nodeId)) {
+                selectedNodes.delete(nodeId);
+                document.querySelector(`[data-id="${nodeId}"]`)?.classList.remove('selected');
+            } else {
+                selectedNodes.add(nodeId);
+                document.querySelector(`[data-id="${nodeId}"]`)?.classList.add('selected');
+            }
+            updateSelectionInfo();
+        }
+
+        // ============================================
+        // HELP OVERLAY
+        // ============================================
+        function toggleHelp() {
+            const overlay = document.getElementById('help-overlay');
+            overlay.classList.toggle('hidden');
+            
+            if (!overlay.classList.contains('hidden')) {
+                overlay.innerHTML = `
+                    <div class="help-content">
+                        <h2>Keyboard Shortcuts</h2>
+                        <table>
+                            <tr>
+                                <td><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></td>
+                                <td>Navigate between nodes</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>1</kbd> - <kbd>9</kbd></td>
+                                <td>Jump to node by position</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Enter</kbd></td>
+                                <td>Drill into node (show children)</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Esc</kbd> / <kbd>Backspace</kbd></td>
+                                <td>Zoom out one layer</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Space</kbd></td>
+                                <td>Select / deselect node</td>
+                            </tr>
+                            <tr><td colspan="2" style="height:8px;border:none;"></td></tr>
+                            <tr>
+                                <td><kbd>e</kbd> / <kbd>dbl-click</kbd></td>
+                                <td>Edit node label</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>n</kbd></td>
+                                <td>Add new node</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>c</kbd></td>
+                                <td>Start connection mode</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>x</kbd> / <kbd>Del</kbd></td>
+                                <td>Delete focused node</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl+Z</kbd></td>
+                                <td>Undo</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl+Y</kbd></td>
+                                <td>Redo</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl+S</kbd></td>
+                                <td>Save diagram as JSON</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl+O</kbd></td>
+                                <td>Load diagram from JSON</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl+E</kbd></td>
+                                <td>Export dialog (PNG / PPTX)</td>
+                            </tr>
+                            <tr><td colspan="2" style="height:8px;border:none;"></td></tr>
+                            <tr>
+                                <td style="color:var(--accent-teal);">Excel</td>
+                                <td>Export / Import / Template (toolbar buttons)</td>
+                            </tr>
+                            <tr><td colspan="2" style="height:8px;border:none;"></td></tr>
+                            <tr>
+                                <td><kbd>?</kbd></td>
+                                <td>Toggle this help</td>
+                            </tr>
+                        </table>
+                        <p class="help-footer">Drag nodes to reposition. Press any key to close.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        function setupEventListeners() {
+            document.addEventListener('keydown', (e) => {
+                // Skip all shortcuts while editing inline
+                if (isEditing) return;
+
+                const overlay = document.getElementById('help-overlay');
+
+                // Close help on any key if open
+                if (!overlay.classList.contains('hidden') && e.key !== '?') {
+                    overlay.classList.add('hidden');
+                    return;
+                }
+
+                // Ctrl/Cmd shortcuts (work regardless of mode)
+                if (e.ctrlKey || e.metaKey) {
+                    switch (e.key) {
+                        case 'z':
+                            e.preventDefault();
+                            if (e.shiftKey) { redo(); } else { undo(); }
+                            return;
+                        case 'y':
+                            e.preventDefault();
+                            redo();
+                            return;
+                        case 's':
+                            e.preventDefault();
+                            saveDiagram();
+                            return;
+                        case 'o':
+                            e.preventDefault();
+                            loadDiagram();
+                            return;
+                        case 'e':
+                            e.preventDefault();
+                            showExportDialog();
+                            return;
+                    }
+                }
+
+                // Connection mode: Escape cancels
+                if (connectionMode && e.key === 'Escape') {
+                    exitConnectionMode();
+                    showStatus('Connection cancelled');
+                    e.preventDefault();
+                    return;
+                }
+
+                const visibleNodes = getVisibleNodes();
+                const gridCols = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-cols')) || 4;
+
+                switch(e.key) {
+                    case 'ArrowRight':
+                        focusedNodeIndex = Math.min(focusedNodeIndex + 1, visibleNodes.length - 1);
+                        focusNode(visibleNodes[focusedNodeIndex]?.id);
+                        e.preventDefault();
+                        break;
+
+                    case 'ArrowLeft':
+                        focusedNodeIndex = Math.max(focusedNodeIndex - 1, 0);
+                        focusNode(visibleNodes[focusedNodeIndex]?.id);
+                        e.preventDefault();
+                        break;
+
+                    case 'ArrowDown':
+                        focusedNodeIndex = Math.min(focusedNodeIndex + gridCols, visibleNodes.length - 1);
+                        focusNode(visibleNodes[focusedNodeIndex]?.id);
+                        e.preventDefault();
+                        break;
+
+                    case 'ArrowUp':
+                        focusedNodeIndex = Math.max(focusedNodeIndex - gridCols, 0);
+                        focusNode(visibleNodes[focusedNodeIndex]?.id);
+                        e.preventDefault();
+                        break;
+
+                    case 'Enter':
+                        if (visibleNodes[focusedNodeIndex]) {
+                            drillInto(visibleNodes[focusedNodeIndex].id);
+                        }
+                        e.preventDefault();
+                        break;
+
+                    case 'Escape':
+                    case 'Backspace':
+                        zoomOut();
+                        e.preventDefault();
+                        break;
+
+                    case ' ':
+                        if (visibleNodes[focusedNodeIndex]) {
+                            toggleSelect(visibleNodes[focusedNodeIndex].id);
+                        }
+                        e.preventDefault();
+                        break;
+
+                    case '?':
+                        toggleHelp();
+                        e.preventDefault();
+                        break;
+
+                    // Phase 2: Editing shortcuts
+                    case 'e':
+                        if (visibleNodes[focusedNodeIndex]) {
+                            const nodeEl = document.querySelector(`[data-id="${visibleNodes[focusedNodeIndex].id}"]`);
+                            enableInlineEdit(nodeEl);
+                        }
+                        e.preventDefault();
+                        break;
+
+                    case 'n':
+                        addNewNode();
+                        e.preventDefault();
+                        break;
+
+                    case 'c':
+                        if (!connectionMode) {
+                            startConnectionMode();
+                        }
+                        e.preventDefault();
+                        break;
+
+                    case 'x':
+                    case 'Delete':
+                        deleteSelected();
+                        e.preventDefault();
+                        break;
+
+                    default:
+                        // Number keys 1-9 for direct node access
+                        if (e.key >= '1' && e.key <= '9') {
+                            const index = parseInt(e.key) - 1;
+                            if (index < visibleNodes.length) {
+                                focusedNodeIndex = index;
+                                focusNode(visibleNodes[index].id);
+                            }
+                            e.preventDefault();
+                        }
+                }
+            });
+
+            // Re-render connections on window resize
+            window.addEventListener('resize', () => {
+                const visibleNodeIds = getVisibleNodeIds();
+                setTimeout(() => renderConnections(visibleNodeIds), 100);
+            });
+        }
+
+        // ============================================
+        // EXCEL IMPORT/EXPORT
+        // ============================================
+
+        function findNodeLayer(nodeId) {
+            for (const [layerId, layer] of Object.entries(DIAGRAM_DATA.layers)) {
+                if (layer.visible.includes(nodeId)) return layerId;
+            }
+            return 'overview';
+        }
+
+        function exportToExcel() {
+            const nodesData = DIAGRAM_DATA.nodes.map(node => {
+                const row = {
+                    id: node.id,
+                    label: node.label,
+                    description: node.description || '',
+                    type: node.type,
+                    icon: node.icon || '',
+                    colour: node.colour || '',
+                    col: node.gridPos?.col ?? 0,
+                    row: node.gridPos?.row ?? 0,
+                    colSpan: node.gridPos?.colSpan ?? 1,
+                    rowSpan: node.gridPos?.rowSpan ?? 1,
+                    parent: node.parent || '',
+                    layer: findNodeLayer(node.id)
+                };
+                if (node.meta) {
+                    Object.entries(node.meta).forEach(([key, value]) => {
+                        row[`meta_${key}`] = value;
+                    });
+                }
+                return row;
+            });
+
+            const connectionsData = DIAGRAM_DATA.connections.map(conn => ({
+                id: conn.id,
+                from: conn.from,
+                to: conn.to,
+                type: conn.type || '',
+                label: conn.label || '',
+                style: conn.style || 'arrow-one-way',
+                colour: conn.colour || ''
+            }));
+
+            const metaData = [
+                {key: 'title', value: DIAGRAM_DATA.meta.title},
+                {key: 'gridMode', value: DIAGRAM_DATA.meta.gridMode},
+                {key: 'gridCols', value: DIAGRAM_DATA.meta.gridCols},
+                {key: 'gridRows', value: DIAGRAM_DATA.meta.gridRows}
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(nodesData), 'Nodes');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(connectionsData), 'Connections');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(metaData), 'Meta');
+
+            const filename = `${DIAGRAM_DATA.meta.title.toLowerCase().replace(/\s+/g, '-')}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            showStatus(`Exported to ${filename}`);
+        }
+
+        function validateImport(nodes, connections) {
+            const errors = [];
+            const nodeIds = new Set(nodes.map(n => n.id));
+
+            nodes.forEach((node, i) => {
+                if (!node.id) errors.push(`Row ${i+2}: Missing node ID`);
+                if (!node.label) errors.push(`Row ${i+2}: Missing label for ${node.id}`);
+                if (!node.type) errors.push(`Row ${i+2}: Missing type for ${node.id}`);
+            });
+
+            const seen = new Set();
+            nodes.forEach(node => {
+                if (seen.has(node.id)) errors.push(`Duplicate node ID: ${node.id}`);
+                seen.add(node.id);
+            });
+
+            connections.forEach((conn, i) => {
+                if (!conn.from) errors.push(`Connection row ${i+2}: Missing 'from'`);
+                if (!conn.to) errors.push(`Connection row ${i+2}: Missing 'to'`);
+                if (conn.from && !nodeIds.has(conn.from)) errors.push(`Connection row ${i+2}: Unknown source '${conn.from}'`);
+                if (conn.to && !nodeIds.has(conn.to)) errors.push(`Connection row ${i+2}: Unknown target '${conn.to}'`);
+            });
+
+            nodes.forEach(node => {
+                if (node.parent && !nodeIds.has(node.parent)) errors.push(`Node ${node.id}: Unknown parent '${node.parent}'`);
+            });
+
+            return errors;
+        }
+
+        function showValidationErrors(errors) {
+            const overlay = document.getElementById('help-overlay');
+            overlay.classList.remove('hidden');
+            overlay.innerHTML = `
+                <div class="help-content" style="text-align:left;">
+                    <h2 style="color:var(--accent-orange);margin-bottom:16px;">Import Validation Errors</h2>
+                    <p style="color:var(--text-secondary);margin-bottom:12px;">Fix these issues in the Excel file and try again:</p>
+                    <ul style="color:#f85149;list-style:disc;padding-left:20px;margin-bottom:16px;">
+                        ${errors.map(e => `<li style="margin-bottom:4px;">${e}</li>`).join('')}
+                    </ul>
+                    <p class="help-footer">Press any key to close</p>
+                </div>
+            `;
+        }
+
+        function convertExcelToDiagram(nodesData, connectionsData, metaData) {
+            const meta = { title: 'Imported Diagram', gridMode: 'strict', gridCols: 6, gridRows: 4 };
+            metaData.forEach(row => {
+                if (row.key && row.value !== undefined) meta[row.key] = row.value;
+            });
+
+            const nodes = nodesData.map(row => {
+                const node = {
+                    id: row.id,
+                    label: row.label,
+                    description: row.description || '',
+                    type: row.type || 'capability',
+                    icon: row.icon || 'box',
+                    colour: row.colour || '#21262d',
+                    gridPos: {
+                        col: parseInt(row.col) || 0,
+                        row: parseInt(row.row) || 0,
+                        colSpan: parseInt(row.colSpan) || 1,
+                        rowSpan: parseInt(row.rowSpan) || 1
+                    },
+                    parent: row.parent || null,
+                    children: [],
+                    meta: {}
+                };
+                Object.keys(row).forEach(key => {
+                    if (key.startsWith('meta_')) node.meta[key.replace('meta_', '')] = row[key];
+                });
+                return node;
+            });
+
+            // Build children arrays from parent references
+            nodes.forEach(node => {
+                if (node.parent) {
+                    const parent = nodes.find(n => n.id === node.parent);
+                    if (parent) parent.children.push(node.id);
+                }
+            });
+
+            const connections = connectionsData.map(row => ({
+                id: row.id || `conn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                from: row.from,
+                to: row.to,
+                type: row.type || 'data-flow',
+                label: row.label || '',
+                style: row.style || 'arrow-one-way',
+                colour: row.colour || '#8b949e'
+            }));
+
+            return {meta, nodes, connections, layers: {}};
+        }
+
+        function rebuildLayers(data) {
+            const layers = {
+                overview: { title: data.meta.title || 'Overview', visible: [] }
+            };
+            data.nodes.forEach(node => {
+                if (!node.parent) {
+                    layers.overview.visible.push(node.id);
+                } else {
+                    if (!layers[node.parent]) {
+                        const parentNode = data.nodes.find(n => n.id === node.parent);
+                        layers[node.parent] = { title: parentNode?.label || node.parent, visible: [] };
+                    }
+                    layers[node.parent].visible.push(node.id);
+                }
+            });
+            data.layers = layers;
+        }
+
+        function importFromExcel() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = new Uint8Array(event.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+
+                        const nodesSheet = workbook.Sheets['Nodes'];
+                        const connectionsSheet = workbook.Sheets['Connections'];
+                        const metaSheet = workbook.Sheets['Meta'];
+
+                        if (!nodesSheet || !connectionsSheet) {
+                            showStatus('Missing required sheets (Nodes, Connections)', 'error');
+                            return;
+                        }
+
+                        const nodesData = XLSX.utils.sheet_to_json(nodesSheet);
+                        const connectionsData = XLSX.utils.sheet_to_json(connectionsSheet);
+                        const metaData = metaSheet ? XLSX.utils.sheet_to_json(metaSheet) : [];
+
+                        const errors = validateImport(nodesData, connectionsData);
+                        if (errors.length > 0) {
+                            showValidationErrors(errors);
+                            return;
+                        }
+
+                        const newDiagram = convertExcelToDiagram(nodesData, connectionsData, metaData);
+                        rebuildLayers(newDiagram);
+
+                        DIAGRAM_DATA = newDiagram;
+                        currentLayer = 'overview';
+                        layerStack.length = 0;
+                        layerStack.push('overview');
+                        undoStack.length = 0;
+                        redoStack.length = 0;
+
+                        document.getElementById('diagram-title').textContent = DIAGRAM_DATA.meta.title;
+                        renderLayer(currentLayer);
+                        updateBreadcrumb();
+                        pushUndoState();
+                        showStatus(`Imported ${nodesData.length} nodes, ${connectionsData.length} connections`);
+                    } catch (err) {
+                        showStatus(`Import error: ${err.message}`, 'error');
+                        console.error(err);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            };
+            input.click();
+        }
+
+        function exportTemplate() {
+            const wb = XLSX.utils.book_new();
+
+            const nodesTemplate = [{
+                id: 'example-1', label: 'Example Node', description: 'Description here',
+                type: 'capability', icon: 'box', colour: '#FF6B35',
+                col: 0, row: 0, colSpan: 1, rowSpan: 1,
+                parent: '', layer: 'overview', meta_owner: 'Name', meta_status: 'live'
+            }];
+
+            const connectionsTemplate = [{
+                id: 'conn-example', from: 'example-1', to: 'example-2',
+                type: 'data-flow', label: 'connection label', style: 'arrow-one-way', colour: '#8b949e'
+            }];
+
+            const metaTemplate = [
+                {key: 'title', value: 'My Diagram'},
+                {key: 'gridMode', value: 'strict'},
+                {key: 'gridCols', value: 6},
+                {key: 'gridRows', value: 4}
+            ];
+
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(nodesTemplate), 'Nodes');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(connectionsTemplate), 'Connections');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(metaTemplate), 'Meta');
+
+            XLSX.writeFile(wb, 'diagram-template.xlsx');
+            showStatus('Template downloaded');
+        }
+
+        // ============================================
+        // PNG & PPTX EXPORT
+        // ============================================
+
+        async function exportToPNG(options = {}) {
+            const { scale = 2, backgroundColor = '#0d1117' } = options;
+
+            const toolbar = document.getElementById('toolbar');
+            const statusBar = document.getElementById('status-bar');
+            const helpOverlay = document.getElementById('help-overlay');
+
+            toolbar.style.display = 'none';
+            statusBar.style.display = 'none';
+            helpOverlay.classList.add('hidden');
+            document.querySelectorAll('.node').forEach(n => n.blur());
+
+            try {
+                const canvas = await html2canvas(document.getElementById('canvas'), {
+                    scale,
+                    backgroundColor,
+                    useCORS: true,
+                    logging: false
+                });
+
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${DIAGRAM_DATA.meta.title.toLowerCase().replace(/\s+/g, '-')}-${currentLayer}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showStatus('PNG exported');
+                }, 'image/png');
+            } finally {
+                toolbar.style.display = '';
+                statusBar.style.display = '';
+            }
+        }
+
+        async function exportToPPTX(options = {}) {
+            const { allLayers = false, theme = 'dark' } = options;
+
+            const pptx = new PptxGenJS();
+            pptx.title = DIAGRAM_DATA.meta.title;
+            pptx.author = 'Diagram Viewer';
+            pptx.layout = 'LAYOUT_WIDE';
+
+            const colours = theme === 'dark' ? {
+                background: '0D1117', text: 'E6EDF3', textMuted: '8B949E',
+                accent1: 'FF6B35', accent2: '00D4AA', nodeBg: '21262D', nodeBorder: '30363D'
+            } : {
+                background: 'FFFFFF', text: '1F2328', textMuted: '656D76',
+                accent1: 'FF6B35', accent2: '00D4AA', nodeBg: 'F6F8FA', nodeBorder: 'D0D7DE'
+            };
+
+            if (allLayers) {
+                for (const [layerId, layer] of Object.entries(DIAGRAM_DATA.layers)) {
+                    addSlideForLayer(pptx, layerId, layer, colours);
+                }
+            } else {
+                const layer = DIAGRAM_DATA.layers[currentLayer];
+                addSlideForLayer(pptx, currentLayer, layer, colours);
+            }
+
+            const filename = `${DIAGRAM_DATA.meta.title.toLowerCase().replace(/\s+/g, '-')}.pptx`;
+            await pptx.writeFile({ fileName: filename });
+            showStatus(`PowerPoint exported: ${filename}`);
+        }
+
+        function addSlideForLayer(pptx, layerId, layer, colours) {
+            const slide = pptx.addSlide();
+            slide.background = { color: colours.background };
+
+            // Title
+            slide.addText(layer.title || layerId, {
+                x: 0.5, y: 0.25, w: '90%', h: 0.5,
+                fontSize: 24, bold: true, color: colours.accent1
+            });
+
+            // Collect visible nodes and compute actual grid bounds
+            const visibleNodes = (layer.visible || [])
+                .map(id => DIAGRAM_DATA.nodes.find(n => n.id === id))
+                .filter(Boolean);
+
+            let maxCol = 0, maxRow = 0;
+            visibleNodes.forEach(node => {
+                maxCol = Math.max(maxCol, node.gridPos.col + (node.gridPos.colSpan || 1));
+                maxRow = Math.max(maxRow, node.gridPos.row + (node.gridPos.rowSpan || 1));
+            });
+            const gridCols = Math.max(maxCol, 1);
+            const gridRows = Math.max(maxRow, 1);
+
+            // Match HTML viewer proportions: compact boxes centred in cells
+            // HTML uses minmax(120px,180px) cols, minmax(100px,140px) rows, 48px gap
+            const gridWidth = 12.5;
+            const maxGridHeight = 6.0;
+            const cellWidth = gridWidth / gridCols;
+            const cellHeight = Math.min(maxGridHeight / gridRows, 3.2);
+            const actualGridHeight = cellHeight * gridRows;
+
+            // Fixed box size (consistent across all slides), centred in cell
+            const maxBoxW = 2.5;
+            const maxBoxH = 1.9;
+            const boxW = Math.min(maxBoxW, cellWidth - 0.5);
+            const boxH = Math.min(maxBoxH, cellHeight - 0.5);
+            const gridLeft = 0.4;
+            const gridTop = 0.9 + (maxGridHeight - actualGridHeight) / 2;
+
+            // Lucide icon name → unicode/emoji fallback
+            const iconMap = {
+                'user-plus': '\u{1F464}', 'settings': '\u2699\uFE0F', 'credit-card': '\u{1F4B3}',
+                'headphones': '\u{1F3A7}', 'smartphone': '\u{1F4F1}', 'globe': '\u{1F310}',
+                'shield-check': '\u{1F6E1}', 'user': '\u{1F464}', 'mail': '\u2709\uFE0F',
+                'receipt': '\u{1F4C4}', 'arrow-right-left': '\u21C4', 'box': '\u{1F4E6}',
+                'zap': '\u26A1', 'database': '\u{1F4BE}', 'lock': '\u{1F512}',
+                'key': '\u{1F511}', 'cloud': '\u2601\uFE0F', 'server': '\u{1F5A5}',
+                'cpu': '\u{1F4BB}', 'terminal': '\u{1F4BB}', 'code': '\u{1F4BB}',
+                'layers': '\u{1F4DA}', 'git-branch': '\u{1F500}', 'workflow': '\u{1F504}',
+                'user-cog': '\u{1F464}', 'file-text': '\u{1F4C4}', 'bell': '\u{1F514}',
+                'building': '\u{1F3E2}'
+            };
+
+            // Build node position map for connections
+            const nodePositions = {};
+
+            visibleNodes.forEach(node => {
+                const colSpan = node.gridPos.colSpan || 1;
+                const rowSpan = node.gridPos.rowSpan || 1;
+                const w = boxW * colSpan + (colSpan > 1 ? (colSpan - 1) * (cellWidth - boxW) : 0);
+                const h = boxH * rowSpan + (rowSpan > 1 ? (rowSpan - 1) * (cellHeight - boxH) : 0);
+                // Centre box within its cell(s)
+                const cellX = gridLeft + (node.gridPos.col * cellWidth);
+                const cellY = gridTop + (node.gridPos.row * cellHeight);
+                const totalCellW = colSpan * cellWidth;
+                const totalCellH = rowSpan * cellHeight;
+                const x = cellX + (totalCellW - w) / 2;
+                const y = cellY + (totalCellH - h) / 2;
+
+                nodePositions[node.id] = { x, y, w, h, cx: x + w/2, cy: y + h/2 };
+            });
+
+            // Draw connections FIRST so nodes render on top (z-order)
+            const visibleNodeIds = new Set(layer.visible || []);
+            const visibleConnections = DIAGRAM_DATA.connections.filter(c =>
+                visibleNodeIds.has(c.from) && visibleNodeIds.has(c.to)
+            );
+
+            // Sort: dashed first, then solid on top — so solid fills cover
+            // overlapping dashed segments (matches SVG layering in HTML viewer)
+            const sortedConnections = [...visibleConnections].sort((a, b) => {
+                const aOrder = a.style === 'dashed' ? 0 : 1;
+                const bOrder = b.style === 'dashed' ? 0 : 1;
+                return aOrder - bOrder;
+            });
+
+            // Helper: draw a line segment
+            // Solid segments use thin filled RECTANGLE (reliable rendering)
+            // Dashed segments use LINE shape (proper dash rendering)
+            function drawSegment(slide, x, y, w, h, colour, isDashed) {
+                const isHorizontal = Math.abs(h) < 0.05;
+                if (!isDashed) {
+                    const thickness = 0.025;
+                    if (isHorizontal) {
+                        slide.addShape(pptx.shapes.RECTANGLE, {
+                            x: Math.min(x, x + w), y: y - thickness / 2,
+                            w: Math.abs(w) || 0.01, h: thickness,
+                            fill: { color: colour }, line: { type: 'none' }
+                        });
+                    } else {
+                        slide.addShape(pptx.shapes.RECTANGLE, {
+                            x: x - thickness / 2, y: Math.min(y, y + h),
+                            w: thickness, h: Math.abs(h) || 0.01,
+                            fill: { color: colour }, line: { type: 'none' }
+                        });
+                    }
+                } else {
+                    // Dashed: use LINE shape for proper dash rendering
+                    if (isHorizontal) {
+                        slide.addShape(pptx.shapes.LINE, {
+                            x: Math.min(x, x + w), y: y,
+                            w: Math.abs(w) || 0.01, h: 0,
+                            line: { color: colour, width: 1.5, dashType: 'lgDash' }
+                        });
+                    } else {
+                        slide.addShape(pptx.shapes.LINE, {
+                            x: x, y: Math.min(y, y + h),
+                            w: 0, h: Math.abs(h) || 0.01,
+                            line: { color: colour, width: 1.5, dashType: 'lgDash' }
+                        });
+                    }
+                }
+            }
+
+            // Route centre-to-centre with orthogonal L-shapes (matches HTML viewer)
+            // Nodes render on top, hiding line segments that overlap boxes
+            sortedConnections.forEach(conn => {
+                const fromPos = nodePositions[conn.from];
+                const toPos = nodePositions[conn.to];
+                if (!fromPos || !toPos) return;
+
+                let rawColour = (conn.colour || '#8b949e').replace('#', '');
+                if (rawColour.toLowerCase() === '30363d') rawColour = colours.textMuted;
+                const lineColour = rawColour;
+                const isDashed = conn.style === 'dashed';
+
+                const x1 = fromPos.cx, y1 = fromPos.cy;
+                const x2 = toPos.cx, y2 = toPos.cy;
+                const dx = x2 - x1, dy = y2 - y1;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    // Horizontal dominant: H → V → H via midX
+                    const midX = x1 + dx / 2;
+                    drawSegment(slide, x1, y1, midX - x1, 0, lineColour, isDashed);
+                    if (Math.abs(dy) > 0.05) drawSegment(slide, midX, Math.min(y1, y2), 0, Math.abs(dy), lineColour, isDashed);
+                    drawSegment(slide, midX, y2, x2 - midX, 0, lineColour, isDashed);
+                } else {
+                    // Vertical dominant: V → H → V via midY
+                    const midY = y1 + dy / 2;
+                    drawSegment(slide, x1, y1, 0, midY - y1, lineColour, isDashed);
+                    if (Math.abs(dx) > 0.05) drawSegment(slide, Math.min(x1, x2), midY, Math.abs(dx), 0, lineColour, isDashed);
+                    drawSegment(slide, x2, midY, 0, y2 - midY, lineColour, isDashed);
+                }
+            });
+
+            // Draw nodes ON TOP of connections
+            visibleNodes.forEach(node => {
+                const pos = nodePositions[node.id];
+                const accentColour = (node.colour || colours.accent1).replace('#', '');
+                const icon = iconMap[node.icon] || '';
+
+                const textParts = [];
+                if (icon) {
+                    textParts.push({ text: icon + '\n', options: { fontSize: 16, color: colours.text } });
+                }
+                textParts.push({ text: node.label, options: { fontSize: 11, bold: true, color: colours.text } });
+                if (node.meta?.status) {
+                    const statusColour = node.meta.status === 'live' ? colours.accent2 :
+                        node.meta.status === 'in-progress' ? colours.accent1 : colours.textMuted;
+                    textParts.push({ text: `\n${node.meta.status}`, options: { fontSize: 8, color: statusColour } });
+                }
+
+                slide.addText(textParts, {
+                    x: pos.x, y: pos.y, w: pos.w, h: pos.h,
+                    shape: pptx.shapes.ROUNDED_RECTANGLE,
+                    rectRadius: 0.15,
+                    fill: { color: colours.nodeBg },
+                    line: { color: accentColour, width: 2 },
+                    align: 'center',
+                    valign: 'middle',
+                    margin: [4, 4, 4, 4]
+                });
+            });
+
+            // Draw connection labels LAST — only on drill-down slides (matches HTML viewer)
+            const isOverview = layerId === 'overview';
+            visibleConnections.forEach(conn => {
+                if (!conn.label || isOverview) return;
+                const fromPos = nodePositions[conn.from];
+                const toPos = nodePositions[conn.to];
+                if (!fromPos || !toPos) return;
+
+                // Label at midpoint between edges (in the gap)
+                const horizontalDominant = Math.abs(toPos.cx - fromPos.cx) > Math.abs(toPos.cy - fromPos.cy);
+                const midX = (fromPos.cx + toPos.cx) / 2;
+                const midY = (fromPos.cy + toPos.cy) / 2;
+                slide.addText(conn.label, {
+                    x: midX - 0.55, y: midY - 0.12, w: 1.1, h: 0.22,
+                    fontSize: 7, color: colours.text, align: 'center',
+                    fill: { color: colours.nodeBg },
+                    line: { color: colours.nodeBorder, width: 0.5 },
+                    shape: pptx.shapes.ROUNDED_RECTANGLE,
+                    rectRadius: 0.05
+                });
+            });
+
+            // Footer
+            slide.addText(DIAGRAM_DATA.meta.title, {
+                x: 0.5, y: 6.85, w: '50%', h: 0.3,
+                fontSize: 9, color: colours.textMuted, italic: true
+            });
+        }
+
+        function showExportDialog() {
+            const overlay = document.getElementById('help-overlay');
+            overlay.classList.remove('hidden');
+            overlay.innerHTML = `
+                <div class="export-dialog">
+                    <h2>Export Diagram</h2>
+
+                    <div class="export-section">
+                        <h3>PNG Image</h3>
+                        <div class="export-options">
+                            <label>Scale:
+                                <select id="png-scale">
+                                    <option value="1">1x (standard)</option>
+                                    <option value="2" selected>2x (retina)</option>
+                                    <option value="3">3x (high-res)</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button class="export-btn" id="export-png-btn">Export PNG</button>
+                    </div>
+
+                    <div class="export-section">
+                        <h3>PowerPoint</h3>
+                        <div class="export-options">
+                            <label>
+                                <input type="checkbox" id="pptx-all-layers">
+                                Export all layers (multi-slide)
+                            </label>
+                            <label>Theme:
+                                <select id="pptx-theme">
+                                    <option value="dark" selected>Dark</option>
+                                    <option value="light">Light</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button class="export-btn" id="export-pptx-btn">Export PPTX</button>
+                    </div>
+
+                    <button class="export-close-btn" id="export-cancel-btn">Cancel</button>
+                </div>
+            `;
+            lucide.createIcons();
+
+            document.getElementById('export-png-btn').addEventListener('click', () => {
+                const scale = parseInt(document.getElementById('png-scale').value);
+                closeExportDialog();
+                exportToPNG({ scale });
+            });
+
+            document.getElementById('export-pptx-btn').addEventListener('click', () => {
+                const allLayers = document.getElementById('pptx-all-layers').checked;
+                const theme = document.getElementById('pptx-theme').value;
+                closeExportDialog();
+                exportToPPTX({ allLayers, theme });
+            });
+
+            document.getElementById('export-cancel-btn').addEventListener('click', closeExportDialog);
+        }
+
+        function closeExportDialog() {
+            document.getElementById('help-overlay').classList.add('hidden');
+        }
+
+        // ============================================
+        // TOOLBAR BUTTON WIRING
+        // ============================================
+        function setupToolbarButtons() {
+            document.getElementById('btn-add')?.addEventListener('click', addNewNode);
+            document.getElementById('btn-connect')?.addEventListener('click', () => {
+                if (connectionMode) exitConnectionMode();
+                else startConnectionMode();
+            });
+            document.getElementById('btn-delete')?.addEventListener('click', deleteSelected);
+            document.getElementById('btn-undo')?.addEventListener('click', undo);
+            document.getElementById('btn-redo')?.addEventListener('click', redo);
+            document.getElementById('btn-save')?.addEventListener('click', saveDiagram);
+            document.getElementById('btn-load')?.addEventListener('click', loadDiagram);
+            document.getElementById('btn-export-excel')?.addEventListener('click', exportToExcel);
+            document.getElementById('btn-import-excel')?.addEventListener('click', importFromExcel);
+            document.getElementById('btn-template')?.addEventListener('click', exportTemplate);
+            document.getElementById('btn-export')?.addEventListener('click', showExportDialog);
+        }
+
+        // ============================================
+        // START
+        // ============================================
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
