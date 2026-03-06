@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "tui: Command Centre TUI widget tests (Textual Pilot)",
+    "handler: Command Centre handler integration tests",
+    "integration: cross-module integration tests",
+    "e2e: end-to-end tests requiring external services",
+    "slow: tests that take >5s (network, model loading)",
+]

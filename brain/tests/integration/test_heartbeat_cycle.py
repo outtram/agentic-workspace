@@ -21,12 +21,10 @@ TEST_DB = ":memory:"
 @pytest.fixture
 def config():
     return Config(
-        socket_path="/tmp/test.sock",
         db_path=TEST_DB,
         quiet_start=22,
         quiet_end=7,
         anthropic_api_key="test-key",
-        troy_jid="troy@s.whatsapp.net",
     )
 
 

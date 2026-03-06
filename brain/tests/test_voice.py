@@ -6,8 +6,9 @@ import sys
 import tempfile
 import wave
 
-import numpy as np
 import pytest
+
+np = pytest.importorskip("numpy")
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
