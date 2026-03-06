@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 328
-last_synced: '2026-03-06T22:58:05.602358'
+last_synced: '2026-03-06T23:18:50.284078'
 entries:
   OUT-223:
     title: Fire place fix
@@ -174,7 +174,7 @@ entries:
     title: Tent poles
     file: OUT-292-tent-poles.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-22'
     reminder_id: x-apple-reminder://A4B21595-C0B1-44CE-8125-27E8015981DC
   OUT-293:
