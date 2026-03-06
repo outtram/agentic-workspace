@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 328
-last_synced: '2026-03-06T22:41:49.501158'
+last_synced: '2026-03-06T22:58:05.602358'
 entries:
   OUT-223:
     title: Fire place fix
@@ -41,7 +41,7 @@ entries:
     title: "Kate \u2014 Continuous Delivery Meeting"
     file: OUT-242-kate-continuous-delivery-meeting.md
     source: reminder
-    status: todo
+    status: done
     created: '2026-02-12'
     reminder_id: x-apple-reminder://59EC9829-7B7D-483D-B275-7E579A8A5A64
   OUT-245:
