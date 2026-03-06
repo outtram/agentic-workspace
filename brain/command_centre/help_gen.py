@@ -99,6 +99,14 @@ def generate_help_md(data: dict) -> str:
     lines.append("")
     lines.append("Arrow down past Description to the **Notes & Research** section. Press Enter to view full content.")
 
+    # Diagram view
+    if "diagram_view_keys" in data:
+        lines.extend(["", "### Diagram View (/diagram)", ""])
+        lines.append(_table(
+            ["Key", "Action"],
+            [[k["key"], k["action"]] for k in data["diagram_view_keys"]],
+        ))
+
     # Filter picker
     lines.extend(["", "### Filter Picker (: key)", ""])
     lines.append(_table(
@@ -215,6 +223,12 @@ def generate_help_text_rich(data: dict) -> str:
     lines.append('[bold]Task Focus View[/]  (when zoomed into a task)')
     for k in data["focus_view_keys"]:
         lines.append(f'  {k["key"]:<14s}{k["action"]}')
+
+    if "diagram_view_keys" in data:
+        lines.append('')
+        lines.append('[bold]Diagram View[/]  (/diagram)')
+        for k in data["diagram_view_keys"]:
+            lines.append(f'  {k["key"]:<14s}{k["action"]}')
 
     lines.append('')
     lines.append('[bold]Filter Picker[/]  (: key)')

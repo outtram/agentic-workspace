@@ -1,0 +1,353 @@
+{
+  "meta": {
+    "title": "Program Capability Map",
+    "gridMode": "strict",
+    "gridCols": 4,
+    "gridRows": 3,
+    "theme": {
+      "background": "#0d1117",
+      "nodeDefault": "#21262d",
+      "accent1": "#FF6B35",
+      "accent2": "#00D4AA",
+      "text": "#e6edf3",
+      "textMuted": "#8b949e"
+    }
+  },
+  "nodes": [
+    {
+      "id": "cap-onboarding",
+      "label": "Customer Onboarding",
+      "description": "End-to-end customer onboarding journey from acquisition to activation",
+      "type": "capability",
+      "icon": "user-plus",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": ["cap-kyc", "cap-account", "cap-welcome"],
+      "meta": {"owner": "Kate", "status": "live", "channel": "all"}
+    },
+    {
+      "id": "cap-servicing",
+      "label": "Account Servicing",
+      "description": "Day-to-day account management and self-service capabilities",
+      "type": "capability",
+      "icon": "settings",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": ["cap-profile", "cap-statements", "cap-alerts"],
+      "meta": {"owner": "Mike", "status": "live", "channel": "web,mobile"}
+    },
+    {
+      "id": "cap-payments",
+      "label": "Payments",
+      "description": "All payment types including domestic and international transfers",
+      "type": "capability",
+      "icon": "credit-card",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": ["cap-bpay", "cap-transfer", "cap-international"],
+      "meta": {"owner": "Sarah", "status": "in-progress", "channel": "all"}
+    },
+    {
+      "id": "cap-support",
+      "label": "Customer Support",
+      "description": "Multi-channel support including chat, phone, and self-service",
+      "type": "capability",
+      "icon": "headphones",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 3, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"owner": "Tom", "status": "planned", "channel": "all"}
+    },
+    {
+      "id": "cap-mobile",
+      "label": "Mobile App",
+      "description": "Native iOS and Android applications",
+      "type": "channel",
+      "icon": "smartphone",
+      "colour": "#8b949e",
+      "gridPos": {"col": 0, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"status": "live", "platform": "iOS, Android"}
+    },
+    {
+      "id": "cap-web",
+      "label": "Web Portal",
+      "description": "Responsive web application for desktop and tablet",
+      "type": "channel",
+      "icon": "globe",
+      "colour": "#8b949e",
+      "gridPos": {"col": 1, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"status": "live", "platform": "Web"}
+    },
+    {
+      "id": "cap-api",
+      "label": "Open Banking API",
+      "description": "CDR-compliant APIs for third-party access",
+      "type": "channel",
+      "icon": "code",
+      "colour": "#8b949e",
+      "gridPos": {"col": 2, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"status": "in-progress", "platform": "REST API"}
+    },
+    {
+      "id": "cap-branch",
+      "label": "Branch Network",
+      "description": "Physical branch and assisted digital channels",
+      "type": "channel",
+      "icon": "building",
+      "colour": "#8b949e",
+      "gridPos": {"col": 3, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"status": "live", "platform": "Physical"}
+    },
+    {
+      "id": "cap-kyc",
+      "label": "KYC Verification",
+      "description": "Identity verification including document checks and biometrics",
+      "type": "sub-capability",
+      "icon": "shield-check",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-onboarding",
+      "children": [],
+      "meta": {"status": "live", "vendor": "Onfido"}
+    },
+    {
+      "id": "cap-account",
+      "label": "Account Creation",
+      "description": "Core banking account provisioning and setup",
+      "type": "sub-capability",
+      "icon": "user",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-onboarding",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "cap-welcome",
+      "label": "Welcome Journey",
+      "description": "Onboarding communications and feature education",
+      "type": "sub-capability",
+      "icon": "mail",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-onboarding",
+      "children": [],
+      "meta": {"status": "in-progress"}
+    },
+    {
+      "id": "cap-profile",
+      "label": "Profile Management",
+      "type": "sub-capability",
+      "icon": "user-cog",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-servicing",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "cap-statements",
+      "label": "Statements",
+      "type": "sub-capability",
+      "icon": "file-text",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-servicing",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "cap-alerts",
+      "label": "Alerts & Notifications",
+      "type": "sub-capability",
+      "icon": "bell",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-servicing",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "cap-bpay",
+      "label": "BPAY",
+      "type": "sub-capability",
+      "icon": "receipt",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-payments",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "cap-transfer",
+      "label": "Transfers",
+      "type": "sub-capability",
+      "icon": "arrow-right-left",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-payments",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "cap-international",
+      "label": "International",
+      "type": "sub-capability",
+      "icon": "globe",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cap-payments",
+      "children": [],
+      "meta": {"status": "planned"}
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "from": "cap-onboarding",
+      "to": "cap-servicing",
+      "type": "data-flow",
+      "label": "customer created",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-2",
+      "from": "cap-servicing",
+      "to": "cap-payments",
+      "type": "dependency",
+      "label": "account active",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-3",
+      "from": "cap-payments",
+      "to": "cap-support",
+      "type": "dependency",
+      "label": "disputes",
+      "style": "arrow-two-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-4",
+      "from": "cap-mobile",
+      "to": "cap-onboarding",
+      "type": "channel",
+      "label": "",
+      "style": "line",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-5",
+      "from": "cap-mobile",
+      "to": "cap-servicing",
+      "type": "channel",
+      "label": "",
+      "style": "line",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-6",
+      "from": "cap-mobile",
+      "to": "cap-payments",
+      "type": "channel",
+      "label": "",
+      "style": "line",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-7",
+      "from": "cap-web",
+      "to": "cap-onboarding",
+      "type": "channel",
+      "label": "",
+      "style": "line",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-8",
+      "from": "cap-web",
+      "to": "cap-servicing",
+      "type": "channel",
+      "label": "",
+      "style": "line",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-9",
+      "from": "cap-web",
+      "to": "cap-payments",
+      "type": "channel",
+      "label": "",
+      "style": "line",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-10",
+      "from": "cap-api",
+      "to": "cap-servicing",
+      "type": "channel",
+      "label": "",
+      "style": "dashed",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-11",
+      "from": "cap-api",
+      "to": "cap-payments",
+      "type": "channel",
+      "label": "",
+      "style": "dashed",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-12",
+      "from": "cap-kyc",
+      "to": "cap-account",
+      "type": "sequence",
+      "label": "verified",
+      "style": "arrow-one-way",
+      "colour": "#FF6B35"
+    },
+    {
+      "id": "conn-13",
+      "from": "cap-account",
+      "to": "cap-welcome",
+      "type": "sequence",
+      "label": "created",
+      "style": "arrow-one-way",
+      "colour": "#FF6B35"
+    }
+  ],
+  "layers": {
+    "overview": {
+      "title": "Program Overview",
+      "visible": ["cap-onboarding", "cap-servicing", "cap-payments", "cap-support", "cap-mobile", "cap-web", "cap-api", "cap-branch"]
+    },
+    "cap-onboarding": {
+      "title": "Customer Onboarding",
+      "visible": ["cap-kyc", "cap-account", "cap-welcome"]
+    },
+    "cap-servicing": {
+      "title": "Account Servicing",
+      "visible": ["cap-profile", "cap-statements", "cap-alerts"]
+    },
+    "cap-payments": {
+      "title": "Payments",
+      "visible": ["cap-bpay", "cap-transfer", "cap-international"]
+    }
+  }
+}

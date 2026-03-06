@@ -21,6 +21,7 @@ import asyncio
 import re
 import sys
 import time
+from pathlib import Path
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -42,6 +43,7 @@ from .predictions import generate_predictions
 from .command_palette import CommandPalette
 from .filter_picker import FilterPicker
 from .task_focus import TaskFocusView
+from .diagram_grid import DiagramGrid, list_diagrams, DIAGRAMS_DIR
 from .handlers.voice import VoiceHandler, VOICE_AVAILABLE
 from .telegram_bridge import TelegramBridge
 from .heartbeat_bridge import HeartbeatBridge
@@ -90,6 +92,15 @@ _HELP_TEXT = """\
   d             Mark done
   Space         Toggle select
 
+[bold]Diagram View[/]  (/diagram)
+  Arrow keys    Move focus between nodes
+  Enter         Drill into node's children (if any)
+  1-9           Jump to node by position
+  /             Command Palette
+  c             Toggle chat panel
+  ?             Show help overlay
+  Escape        Zoom out one layer → exit diagram at root
+
 [bold]Filter Picker[/]  (: key)
   ↑ / ↓         Navigate between filters
   Enter         Apply selected filter
@@ -132,6 +143,68 @@ class HelpOverlay(ModalScreen):
 
 
 # ---------------------------------------------------------------------------
+# Diagram picker
+# ---------------------------------------------------------------------------
+
+
+class DiagramPicker(ModalScreen):
+    """Simple modal to pick a diagram file from .claude/diagrams/."""
+
+    DEFAULT_CSS = """
+    DiagramPicker {
+        align: center middle;
+    }
+    #dpick-box {
+        width: 48;
+        max-height: 60%;
+        background: #1a1a1a;
+        border: solid #FF6B35;
+        padding: 1 2;
+    }
+    """
+
+    def __init__(self, diagrams: list):
+        super().__init__()
+        self._diagrams = diagrams
+        self._cursor = 0
+
+    def compose(self):
+        yield Static(id="dpick-box")
+
+    def on_mount(self):
+        self._refresh_list()
+
+    def on_key(self, event: events.Key):
+        if event.key == "up" and self._cursor > 0:
+            self._cursor -= 1
+            self._refresh_list()
+            event.stop()
+        elif event.key == "down" and self._cursor < len(self._diagrams) - 1:
+            self._cursor += 1
+            self._refresh_list()
+            event.stop()
+        elif event.key == "enter":
+            self.dismiss(self._diagrams[self._cursor])
+            event.stop()
+
+    def _refresh_list(self):
+        lines = ["[bold #FF6B35]SELECT DIAGRAM[/]", ""]
+        for i, d in enumerate(self._diagrams):
+            marker = "[bold #FF6B35]\u25b8[/]" if i == self._cursor else " "
+            name = d.stem.replace("-", " ").title()
+            if i == self._cursor:
+                lines.append(f"  {marker} [bold #FF6B35]{name}[/]")
+            else:
+                lines.append(f"  {marker} {name}")
+        lines.append("")
+        lines.append("[dim]\u2191\u2193 Navigate  Enter Select  Esc Cancel[/]")
+        try:
+            self.query_one("#dpick-box", Static).update("\n".join(lines))
+        except Exception:
+            pass
+
+
+# ---------------------------------------------------------------------------
 # Main app
 # ---------------------------------------------------------------------------
 
@@ -150,6 +223,10 @@ class CommandCentreApp(App):
     }
     #tile-grid {
         width: 3fr;
+    }
+    #diagram-grid {
+        width: 3fr;
+        display: none;
     }
     #cmd-suggestions {
         height: auto;
@@ -175,8 +252,9 @@ class CommandCentreApp(App):
         self._escape_pending = False
         self._hotkeys: dict = {}
 
-        # View mode: "grid" (tile grid) or "focus" (single-task detail)
+        # View mode: "grid" (tile grid), "focus" (single-task detail), or "diagram"
         self._view_mode: str = "grid"
+        self._diagram_path: Path | None = None
 
         # Navigation stack — list of parent task IDs we've drilled into
         self._nav_stack: list[str] = []
@@ -263,6 +341,7 @@ class CommandCentreApp(App):
         with Horizontal(id="main-area"):
             yield TileGrid(id="tile-grid")
             yield TaskFocusView(id="task-focus")
+            yield DiagramGrid(id="diagram-grid")
             yield ContextPanel(id="context-panel")
         yield Static(id="cmd-suggestions")
         yield CommandBarWidget(id="command-bar")
@@ -296,10 +375,12 @@ class CommandCentreApp(App):
         try:
             grid = self.query_one("#tile-grid", TileGrid)
             focus_view = self.query_one("#task-focus", TaskFocusView)
+            diagram_grid = self.query_one("#diagram-grid", DiagramGrid)
 
             if self._view_mode == "grid":
                 grid.styles.display = "block"
                 focus_view.styles.display = "none"
+                diagram_grid.styles.display = "none"
                 grid.update_tiles(
                     self.page_tasks,
                     self.focus_index,
@@ -307,47 +388,71 @@ class CommandCentreApp(App):
                     self.today_ids,
                     breadcrumb=self._build_breadcrumb(),
                 )
-            else:
+            elif self._view_mode == "focus":
                 grid.styles.display = "none"
                 focus_view.styles.display = "block"
+                diagram_grid.styles.display = "none"
+            elif self._view_mode == "diagram":
+                grid.styles.display = "none"
+                focus_view.styles.display = "none"
+                diagram_grid.styles.display = "block"
         except Exception:
             pass
 
         # Context panel
         panel = self.query_one("#context-panel", ContextPanel)
-        focused = self._focused_task
 
-        response = ""
-        if self._panel_mode == "response":
-            response = self._build_progress_display()
-        elif self._panel_mode == "predictions" and self._predictions_pending:
-            response = self._render_predictions()
+        if self._view_mode == "diagram":
+            try:
+                dg = self.query_one("#diagram-grid", DiagramGrid)
+                panel.update_diagram_node(dg.focused_node, self.all_tasks)
+            except Exception:
+                pass
+        else:
+            focused = self._focused_task
+            response = ""
+            if self._panel_mode == "response":
+                response = self._build_progress_display()
+            elif self._panel_mode == "predictions" and self._predictions_pending:
+                response = self._render_predictions()
 
-        panel.update_content(
-            today_ids=self.today_ids,
-            all_tasks=self.all_tasks,
-            focused_task=focused if self._panel_mode == "detail" else None,
-            response=response,
-        )
+            panel.update_content(
+                today_ids=self.today_ids,
+                all_tasks=self.all_tasks,
+                focused_task=focused if self._panel_mode == "detail" else None,
+                response=response,
+            )
 
         # Status bar
         status = self.query_one("#status-bar", StatusBarWidget)
-        overdue = sum(1 for t in self.all_tasks if t.get("_overdue"))
-        status.update_counts(
-            total=len(self.display_tasks),
-            today=len(self.today_ids),
-            selected=len(self.selected_ids),
-            page=self.current_page + 1,
-            total_pages=self.total_pages,
-            filter_label=self._filter_label,
-            voice_active=self.voice.active,
-            voice_recording=self.voice.recording,
-            overdue=overdue,
-            telegram_status=self.telegram.status_label,
-            heartbeat_status=self.heartbeat.status_label,
-            view_mode=self._view_mode,
-            nav_depth=len(self._nav_stack),
-        )
+        if self._view_mode == "diagram":
+            try:
+                dg = self.query_one("#diagram-grid", DiagramGrid)
+                status.update_counts(
+                    view_mode="diagram",
+                    diagram_title=dg.diagram_title,
+                    diagram_depth=dg.layer_depth,
+                    diagram_node_count=len(dg.visible_nodes),
+                )
+            except Exception:
+                pass
+        else:
+            overdue = sum(1 for t in self.all_tasks if t.get("_overdue"))
+            status.update_counts(
+                total=len(self.display_tasks),
+                today=len(self.today_ids),
+                selected=len(self.selected_ids),
+                page=self.current_page + 1,
+                total_pages=self.total_pages,
+                filter_label=self._filter_label,
+                voice_active=self.voice.active,
+                voice_recording=self.voice.recording,
+                overdue=overdue,
+                telegram_status=self.telegram.status_label,
+                heartbeat_status=self.heartbeat.status_label,
+                view_mode=self._view_mode,
+                nav_depth=len(self._nav_stack),
+            )
 
         # Command bar label
         self._update_command_bar_label()
@@ -446,6 +551,11 @@ class CommandCentreApp(App):
         # --- Focus view keys ---
         if self._view_mode == "focus":
             self._handle_focus_key(key, char, hk)
+            return
+
+        # --- Diagram view keys ---
+        if self._view_mode == "diagram":
+            self._handle_diagram_key(key, char, hk)
             return
 
         # --- Grid view keys ---
@@ -548,6 +658,50 @@ class CommandCentreApp(App):
         elif char == hk.get("toggle_voice", "v"):
             self._toggle_voice()
 
+    def _handle_diagram_key(self, key: str, char: str | None, hk: dict):
+        """Handle keys in diagram mode."""
+        try:
+            dg = self.query_one("#diagram-grid", DiagramGrid)
+        except Exception:
+            return
+
+        cols = dg.grid_cols
+        node_count = len(dg.visible_nodes)
+
+        if key == "up":
+            new_idx = dg.focus_index - cols
+            if new_idx >= 0:
+                dg.focus_index = new_idx
+                self._refresh_all()
+        elif key == "down":
+            new_idx = dg.focus_index + cols
+            if new_idx < node_count:
+                dg.focus_index = new_idx
+                self._refresh_all()
+        elif key == "left":
+            if dg.focus_index % cols > 0 and dg.focus_index > 0:
+                dg.focus_index -= 1
+                self._refresh_all()
+        elif key == "right":
+            if dg.focus_index % cols < cols - 1 and dg.focus_index + 1 < node_count:
+                dg.focus_index += 1
+                self._refresh_all()
+        elif key == "enter":
+            dg.drill_in()
+            self._escape_pending = False
+            self._refresh_all()
+        elif char and char.isdigit() and char != "0":
+            idx = int(char) - 1
+            if 0 <= idx < node_count:
+                dg.focus_index = idx
+                self._refresh_all()
+        elif char == hk.get("command_bar", "/"):
+            self._open_command_palette()
+        elif char == hk.get("help", "?"):
+            self.push_screen(HelpOverlay())
+        elif char == hk.get("chat_toggle", "c"):
+            self._toggle_chat()
+
     # --- Escape state machine ---
 
     def action_handle_escape(self):
@@ -561,7 +715,19 @@ class CommandCentreApp(App):
                     top.dismiss(None)
                 return
 
-        # 2. Focus view: cancel edit or exit focus
+        # 2. Diagram mode: zoom out or exit to grid
+        if self._view_mode == "diagram":
+            try:
+                dg = self.query_one("#diagram-grid", DiagramGrid)
+                if dg.zoom_out():
+                    self._refresh_all()
+                    return
+            except Exception:
+                pass
+            self._exit_diagram()
+            return
+
+        # 3. Focus view: cancel edit or exit focus
         if self._view_mode == "focus":
             try:
                 fv = self.query_one("#task-focus", TaskFocusView)
@@ -739,6 +905,64 @@ class CommandCentreApp(App):
         self._refresh_all()
         self.notify("Back to grid")
 
+    # --- Diagram mode switching ---
+
+    def _enter_diagram(self, path=None):
+        """Switch to diagram mode. If no path, show picker or auto-load."""
+        from pathlib import Path
+
+        diagrams = list_diagrams()
+        if not diagrams:
+            self.notify("No diagrams in .claude/diagrams/", severity="warning")
+            return
+
+        if path and Path(path).exists():
+            self._view_mode = "diagram"
+            self._escape_pending = False
+            try:
+                dg = self.query_one("#diagram-grid", DiagramGrid)
+                dg.load(Path(path))
+            except Exception:
+                pass
+            self._refresh_all()
+            self.notify(f"Diagram: {Path(path).stem}")
+            return
+
+        # One diagram — load directly
+        if len(diagrams) == 1:
+            self._view_mode = "diagram"
+            self._escape_pending = False
+            try:
+                dg = self.query_one("#diagram-grid", DiagramGrid)
+                dg.load(diagrams[0])
+            except Exception:
+                pass
+            self._refresh_all()
+            self.notify(f"Diagram: {diagrams[0].stem}")
+            return
+
+        # Multiple — show picker
+        def on_pick(result):
+            if result is not None:
+                self._view_mode = "diagram"
+                self._escape_pending = False
+                try:
+                    dg = self.query_one("#diagram-grid", DiagramGrid)
+                    dg.load(result)
+                except Exception:
+                    pass
+                self._refresh_all()
+                self.notify(f"Diagram: {result.stem}")
+
+        self.push_screen(DiagramPicker(diagrams), callback=on_pick)
+
+    def _exit_diagram(self):
+        """Switch back to task grid from diagram mode."""
+        self._view_mode = "grid"
+        self._escape_pending = False
+        self._refresh_all()
+        self.notify("Back to tasks")
+
     # --- Command palette ---
 
     def _open_command_palette(self):
@@ -754,6 +978,17 @@ class CommandCentreApp(App):
             if result == "note":
                 if task:
                     self._add_note_to_task(task)
+                return
+            # Diagram/tasks mode switching (handled locally)
+            if result.lower().startswith("/diagram"):
+                args = result[8:].strip()
+                if args:
+                    self._enter_diagram(DIAGRAMS_DIR / f"{args}.json")
+                else:
+                    self._enter_diagram()
+                return
+            if result.lower() == "/tasks":
+                self._exit_diagram()
                 return
             # Route through the command pipeline
             asyncio.create_task(self._run_palette_action(result, task))
@@ -909,6 +1144,18 @@ class CommandCentreApp(App):
         # Filters handled locally
         if text.startswith(":"):
             self._handle_filter(text[1:].strip())
+            return
+
+        # Diagram/tasks mode switching (handled locally)
+        if text.lower().startswith("/diagram"):
+            args = text[8:].strip()
+            if args:
+                self._enter_diagram(DIAGRAMS_DIR / f"{args}.json")
+            else:
+                self._enter_diagram()
+            return
+        if text.lower() == "/tasks":
+            self._exit_diagram()
             return
 
         # Slash commands or natural language
@@ -1426,8 +1673,31 @@ class CommandCentreApp(App):
 
     async def _on_telegram_message(self, msg):
         name = msg.sender_name or "Unknown"
+        chat_id = getattr(msg, "chat_jid", "")
         preview = msg.content[:60] if msg.content else ""
         self.notify(f"TG {name}: {preview}")
+
+        # Auto-save chat_id to .env if missing
+        if chat_id and not self.telegram._config.telegram_chat_id:
+            self.notify(f"TG: saving chat_id {chat_id}", severity="information")
+            self.telegram._config.telegram_chat_id = chat_id
+            try:
+                env_path = Path(__file__).resolve().parents[1] / ".env"
+                text = env_path.read_text()
+                text = text.replace(
+                    "OUTBOT_TELEGRAM_CHAT_ID=",
+                    f"OUTBOT_TELEGRAM_CHAT_ID={chat_id}",
+                )
+                env_path.write_text(text)
+            except Exception as e:
+                self.notify(f"TG: .env write failed: {e}", severity="warning")
+
+        # Show in chat panel
+        try:
+            panel = self.query_one("#context-panel", ContextPanel)
+            panel.add_chat_message("user", f"[TG] {msg.content}")
+        except Exception:
+            pass
 
         try:
             result = await self.router.route(
@@ -1437,8 +1707,13 @@ class CommandCentreApp(App):
                 clean = re.sub(r"\[/?[^\]]*\]", "", result)
                 if clean.strip():
                     await self.telegram.send(clean.strip())
-        except Exception:
-            pass
+                    try:
+                        panel = self.query_one("#context-panel", ContextPanel)
+                        panel.add_chat_message("assistant", clean.strip())
+                    except Exception:
+                        pass
+        except Exception as e:
+            self.notify(f"TG error: {type(e).__name__}: {e}", severity="error")
 
     # --- Heartbeat ---
 

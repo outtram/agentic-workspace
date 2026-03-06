@@ -113,9 +113,12 @@ def test_all_help_data_commands_in_router():
     help_cmds = _extract_slash_commands_from_help_data()
     router_cmds = _extract_slash_commands_from_router()
 
+    # Commands handled directly in app.py (not routed through router)
+    APP_HANDLED = {"/diagram", "/tasks"}
+
     help_only = set()
     for cmd in help_cmds:
-        if cmd not in router_cmds:
+        if cmd not in router_cmds and cmd not in APP_HANDLED:
             help_only.add(cmd)
 
     assert not help_only, (

@@ -1,0 +1,471 @@
+{
+  "meta": {
+    "title": "System Architecture",
+    "gridMode": "strict",
+    "gridCols": 5,
+    "gridRows": 4,
+    "theme": {
+      "background": "#0d1117",
+      "nodeDefault": "#21262d",
+      "accent1": "#FF6B35",
+      "accent2": "#00D4AA",
+      "text": "#e6edf3",
+      "textMuted": "#8b949e"
+    }
+  },
+  "nodes": [
+    {
+      "id": "sys-web-app",
+      "label": "Web Application",
+      "description": "Next.js frontend application",
+      "type": "system",
+      "icon": "globe",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Next.js", "status": "live"}
+    },
+    {
+      "id": "sys-mobile-app",
+      "label": "Mobile App",
+      "description": "React Native mobile application",
+      "type": "system",
+      "icon": "smartphone",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "React Native", "status": "live"}
+    },
+    {
+      "id": "sys-api-gateway",
+      "label": "API Gateway",
+      "description": "Kong API gateway for routing and auth",
+      "type": "system",
+      "icon": "shield",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Kong", "status": "live"}
+    },
+    {
+      "id": "sys-cdn",
+      "label": "CDN",
+      "description": "CloudFront content delivery",
+      "type": "external",
+      "icon": "cloud",
+      "colour": "#8b949e",
+      "gridPos": {"col": 4, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "CloudFront", "status": "live"}
+    },
+    {
+      "id": "sys-auth-service",
+      "label": "Auth Service",
+      "description": "Authentication and authorization",
+      "type": "system",
+      "icon": "key",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": ["sys-auth-jwt", "sys-auth-oauth", "sys-auth-mfa"],
+      "meta": {"tech": "Node.js", "status": "live"}
+    },
+    {
+      "id": "sys-user-service",
+      "label": "User Service",
+      "description": "User profile and preferences",
+      "type": "system",
+      "icon": "user",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 1, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Python", "status": "live"}
+    },
+    {
+      "id": "sys-payment-service",
+      "label": "Payment Service",
+      "description": "Payment processing and reconciliation",
+      "type": "system",
+      "icon": "credit-card",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 2, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": ["sys-pay-domestic", "sys-pay-intl", "sys-pay-bpay"],
+      "meta": {"tech": "Java", "status": "live"}
+    },
+    {
+      "id": "sys-notification-service",
+      "label": "Notification Service",
+      "description": "Push, email, SMS notifications",
+      "type": "system",
+      "icon": "bell",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 3, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Node.js", "status": "live"}
+    },
+    {
+      "id": "sys-analytics",
+      "label": "Analytics",
+      "description": "Event tracking and reporting",
+      "type": "system",
+      "icon": "bar-chart",
+      "colour": "#8b949e",
+      "gridPos": {"col": 4, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Snowflake", "status": "live"}
+    },
+    {
+      "id": "sys-postgres",
+      "label": "PostgreSQL",
+      "description": "Primary relational database",
+      "type": "system",
+      "icon": "database",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "PostgreSQL 15", "status": "live"}
+    },
+    {
+      "id": "sys-redis",
+      "label": "Redis",
+      "description": "Caching and session storage",
+      "type": "system",
+      "icon": "zap",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 1, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Redis 7", "status": "live"}
+    },
+    {
+      "id": "sys-kafka",
+      "label": "Kafka",
+      "description": "Event streaming platform",
+      "type": "system",
+      "icon": "activity",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 2, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Kafka", "status": "live"}
+    },
+    {
+      "id": "sys-s3",
+      "label": "S3 Storage",
+      "description": "Document and media storage",
+      "type": "external",
+      "icon": "hard-drive",
+      "colour": "#8b949e",
+      "gridPos": {"col": 3, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "AWS S3", "status": "live"}
+    },
+    {
+      "id": "sys-elasticsearch",
+      "label": "Elasticsearch",
+      "description": "Search and logging",
+      "type": "system",
+      "icon": "search",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 4, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Elasticsearch 8", "status": "live"}
+    },
+    {
+      "id": "sys-core-banking",
+      "label": "Core Banking",
+      "description": "Legacy core banking system",
+      "type": "external",
+      "icon": "building",
+      "colour": "#8b949e",
+      "gridPos": {"col": 1, "row": 3, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Temenos", "status": "live"}
+    },
+    {
+      "id": "sys-payment-gateway",
+      "label": "Payment Gateway",
+      "description": "External payment processor",
+      "type": "external",
+      "icon": "external-link",
+      "colour": "#8b949e",
+      "gridPos": {"col": 2, "row": 3, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Stripe", "status": "live"}
+    },
+    {
+      "id": "sys-kyc-provider",
+      "label": "KYC Provider",
+      "description": "Identity verification service",
+      "type": "external",
+      "icon": "shield-check",
+      "colour": "#8b949e",
+      "gridPos": {"col": 3, "row": 3, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Onfido", "status": "live"}
+    },
+    {
+      "id": "sys-auth-jwt",
+      "label": "JWT Handler",
+      "type": "sub-capability",
+      "icon": "key",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "sys-auth-service",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "sys-auth-oauth",
+      "label": "OAuth Provider",
+      "type": "sub-capability",
+      "icon": "lock",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "sys-auth-service",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "sys-auth-mfa",
+      "label": "MFA Service",
+      "type": "sub-capability",
+      "icon": "smartphone",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "sys-auth-service",
+      "children": [],
+      "meta": {"status": "in-progress"}
+    },
+    {
+      "id": "sys-pay-domestic",
+      "label": "Domestic Payments",
+      "type": "sub-capability",
+      "icon": "arrow-right",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "sys-payment-service",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "sys-pay-intl",
+      "label": "International",
+      "type": "sub-capability",
+      "icon": "globe",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "sys-payment-service",
+      "children": [],
+      "meta": {"status": "planned"}
+    },
+    {
+      "id": "sys-pay-bpay",
+      "label": "BPAY",
+      "type": "sub-capability",
+      "icon": "receipt",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "sys-payment-service",
+      "children": [],
+      "meta": {"status": "live"}
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-web-gateway",
+      "from": "sys-web-app",
+      "to": "sys-api-gateway",
+      "type": "api",
+      "label": "REST",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-mobile-gateway",
+      "from": "sys-mobile-app",
+      "to": "sys-api-gateway",
+      "type": "api",
+      "label": "REST",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-gateway-auth",
+      "from": "sys-api-gateway",
+      "to": "sys-auth-service",
+      "type": "api",
+      "label": "validate",
+      "style": "arrow-two-way",
+      "colour": "#FF6B35"
+    },
+    {
+      "id": "conn-gateway-user",
+      "from": "sys-api-gateway",
+      "to": "sys-user-service",
+      "type": "api",
+      "label": "",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-gateway-payment",
+      "from": "sys-api-gateway",
+      "to": "sys-payment-service",
+      "type": "api",
+      "label": "",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-gateway-notification",
+      "from": "sys-api-gateway",
+      "to": "sys-notification-service",
+      "type": "api",
+      "label": "",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-auth-postgres",
+      "from": "sys-auth-service",
+      "to": "sys-postgres",
+      "type": "data",
+      "label": "",
+      "style": "arrow-one-way",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-auth-redis",
+      "from": "sys-auth-service",
+      "to": "sys-redis",
+      "type": "data",
+      "label": "sessions",
+      "style": "arrow-two-way",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-user-postgres",
+      "from": "sys-user-service",
+      "to": "sys-postgres",
+      "type": "data",
+      "label": "",
+      "style": "arrow-one-way",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-payment-postgres",
+      "from": "sys-payment-service",
+      "to": "sys-postgres",
+      "type": "data",
+      "label": "",
+      "style": "arrow-one-way",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-payment-kafka",
+      "from": "sys-payment-service",
+      "to": "sys-kafka",
+      "type": "event",
+      "label": "events",
+      "style": "arrow-one-way",
+      "colour": "#FF6B35"
+    },
+    {
+      "id": "conn-notification-kafka",
+      "from": "sys-kafka",
+      "to": "sys-notification-service",
+      "type": "event",
+      "label": "subscribe",
+      "style": "arrow-one-way",
+      "colour": "#FF6B35"
+    },
+    {
+      "id": "conn-analytics-kafka",
+      "from": "sys-kafka",
+      "to": "sys-analytics",
+      "type": "event",
+      "label": "events",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-payment-core",
+      "from": "sys-payment-service",
+      "to": "sys-core-banking",
+      "type": "integration",
+      "label": "ledger",
+      "style": "arrow-two-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-payment-gateway-ext",
+      "from": "sys-payment-service",
+      "to": "sys-payment-gateway",
+      "type": "integration",
+      "label": "process",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-auth-kyc",
+      "from": "sys-auth-service",
+      "to": "sys-kyc-provider",
+      "type": "integration",
+      "label": "verify",
+      "style": "arrow-one-way",
+      "colour": "#8b949e"
+    },
+    {
+      "id": "conn-cdn-web",
+      "from": "sys-cdn",
+      "to": "sys-web-app",
+      "type": "delivery",
+      "label": "static",
+      "style": "arrow-one-way",
+      "colour": "#30363d"
+    },
+    {
+      "id": "conn-user-s3",
+      "from": "sys-user-service",
+      "to": "sys-s3",
+      "type": "data",
+      "label": "docs",
+      "style": "arrow-two-way",
+      "colour": "#30363d"
+    }
+  ],
+  "layers": {
+    "overview": {
+      "title": "System Architecture",
+      "visible": [
+        "sys-web-app", "sys-mobile-app", "sys-api-gateway", "sys-cdn",
+        "sys-auth-service", "sys-user-service", "sys-payment-service", "sys-notification-service", "sys-analytics",
+        "sys-postgres", "sys-redis", "sys-kafka", "sys-s3", "sys-elasticsearch",
+        "sys-core-banking", "sys-payment-gateway", "sys-kyc-provider"
+      ]
+    },
+    "sys-auth-service": {
+      "title": "Auth Service",
+      "visible": ["sys-auth-jwt", "sys-auth-oauth", "sys-auth-mfa"]
+    },
+    "sys-payment-service": {
+      "title": "Payment Service",
+      "visible": ["sys-pay-domestic", "sys-pay-intl", "sys-pay-bpay"]
+    }
+  }
+}

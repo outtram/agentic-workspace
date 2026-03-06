@@ -5,7 +5,7 @@ type: task
 status: todo
 priority: low
 created: '2026-02-28T21:16:01.531208'
-updated: '2026-03-02T15:17:41.044384'
+updated: '2026-03-02T23:29:12.525092'
 branch: task/OUT-310-get-shit-done
 source: reminders_import
 eisenhower_quadrant: q2
@@ -14,6 +14,7 @@ eisenhower_important: true
 reminder_id: x-apple-reminder://B1507B75-DB1C-498B-8A12-B62F5AEF476F
 reminder_list: Reminders
 due_date: null
+prd: OUT-310
 ---
 
 # Get shit done

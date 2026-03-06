@@ -26,6 +26,16 @@ _FOCUS_HINTS = (
     "[bold #FF6B35]?[/][dim] Help[/]"
 )
 
+_DIAGRAM_HINTS = (
+    "[bold #FF6B35]Arrows[/][dim] Move[/]  "
+    "[bold #FF6B35]Enter[/][dim] Drill[/]  "
+    "[bold #FF6B35]Esc[/][dim] Back[/]  "
+    "[bold #FF6B35]1-9[/][dim] Jump[/]  "
+    "[bold #FF6B35]/[/][dim] Cmds[/]  "
+    "[bold #FF6B35]c[/][dim] Chat[/]  "
+    "[bold #FF6B35]?[/][dim] Help[/]"
+)
+
 
 class StatusBarWidget(Static):
     """Two-line status bar — shortcut hints + counts."""
@@ -54,9 +64,29 @@ class StatusBarWidget(Static):
         heartbeat_status: str = "",
         view_mode: str = "grid",
         nav_depth: int = 0,
+        diagram_title: str = "",
+        diagram_depth: int = 0,
+        diagram_node_count: int = 0,
     ):
         # Line 1: context-sensitive hints
-        line1 = _FOCUS_HINTS if view_mode == "focus" else _GRID_HINTS
+        if view_mode == "diagram":
+            line1 = _DIAGRAM_HINTS
+        elif view_mode == "focus":
+            line1 = _FOCUS_HINTS
+        else:
+            line1 = _GRID_HINTS
+
+        # Diagram mode — custom line 2
+        if view_mode == "diagram":
+            parts = [f"[bold #FF6B35]DIAGRAM[/]"]
+            if diagram_title:
+                parts.append(diagram_title)
+            parts.append(f"{diagram_node_count} nodes")
+            if diagram_depth:
+                parts.append(f"[#FF6B35]depth: {diagram_depth}[/]")
+            line2 = " \u2502 ".join(parts)
+            self.update(f"{line1}\n{line2}")
+            return
 
         # Line 2: counts + indicators
         parts = [

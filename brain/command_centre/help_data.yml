@@ -85,6 +85,22 @@ focus_view_keys:
   - key: "Space"
     action: "Toggle select"
 
+diagram_view_keys:
+  - key: "Arrow keys"
+    action: "Move focus between nodes"
+  - key: "Enter"
+    action: "Drill into node's children (if any)"
+  - key: "1-9"
+    action: "Jump to node by position"
+  - key: "/"
+    action: "Command Palette"
+  - key: "c"
+    action: "Toggle chat panel"
+  - key: "?"
+    action: "Show help overlay"
+  - key: "Escape"
+    action: "Zoom out one layer → exit diagram at root"
+
 filter_picker_keys:
   - key: "↑ / ↓"
     action: "Navigate between filters"
@@ -148,6 +164,10 @@ cc_slash_commands:
     desc: "Send a Telegram message"
   - cmd: "/arch"
     desc: "Open architecture diagram in browser"
+  - cmd: "/diagram"
+    desc: "Switch to diagram viewer (or /diagram <name>)"
+  - cmd: "/tasks"
+    desc: "Switch back to task grid"
   - cmd: "/help"
     desc: "Show available commands"
 

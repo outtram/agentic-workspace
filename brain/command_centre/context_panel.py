@@ -316,3 +316,76 @@ class ContextPanel(VerticalScroll):
                 lines += f"[#00D4AA]{s['name']}[/] [dim]{s['desc']}[/]\n"
 
         return lines
+
+    def update_diagram_node(self, node: dict | None, all_tasks: list[dict]):
+        """Render focused diagram node details (diagram mode)."""
+        if self._mode == "chat":
+            return
+
+        lines = "[bold #FF6B35]DIAGRAM NODE[/]\n"
+        lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
+
+        if not node:
+            lines += "[dim]No node selected[/]\n"
+            try:
+                self.query_one("#panel-content", Static).update(lines)
+            except Exception:
+                pass
+            return
+
+        label = node.get("label", "Untitled")
+        colour = node.get("colour", "#8b949e")
+        lines += f"[{colour}][bold]{label}[/bold][/]\n"
+
+        node_id = node.get("id", "")
+        if node_id:
+            lines += f"[dim]ID: {node_id}[/]\n"
+
+        node_type = node.get("type", "")
+        if node_type:
+            lines += f"[dim]Type: {node_type}[/]\n"
+
+        meta = node.get("meta", {})
+        status = meta.get("status", "")
+        if status:
+            from .diagram_grid import _STATUS_COLOURS
+            sc = _STATUS_COLOURS.get(status, "#777777")
+            lines += f"[{sc}]Status: {status}[/]\n"
+
+        owner = meta.get("owner", "")
+        if owner:
+            lines += f"[dim]Owner: {owner}[/]\n"
+
+        desc = meta.get("description", "")
+        if desc:
+            lines += f"\n{desc[:300]}\n"
+
+        children = node.get("children", [])
+        if children:
+            n = len(children)
+            lines += f"\n[dim]\u25bc {n} child{'ren' if n != 1 else ''}[/]\n"
+
+        # Linked task
+        task_id = meta.get("task_id", "")
+        if task_id and all_tasks:
+            lines += "\n[bold]LINKED TASK[/]\n"
+            lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
+            for t in all_tasks:
+                if t.get("id") == task_id:
+                    title = sanitise(t.get("title", "")).replace("[", r"\[")
+                    lines += f"[bold]{title}[/]\n"
+                    lines += f"[dim]{task_id}[/]\n"
+                    q = t.get("eisenhower_quadrant", "")
+                    if q:
+                        ql = QUADRANT_LABELS.get(q, q)
+                        lines += f"[dim]{ql}[/]\n"
+                    break
+            else:
+                lines += f"[dim]{task_id} (not found)[/]\n"
+
+        lines += "\n[dim]Enter Drill  Esc Back  / Cmds[/]\n"
+
+        try:
+            self.query_one("#panel-content", Static).update(lines)
+        except Exception:
+            pass

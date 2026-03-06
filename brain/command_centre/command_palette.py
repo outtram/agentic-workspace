@@ -31,6 +31,8 @@ _COMMANDS = [
     ("/forget", "Remove a stored memory"),
     ("/telegram", "Send a Telegram message"),
     ("/arch", "Open architecture diagram in browser"),
+    ("/diagram", "Switch to diagram viewer"),
+    ("/tasks", "Switch back to task grid"),
     ("/help", "Show available commands"),
 ]
 

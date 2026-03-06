@@ -30,8 +30,56 @@ Research GLM-5 (likely a large language model from Zhipu AI / THUDM). Understand
 - [ ] Write summary in description section below
 - [ ] Mark as done
 
-## Research Findings
-_(to be filled in when research is done)_
+## Research
+
+## GLM-5 Research Findings
+
+---
+
+### 1. What it is
+GLM-5 is Zhipu AI's (Z.ai / THUDM) fifth-generation frontier LLM, released **February 11, 2026**. It's a **744B parameter MoE model** (44B active per inference), trained entirely on Huawei Ascend chips — zero NVIDIA dependency. Open-weight, MIT licensed, on Hugging Face.
+
+---
+
+### 2. Benchmark performance
+- **SWE-bench Verified (coding):** 77.8% — beats Gemini 3 Pro (76.2%) and GPT-5.2 (75.4%), trails Claude Opus 4.5 (80.9%)
+- **Agentic Index:** 63 — highest among all open-source models, 3rd overall
+- **56 percentage-point** hallucination reduction vs GLM-4.7
+- **200K token** context window via DeepSeek sparse attention
+
+---
+
+### 3. Relevance to Troy's AI work (agentic pipelines)
+GLM-5 is explicitly designed for agentic engineering — multi-step tool use, long-horizon planning, interleaved thinking between tool calls. It uses **OpenAI-compatible tool_calls format**, so it would drop into any OpenAI-SDK workflow (OutBot, command centre agents) with minimal changes.
+
+---
+
+### 4. Cost advantage
+| Model | Input ($/M) | Output ($/M) |
+|---|---|---|
+| Claude Opus 4.6 | $5.00 | $25.00 |
+| GPT-5.2 | ~$5+ | ~$25+ |
+| **GLM-5** | **$1.00** | **$3.20** |
+
+~5-8x cheaper for comparable agentic/coding tasks.
+
+---
+
+### 5. Geopolitical context worth knowing
+Zhipu has been on the US Entity List since Jan 2025 (no NVIDIA access). Training a frontier model on domestic Huawei/Ascend hardware signals China's compute stack is viable at scale — relevant for understanding long-term AI supply chain dynamics.
+
+---
+
+**Bottom line for Troy:** GLM-5 is a legitimate frontier open-weight model, particularly strong for agentic/coding use cases, OpenAI-API-compatible, and 5-8x cheaper than Claude Opus. Worth experimenting with in OutBot's non-critical agent paths where cost matters.
+
+---
+
+Sources:
+- [GLM-5 Overview — Z.AI Developer Docs](https://docs.z.ai/guides/llm/glm-5)
+- [GLM-5: China's First Public AI Company Ships a Frontier Model — Medium](https://medium.com/@mlabonne/glm-5-chinas-first-public-ai-company-ships-a-frontier-model-a068cecb74e3)
+- [VentureBeat: GLM-5 achieves record low hallucination rate](https://venturebeat.com/technology/z-ais-open-source-glm-5-achieves-record-low-hallucination-rate-and-leverages)
+- [GLM-5 on Together AI](https://www.together.ai/models/glm-5)
+- [GLM-5 vs GLM-4.7 — Artificial Analysis](https://artificialanalysis.ai/models/comparisons/glm-5-vs-glm-4-7)
 
 ## Related
 - OUT-278 — AI roadmap (GLM-5 may be relevant to landscape overview)

@@ -55,6 +55,18 @@
 
 Arrow down past Description to the **Notes & Research** section. Press Enter to view full content.
 
+### Diagram View (/diagram)
+
+| Key | Action |
+|-----|--------|
+| Arrow keys | Move focus between nodes |
+| Enter | Drill into node's children (if any) |
+| 1-9 | Jump to node by position |
+| / | Command Palette |
+| c | Toggle chat panel |
+| ? | Show help overlay |
+| Escape | Zoom out one layer → exit diagram at root |
+
 ### Filter Picker (: key)
 
 | Key | Action |
@@ -101,6 +113,8 @@ Arrow down past Description to the **Notes & Research** section. Press Enter to 
 | `/forget <text>` | Remove a stored memory |
 | `/telegram <msg>` | Send a Telegram message |
 | `/arch` | Open architecture diagram in browser |
+| `/diagram` | Switch to diagram viewer (or /diagram <name>) |
+| `/tasks` | Switch back to task grid |
 | `/help` | Show available commands |
 
 ### Predictions (on launch)
