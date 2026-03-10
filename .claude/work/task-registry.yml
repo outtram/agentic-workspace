@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 339
-last_synced: '2026-03-10T20:01:14.861464'
+next_id: 340
+last_synced: '2026-03-10T20:01:25.681747'
 entries:
   OUT-223:
     title: Fire place fix
@@ -511,3 +511,10 @@ entries:
     reminder_id: null
     status: todo
     created: '2026-03-10T20:01:14.860408'
+  OUT-339:
+    title: OutBot, review your Google Account settings
+    file: OUT-339-outbot-review-your-google-account-settings.md
+    source: email
+    reminder_id: null
+    status: todo
+    created: '2026-03-10T20:01:25.680825'
