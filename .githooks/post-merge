@@ -1,0 +1,3 @@
+#!/bin/sh
+# Auto-update submodules after git pull
+git submodule update --init --recursive

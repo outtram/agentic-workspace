@@ -23,6 +23,8 @@ grep -l "priority: high\|critical" .claude/work/*/*.md   # High priority
 - **Branching:** main (prod), dev (staging), feature/OUT-XX-description
 - **Commits:** Prefix with work item ID: `OUT-XX: description`
 - **Work Tracking:** File-based at `.claude/work/` (tasks/bugs/prd)
+- **Git hooks:** Tracked in `.githooks/` (not `.git/hooks/`)
+- **New clone setup:** `git clone <repo> && git config core.hooksPath .githooks && git submodule update --init`
 
 ## Command Centre — Single Source of Truth (CRITICAL)
 **All help text is generated from one file: `brain/command_centre/help_data.yml`**

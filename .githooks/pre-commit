@@ -1,0 +1,58 @@
+#!/bin/bash
+# Pre-commit hook: ensure help sources are updated when Command Centre changes.
+#
+# If any CC handler/router/modal file is staged, at least one of the 3 help
+# sources must also be staged. This prevents shipping features without docs.
+
+STAGED=$(git diff --cached --name-only)
+
+# Check if any Command Centre logic files are staged
+CC_CHANGED=false
+for f in $STAGED; do
+    case "$f" in
+        brain/command_centre/router.py|\
+        brain/command_centre/handlers/*|\
+        brain/command_centre/command_palette.py|\
+        brain/command_centre/task_focus.py|\
+        brain/command_centre/task_editor.py|\
+        brain/command_centre/note_modal.py)
+            CC_CHANGED=true
+            break
+            ;;
+    esac
+done
+
+if [ "$CC_CHANGED" = false ]; then
+    exit 0  # No CC changes, nothing to check
+fi
+
+# At least one help source must also be staged
+HELP_UPDATED=false
+for f in $STAGED; do
+    case "$f" in
+        HELP.md|\
+        brain/command_centre/app.py|\
+        docs/ARCHITECTURE.md)
+            HELP_UPDATED=true
+            break
+            ;;
+    esac
+done
+
+if [ "$HELP_UPDATED" = false ]; then
+    echo ""
+    echo "╔══════════════════════════════════════════════════════════╗"
+    echo "║  BLOCKED: Command Centre files changed without help!    ║"
+    echo "║                                                         ║"
+    echo "║  You MUST update at least one of:                       ║"
+    echo "║    1. HELP.md                                           ║"
+    echo "║    2. brain/command_centre/app.py (_HELP_TEXT)           ║"
+    echo "║    3. docs/ARCHITECTURE.md                              ║"
+    echo "║                                                         ║"
+    echo "║  Stage the help file(s) and try again.                  ║"
+    echo "╚══════════════════════════════════════════════════════════╝"
+    echo ""
+    exit 1
+fi
+
+exit 0
