@@ -21,6 +21,12 @@ voice = [
 ]
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 markers = [
+    "tui: Command Centre TUI widget tests (Textual Pilot)",
+    "handler: Command Centre handler integration tests",
+    "integration: cross-module integration tests",
+    "e2e: end-to-end Pilot user flow tests",
+    "snapshot: pytest-textual-snapshot visual regression tests",
     "slow: tests that call Claude CLI (slow, require Max plan)",
 ]
