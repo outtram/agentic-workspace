@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 341
-last_synced: '2026-03-10T20:01:31.677887'
+next_id: 342
+last_synced: '2026-03-10T20:01:48.597323'
 entries:
   OUT-223:
     title: Fire place fix
@@ -525,3 +525,10 @@ entries:
     reminder_id: null
     status: todo
     created: '2026-03-10T20:01:31.677155'
+  OUT-341:
+    title: Make these into separate reminders
+    file: OUT-341-make-these-into-separate-reminders.md
+    source: email
+    reminder_id: null
+    status: todo
+    created: '2026-03-10T20:01:48.596063'
