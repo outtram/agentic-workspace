@@ -48,6 +48,7 @@ from .handlers.voice import VoiceHandler, VOICE_AVAILABLE
 from .telegram_bridge import TelegramBridge
 from .heartbeat_bridge import HeartbeatBridge
 from .brain_logger import log_action
+from .cc_logger import logger as cc_log
 
 
 # ---------------------------------------------------------------------------
@@ -348,6 +349,7 @@ class CommandCentreApp(App):
         yield StatusBarWidget(id="status-bar")
 
     def on_mount(self):
+        cc_log.info("=== CC started ===  tasks=%d", len(load_tasks()))
         config = load_config()
         self._hotkeys = config["hotkeys"]
         self.all_tasks = load_tasks()
@@ -1159,6 +1161,7 @@ class CommandCentreApp(App):
             return
 
         # Slash commands or natural language
+        cc_log.info("CMD  %s  selected=%s", text, list(self.selected_ids))
         self._start_progress(f"Running: {text}")
 
         focused = self._focused_task
@@ -1173,8 +1176,10 @@ class CommandCentreApp(App):
                 progress=self._update_progress,
             )
         except Exception as e:
+            cc_log.exception("CMD ERROR  %s", text)
             result = f"[red]Error: {e}[/]"
 
+        cc_log.info("CMD OK  %s  len=%d", text, len(result))
         self._finish_progress(result)
 
         action = "command" if text.startswith("/") else "outbot"
@@ -1802,8 +1807,10 @@ class CommandCentreApp(App):
         async def _chat_progress(msg: str) -> None:
             clean_msg = re.sub(r"\[/?[^\]]*\]", "", msg).strip()
             if clean_msg:
+                cc_log.debug("CHAT STEP  %s", clean_msg)
                 panel.add_chat_message("system", clean_msg)
 
+        cc_log.info("CHAT  %s", text)
         panel.add_chat_message("system", "Thinking...")
 
         # Route through the same pipeline as command bar
@@ -1817,6 +1824,7 @@ class CommandCentreApp(App):
                 progress=_chat_progress,
             )
         except Exception as e:
+            cc_log.exception("CHAT ERROR  %s", text)
             result = f"Error: {e}"
 
         # Strip Rich markup for chat display

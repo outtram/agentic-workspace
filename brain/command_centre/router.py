@@ -3,6 +3,7 @@ from typing import Callable, Awaitable
 
 from . import PROJECT_ROOT
 from .brain_logger import log_action
+from .cc_logger import logger as cc_log
 
 # Type alias for progress callback
 ProgressCallback = Callable[[str], Awaitable[None]]
@@ -45,6 +46,7 @@ class Router:
         text = text.strip()
         task_ids = self._get_target_ids(selected_ids, focused_task)
 
+        cc_log.debug("ROUTE  %r  task_ids=%s", text, task_ids)
         if text.startswith("/"):
             return await self._handle_slash(
                 text, task_ids, all_tasks, today_ids, progress
