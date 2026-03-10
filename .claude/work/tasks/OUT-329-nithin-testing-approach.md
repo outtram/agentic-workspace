@@ -2,10 +2,10 @@
 id: OUT-329
 title: CC E2E regression testing — Textual Pilot + visual snapshots
 type: task
-status: todo
+status: in-progress
 priority: low
 created: '2026-03-09T21:49:23.380106'
-updated: '2026-03-09T22:11:50.152017'
+updated: '2026-03-10T00:00:00'
 branch: task/OUT-329-nithin-testing-approach
 source: reminders_import
 eisenhower_quadrant: q2
@@ -15,6 +15,9 @@ reminder_id: x-apple-reminder://56C21886-F310-4384-BC6D-170E6E7036A2
 reminder_list: Reminders
 due_date: null
 prd: OUT-329
+children:
+  - OUT-329-E
+  - OUT-329-F
 ---
 
 # CC E2E Regression Testing
@@ -29,31 +32,41 @@ Original inspiration: https://dev.to/hybridtechie/ai-regression-tests-written-in
 
 ## Steps
 
-### OUT-329-A: Set up test infrastructure
-- [ ] Install `pytest-textual-snapshot`
-- [ ] Create `brain/tests/test_command_centre/test_e2e/` directory
-- [ ] Create `brain/tests/test_command_centre/test_snapshots/` directory
-- [ ] Add pytest markers: `@e2e`, `@snapshot`
-- [ ] Document test strategy in `docs/TESTING.md`
+### OUT-329-A: Set up test infrastructure — DONE
+- [x] Install `pytest-textual-snapshot`
+- [x] Create `brain/tests/test_command_centre/test_e2e/` directory
+- [x] Create `brain/tests/test_command_centre/test_snapshots/` directory
+- [x] Add pytest markers: `@e2e`, `@snapshot`
+- [x] Document test strategy in `docs/TESTING.md`
 
-### OUT-329-B: CC Pilot E2E Tests (critical flows)
-- [ ] Write test: today list — add task, mark done, verify persistence
-- [ ] Write test: command palette — open `/`, search, execute command
-- [ ] Write test: help system — `?` renders help overlay correctly
-- [ ] Write test: session restore — quit + reopen, state persists
-- [ ] Run all E2E tests, confirm pass
+### OUT-329-B: CC Pilot E2E Tests (critical flows) — DONE (core)
+- [x] Write test: today list — add task, toggle remove, multi-select, persistence
+- [x] Write test: command palette — open `/`, dismiss with Escape
+- [x] Write test: help system — `?` renders help overlay correctly
+- [x] Write test: grid navigation — arrows, number jump
+- [x] Write test: selection — toggle, select all, deselect all
+- [x] Write test: focus view — drill into leaf, escape back
+- [x] Write test: escape cascade — modal → selection → quit
+- [x] Run all 13 E2E tests, all pass
 
-### OUT-329-C: Visual Snapshot Tests
-- [ ] Write snapshot: main grid layout at standard terminal size
-- [ ] Write snapshot: help overlay
-- [ ] Write snapshot: context panel with tile selected
-- [ ] Write snapshot: responsive layout at small/medium/large sizes
-- [ ] Write snapshot: command palette appearance
+### OUT-329-C: Visual Snapshot Tests — DONE
+- [x] Write snapshot: main grid layout (120x40)
+- [x] Write snapshot: help overlay
+- [x] Write snapshot: command palette
+- [x] Write snapshot: filter picker
+- [x] Write snapshot: focus view
+- [x] Write snapshot: selected tile styling
+- [x] Write snapshot: responsive small (80x24) and wide (200x50)
+- [x] All 8 baselines generated and passing
 
-### OUT-329-D: CI Integration + Documentation
-- [ ] Wire E2E tests into pytest run (with markers for selective execution)
-- [ ] Document in `docs/TESTING.md`
-- [ ] Add snapshot update instructions for when UI intentionally changes
+### OUT-329-D: CI Integration + Documentation — PARTIAL
+- [x] Document in `docs/TESTING.md`
+- [x] Add snapshot update instructions
+- [ ] Wire into CI script / Makefile → see OUT-329-F
+
+## Remaining — see child tasks
+- **OUT-329-E:** E2E tests for external-service flows (reminders sync, email import, Eisenhower, session restore)
+- **OUT-329-F:** CI integration — Makefile target or script for selective test runs
 
 ## Research
 
