@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 332
-last_synced: '2026-03-10T15:51:52.982569'
+next_id: 333
+last_synced: '2026-03-10T19:59:21.869644'
 entries:
   OUT-223:
     title: Fire place fix
@@ -462,3 +462,10 @@ entries:
     reminder_id: x-apple-reminder://6912A9AE-20FE-4830-8919-B9D529DADF8C
     status: todo
     created: '2026-03-10T15:51:52.981676'
+  OUT-332:
+    title: Claude skill YouTube and notebook lm feature
+    file: OUT-332-claude-skill-youtube-and-notebook-lm-feature.md
+    source: email
+    reminder_id: null
+    status: todo
+    created: '2026-03-10T19:59:21.868618'
