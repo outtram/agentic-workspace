@@ -1798,6 +1798,14 @@ class CommandCentreApp(App):
             context_tasks.append(focused)
         panel.set_task_context(context_tasks)
 
+        # Progress callback that shows steps as system messages in chat
+        async def _chat_progress(msg: str) -> None:
+            clean_msg = re.sub(r"\[/?[^\]]*\]", "", msg).strip()
+            if clean_msg:
+                panel.add_chat_message("system", clean_msg)
+
+        panel.add_chat_message("system", "Thinking...")
+
         # Route through the same pipeline as command bar
         try:
             result = await self.router.route(
@@ -1806,6 +1814,7 @@ class CommandCentreApp(App):
                 focused,
                 self.all_tasks,
                 self.today_ids,
+                progress=_chat_progress,
             )
         except Exception as e:
             result = f"Error: {e}"
