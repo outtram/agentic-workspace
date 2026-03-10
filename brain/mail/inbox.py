@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 GMAIL_IMAP_HOST = "imap.gmail.com"
 GMAIL_IMAP_PORT = 993
+IMAP_TIMEOUT_SECS = 30
+ASYNC_TIMEOUT_SECS = 60
 
 
 def _make_ssl_context() -> ssl.SSLContext:
@@ -52,6 +54,14 @@ def _make_ssl_context() -> ssl.SSLContext:
             pass
 
     return ctx
+
+
+def _imap_connect(ssl_ctx: ssl.SSLContext) -> imaplib.IMAP4_SSL:
+    """Create an IMAP connection with socket timeout."""
+    conn = imaplib.IMAP4_SSL(
+        GMAIL_IMAP_HOST, GMAIL_IMAP_PORT, ssl_context=ssl_ctx, timeout=IMAP_TIMEOUT_SECS
+    )
+    return conn
 
 
 @dataclass
@@ -90,28 +100,34 @@ class Inbox:
     async def check(self, folder: str = "INBOX", limit: int = 10, unread_only: bool = True) -> list[InboundEmail]:
         """Check for emails. Returns newest first, up to limit."""
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, self._imap_fetch, folder, limit, unread_only
+        return await asyncio.wait_for(
+            loop.run_in_executor(
+                None, self._imap_fetch, folder, limit, unread_only
+            ),
+            timeout=ASYNC_TIMEOUT_SECS,
         )
 
     async def mark_read(self, msg_ids: list[str], folder: str = "INBOX") -> int:
         """Mark emails as read by Message-ID. Returns count marked."""
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, self._imap_mark_read, msg_ids, folder
+        return await asyncio.wait_for(
+            loop.run_in_executor(
+                None, self._imap_mark_read, msg_ids, folder
+            ),
+            timeout=ASYNC_TIMEOUT_SECS,
         )
 
     def _imap_mark_read(self, msg_ids: list[str], folder: str) -> int:
         """Blocking IMAP mark-as-read — called via run_in_executor."""
         ssl_ctx = _make_ssl_context()
-        conn = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, GMAIL_IMAP_PORT, ssl_context=ssl_ctx)
+        conn = _imap_connect(ssl_ctx)
         marked = 0
         try:
+            logger.debug("IMAP mark_read: logging in...")
             conn.login(self._address, self._app_password)
             conn.select(folder, readonly=False)
 
             for mid in msg_ids:
-                # Search by Message-ID header
                 safe_id = mid.replace('"', '\\"')
                 status, data = conn.search(
                     None, f'HEADER Message-ID "{safe_id}"'
@@ -124,7 +140,9 @@ class Inbox:
 
             conn.close()
             conn.logout()
-        except Exception:
+            logger.debug("IMAP mark_read: done, marked=%d", marked)
+        except Exception as e:
+            logger.error("IMAP mark_read failed: %s", e)
             try:
                 conn.logout()
             except Exception:
@@ -147,20 +165,17 @@ class Inbox:
 
             try:
                 return self._imap_fetch_once(folder, limit, unread_only)
-            except (OSError, imaplib.IMAP4.error) as e:
+            except (OSError, imaplib.IMAP4.error, TimeoutError) as e:
                 last_error = e
                 err_str = str(e)
-                # Retry on connection issues (EOF, reset, timeout)
-                if any(k in err_str for k in ("EOF", "reset", "timed out", "Broken pipe")):
+                if any(k in err_str for k in ("EOF", "reset", "timed out", "Broken pipe", "Timeout")):
                     logger.warning("IMAP connection failed (attempt %d): %s", attempt + 1, e)
                     continue
-                # Non-retryable IMAP error (auth, etc.)
                 raise RuntimeError(f"Gmail IMAP error: {e}") from e
             except Exception as e:
                 logger.error("Inbox check failed: %s", e)
                 raise
 
-        # Both attempts failed
         raise RuntimeError(f"Gmail IMAP failed after 2 attempts: {last_error}") from last_error
 
     def _imap_fetch_once(self, folder: str, limit: int, unread_only: bool) -> list[InboundEmail]:
@@ -168,26 +183,32 @@ class Inbox:
         results: list[InboundEmail] = []
 
         ssl_ctx = _make_ssl_context()
-        conn = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, GMAIL_IMAP_PORT, ssl_context=ssl_ctx)
+        logger.debug("IMAP connect: %s:%d (timeout=%ds)", GMAIL_IMAP_HOST, GMAIL_IMAP_PORT, IMAP_TIMEOUT_SECS)
+        conn = _imap_connect(ssl_ctx)
         try:
+            logger.debug("IMAP login: %s", self._address)
             conn.login(self._address, self._app_password)
+            logger.debug("IMAP select: %s", folder)
             conn.select(folder, readonly=True)
 
-            # Search for messages
             criteria = "UNSEEN" if unread_only else "ALL"
+            logger.debug("IMAP search: %s", criteria)
             status, data = conn.search(None, criteria)
             if status != "OK" or not data[0]:
+                logger.debug("IMAP search: no results")
                 conn.close()
                 conn.logout()
                 return results
 
             msg_ids = data[0].split()
-            # Take the most recent N
             recent_ids = msg_ids[-limit:]
+            logger.debug("IMAP found %d messages, fetching %d", len(msg_ids), len(recent_ids))
 
-            for mid in reversed(recent_ids):  # Newest first
+            for i, mid in enumerate(reversed(recent_ids)):  # Newest first
+                logger.debug("IMAP fetch %d/%d: seq=%s", i + 1, len(recent_ids), mid.decode())
                 status, msg_data = conn.fetch(mid, "(RFC822)")
                 if status != "OK":
+                    logger.warning("IMAP fetch failed for seq=%s", mid.decode())
                     continue
 
                 raw = msg_data[0][1]
@@ -211,21 +232,25 @@ class Inbox:
                 from_header = msg.get("From", "")
                 sender_name, sender_addr = email.utils.parseaddr(from_header)
 
+                subj = msg.get("Subject", "(no subject)")
+                logger.debug("IMAP parsed: %s — %s", sender_addr, subj[:60])
+
                 results.append(InboundEmail(
                     msg_id=msg.get("Message-ID", mid.decode()),
                     sender=sender_addr,
                     sender_name=sender_name or sender_addr,
-                    subject=msg.get("Subject", "(no subject)"),
-                    body=body.strip()[:2000],  # Cap body length
+                    subject=subj,
+                    body=body.strip()[:2000],
                     date=msg.get("Date", ""),
                     to=msg.get("To", ""),
                 ))
 
             conn.close()
             conn.logout()
+            logger.debug("IMAP done: %d emails fetched", len(results))
             self._last_check = datetime.now(timezone.utc)
-        except Exception:
-            # Clean up connection on error
+        except Exception as e:
+            logger.error("IMAP fetch_once failed: %s", e)
             try:
                 conn.logout()
             except Exception:
