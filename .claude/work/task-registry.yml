@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 333
-last_synced: '2026-03-10T19:59:21.869644'
+next_id: 334
+last_synced: '2026-03-10T19:59:43.944493'
 entries:
   OUT-223:
     title: Fire place fix
@@ -469,3 +469,10 @@ entries:
     reminder_id: null
     status: todo
     created: '2026-03-10T19:59:21.868618'
+  OUT-333:
+    title: '[outtram/agentic-workspace] Run failed: CI - main (c52ba2f)'
+    file: OUT-333-outtramagentic-workspace-run-failed-ci-main.md
+    source: email
+    reminder_id: null
+    status: todo
+    created: '2026-03-10T19:59:43.943597'
