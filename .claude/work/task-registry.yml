@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 342
-last_synced: '2026-03-10T20:01:48.597323'
+next_id: 343
+last_synced: '2026-03-10T20:02:08.352516'
 entries:
   OUT-223:
     title: Fire place fix
@@ -532,3 +532,10 @@ entries:
     reminder_id: null
     status: todo
     created: '2026-03-10T20:01:48.596063'
+  OUT-342:
+    title: Try this for my personal website
+    file: OUT-342-try-this-for-my-personal-website.md
+    source: email
+    reminder_id: null
+    status: todo
+    created: '2026-03-10T20:02:08.351619'
