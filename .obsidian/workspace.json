@@ -1,0 +1,203 @@
+{
+  "main": {
+    "id": "649a61847a7af3ee",
+    "type": "split",
+    "children": [
+      {
+        "id": "78a87b170846fe39",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "38b5928d1fcdecdf",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "807adb05ccea6c42",
+    "type": "split",
+    "children": [
+      {
+        "id": "14513908467e351d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f270244235b2d4cd",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "e1dea0817761958c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "305ff6a15cd20830",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "e84ce25fe6b3bcdc",
+    "type": "split",
+    "children": [
+      {
+        "id": "70930590559324ce",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ea0ac066720f6b1a",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "e6fd1dfd209a76d2",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "588e36cabde79f7a",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "74d5f204dfd9466d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "5202dc0db72e3658",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "38b5928d1fcdecdf",
+  "lastOpenFiles": [
+    "brain/tests/test_command_centre/__pycache__/test_tui_smoke.cpython-313-pytest-8.4.2.pyc",
+    "brain/tests/test_command_centre/__pycache__/test_router.cpython-313-pytest-8.4.2.pyc",
+    "brain/tests/test_command_centre/__pycache__/test_help_sync.cpython-313-pytest-8.4.2.pyc",
+    "brain/tests/test_command_centre/__pycache__/test_handler_done.cpython-313-pytest-8.4.2.pyc",
+    "brain/tests/test_command_centre/__pycache__/test_diagram_grid.cpython-313-pytest-8.4.2.pyc",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual/test_wide_terminal_layout.svg",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual/test_small_terminal_layout.svg",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual/test_selected_tile_styling.svg",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual/test_main_grid_layout.svg",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual/test_help_overlay_layout.svg",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual/test_focus_view_layout.svg",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual/test_filter_picker_layout.svg",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual/test_command_palette_layout.svg",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__/test_cc_visual",
+    "brain/tests/test_command_centre/test_snapshots/__snapshots__",
+    "brain/tests/test_command_centre/test_snapshots/__pycache__/test_cc_visual.cpython-313-pytest-8.4.2.pyc",
+    "brain/tests/test_command_centre/test_snapshots/__pycache__/__init__.cpython-313.pyc",
+    "brain/tests/test_command_centre/test_snapshots/__pycache__",
+    "brain/tests/test_command_centre/test_e2e/__pycache__/test_cc_flows.cpython-313-pytest-8.4.2.pyc",
+    "docs/TESTING.md",
+    "HELP.md"
+  ]
+}

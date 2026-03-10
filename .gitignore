@@ -73,5 +73,8 @@ Projects/
 .claude/dashboards/predictions.yml
 dashboard.html
 
+# Playwright MCP runtime data (logs, screenshots — regenerated per session)
+.playwright-mcp/
+
 # Temp Office files
 ~$*
