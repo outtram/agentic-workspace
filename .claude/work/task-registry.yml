@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 343
-last_synced: '2026-03-10T20:02:08.352516'
+next_id: 344
+last_synced: '2026-03-10T20:02:31.526828'
 entries:
   OUT-223:
     title: Fire place fix
@@ -539,3 +539,10 @@ entries:
     reminder_id: null
     status: todo
     created: '2026-03-10T20:02:08.351619'
+  OUT-343:
+    title: 'Fw: Baxter dury gig 28 April'
+    file: OUT-343-fw-baxter-dury-gig-28-april.md
+    source: email
+    reminder_id: null
+    status: todo
+    created: '2026-03-10T20:02:31.526078'
