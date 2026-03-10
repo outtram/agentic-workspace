@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 338
-last_synced: '2026-03-10T20:01:02.178395'
+next_id: 339
+last_synced: '2026-03-10T20:01:14.861464'
 entries:
   OUT-223:
     title: Fire place fix
@@ -504,3 +504,10 @@ entries:
     reminder_id: null
     status: todo
     created: '2026-03-10T20:01:02.177695'
+  OUT-338:
+    title: =?UTF-8?Q?You=E2=80=99re_now_using_Gemini_on_web?=
+    file: OUT-338-utf-8qyoue28099re-now-using-gemini-on-web.md
+    source: email
+    reminder_id: null
+    status: todo
+    created: '2026-03-10T20:01:14.860408'
