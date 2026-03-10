@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 336
-last_synced: '2026-03-10T20:00:20.212984'
+next_id: 337
+last_synced: '2026-03-10T20:00:42.026501'
 entries:
   OUT-223:
     title: Fire place fix
@@ -490,3 +490,10 @@ entries:
     reminder_id: null
     status: todo
     created: '2026-03-10T20:00:20.212130'
+  OUT-336:
+    title: RE:Research task Microsoft copilot tasks
+    file: OUT-336-reresearch-task-microsoft-copilot-tasks.md
+    source: email
+    reminder_id: null
+    status: todo
+    created: '2026-03-10T20:00:42.025313'
