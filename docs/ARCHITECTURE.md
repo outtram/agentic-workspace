@@ -1,6 +1,6 @@
 # System Architecture
 
-> Last updated: 2026-03-11 (Phase 6: stream view, telegram watchdog, proactive polling)
+> Last updated: 2026-03-12 (Phase 7: TidalCycles music mode)
 > This document describes the full AAGLOBAL system for Troy, Claude Code agents, Cursor, and OutBot.
 
 ## How to Use This System
@@ -20,6 +20,7 @@ The Command Centre is a keyboard-driven terminal TUI (built with Textual) that u
 **Key features:**
 - **Stream View** (default): inbox-style recency-sorted list. Three item states: NEW (●), SEEN (○), BACK (◌) with visual brightness indicating freshness. Bump keys: `t`=top, `b`=back, `s`=snooze (1h/tomorrow/next week), `d`=done, `z`=undo. Source labels: email (orange), reminder (gold), task (green). Chat split mode: `c` opens 30% stream / 70% chat layout.
 - **View cycling**: `v` key cycles: Stream → Grid → Diagram → Stream
+- **Music Mode**: `m` key enters TidalCycles natural language interface. Type what you want to hear in plain English → Claude translates to Tidal code → review/edit/send. Three panels: pattern monitor, active patterns sidebar, chat input. Song system with sequential MUS-XXX IDs. Chrome audio visualiser via `v` key. Lazy-loaded from `brain/music/` — zero cost when not in music mode.
 - 3x3 tile grid showing tasks with Eisenhower quadrant colours
 - **Hierarchical drill-down**: Enter on parent → shows children; Enter on leaf → Task Focus View
 - **Task Focus View**: single-task control centre with field-by-field editing, notes, PRD promotion, and research viewer (Up/Down, Enter to edit, n to add note, p to open/create PRD, Escape to back out)
@@ -40,7 +41,7 @@ The Command Centre is a keyboard-driven terminal TUI (built with Textual) that u
 - Email inbox/outbox via Gmail, import unread emails as tasks (syncs to iOS)
 - Add timestamped notes to tasks via command palette
 - **Quick sync** — `sync --quick` fetches only last 24h of reminders (avoids timeout with large reminder counts)
-- Slash commands: /done, /today, /enrich, /research, /daily, /inbox, /import, /email, /agent, /skill, /remember, /forget, /telegram, /help
+- Slash commands: /done, /today, /enrich, /research, /daily, /inbox, /import, /email, /agent, /skill, /remember, /forget, /telegram, /music, /help
 
 ### 2. Claude Code Agents (the task management system)
 
@@ -123,6 +124,7 @@ graph TB
         EmailHandler["Email Handler<br/><i>inbox + outbox</i>"]
         CommandPalette["Command Palette<br/><i>commands + agents + skills</i>"]
         Predictions["Predictions<br/><i>brain-log analysis</i>"]
+        MusicMode["Music Mode<br/><i>NL → TidalCycles</i>"]
         StreamList --> BumpLogic
     end
 
@@ -252,6 +254,7 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Bump Logic** | `bump.py` | State machine for NEW/SEEN/BACK + undo stack |
 | **Bump Persist** | `bump_persist.py` | Saves stream state to task YAML frontmatter |
 | **CC Logger** | `cc_logger.py` | Rotating debug log for commands, chat, errors |
+| **Music View** | `music_view.py` | Music mode TUI — pattern monitor, active patterns sidebar, chat input (lazy-loaded) |
 | **Handlers** | `handlers/` | Slash command implementations (triage, enrich, research, email, agents, memory, voice) |
 
 ### Claude Code Agents
@@ -297,6 +300,22 @@ Weekly Review:   Daily pipeline + Meta Agent + Navigator Updater + Memory Writer
 | **Telegram Adapter** | `brain/telegram/bot.py` | Telegram Bot API long-polling adapter with 60s watchdog auto-restart |
 | **Telegram Formatter** | `brain/telegram/formatter.py` | Converts markdown to Telegram HTML |
 | **Personality** | `brain/personality/loader.py` | Loads SOUL.md, USER.md for OutBot's voice |
+
+### Music Module
+
+The music module lives in `brain/music/` and is **lazy-loaded** — only imported when the user enters music mode via `m` key in CC.
+
+| Component | File | Purpose |
+|---|---|---|
+| **Tidal Bridge** | `brain/music/tidal_bridge.py` | Manages GHCi subprocess, sends Tidal code, tracks active patterns (d1-d16) |
+| **Translator** | `brain/music/translator.py` | Claude API: natural language → TidalCycles code (with comprehensive syntax reference) |
+| **Song Manager** | `brain/music/song_manager.py` | Creates songs with sequential MUS-XXX IDs, fun auto-generated names, YAML metadata |
+| **Visualiser** | `brain/music/visualiser/index.html` | Chrome audio visualiser (Web Audio API, 4 modes: bars, waveform, circular, particles) |
+| **Patterns** | `brain/music/patterns/{drums,bass,synth}/` | Reusable YAML pattern library (10 starters) |
+| **Songs** | `brain/music/songs/MUS-XXX-name/` | Song folders with `song.yml` metadata + `session.tidal` code |
+| **Installer** | `brain/music/setup/install.sh` | One-shot macOS install: SuperCollider, Haskell, TidalCycles, SuperDirt |
+
+**Tech stack:** SuperCollider (audio engine) → SuperDirt (samples/synths) → TidalCycles (Haskell DSL) → GHCi (interpreter) ← tidal_bridge.py ← translator.py ← CC music view
 
 ### Shared File System
 
