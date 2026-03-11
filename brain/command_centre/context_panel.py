@@ -22,6 +22,9 @@ class ContextPanel(VerticalScroll):
         border-left: solid #333333;
         padding: 1 2;
     }
+    ContextPanel.chat-hero {
+        width: 2.5fr;
+    }
     #panel-content {
         width: 100%;
     }
@@ -132,19 +135,16 @@ class ContextPanel(VerticalScroll):
         lines += "[#333333]" + "\u2501" * 24 + "[/]\n"
 
         if self._task_context:
-            ids = [t.get("id", "?") for t in self._task_context if t.get("id")]
-            if ids:
-                id_str = ", ".join(ids[:5])
-                if len(ids) > 5:
-                    id_str += f" +{len(ids) - 5}"
-                lines += f"[dim]Context: {id_str}[/]\n"
-
-                # Show first task title if only one
-                if len(self._task_context) == 1:
-                    title = sanitise(self._task_context[0].get("title", "")).replace("[", r"\[")
-                    if len(title) > 30:
-                        title = title[:27] + "..."
-                    lines += f"[dim]{title}[/]\n"
+            task = self._task_context[0]
+            title = sanitise(task.get("title", "")).replace("[", r"\[")
+            if len(title) > 40:
+                title = title[:37] + "..."
+            tid = task.get("id", "")
+            lines += f"[bold #FF6B35]CHATTING ABOUT[/]\n"
+            lines += f"[bold]{title}[/] [dim]· {tid}[/]\n"
+            if len(self._task_context) > 1:
+                extra = len(self._task_context) - 1
+                lines += f"[dim]+{extra} more selected[/]\n"
         else:
             lines += "[dim]No task selected[/]\n"
 

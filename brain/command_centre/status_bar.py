@@ -36,6 +36,20 @@ _DIAGRAM_HINTS = (
     "[bold #FF6B35]?[/][dim] Help[/]"
 )
 
+_STREAM_HINTS = (
+    "[bold #FF6B35]Enter[/][dim] Open[/]  "
+    "[bold #FF6B35]t[/][dim] Top[/]  "
+    "[bold #FF6B35]b[/][dim] Back[/]  "
+    "[bold #FF6B35]s[/][dim] Snooze[/]  "
+    "[bold #FF6B35]d[/][dim] Done[/]  "
+    "[bold #FF6B35]z[/][dim] Undo[/]  "
+    "[bold #FF6B35]v[/][dim] View[/]  "
+    "[bold #FF6B35]c[/][dim] Chat[/]  "
+    "[bold #FF6B35]/[/][dim] Cmds[/]  "
+    "[bold #FF6B35]:[/][dim] Filter[/]  "
+    "[bold #FF6B35]?[/][dim] Help[/]"
+)
+
 
 class StatusBarWidget(Static):
     """Two-line status bar — shortcut hints + counts."""
@@ -67,6 +81,9 @@ class StatusBarWidget(Static):
         diagram_title: str = "",
         diagram_depth: int = 0,
         diagram_node_count: int = 0,
+        stream_new: int = 0,
+        stream_back: int = 0,
+        stream_snoozed: int = 0,
     ):
         # Line 1: context-sensitive hints
         if view_mode == "diagram":
@@ -84,6 +101,25 @@ class StatusBarWidget(Static):
             parts.append(f"{diagram_node_count} nodes")
             if diagram_depth:
                 parts.append(f"[#FF6B35]depth: {diagram_depth}[/]")
+            line2 = " \u2502 ".join(parts)
+            self.update(f"{line1}\n{line2}")
+            return
+
+        # Stream mode — custom line 2
+        if view_mode == "stream":
+            line1 = _STREAM_HINTS
+            parts = [f"{total} items"]
+            if stream_new:
+                parts.append(f"[#00D4AA]{stream_new} new[/]")
+            if stream_back:
+                parts.append(f"[dim]{stream_back} back[/]")
+            if stream_snoozed:
+                parts.append(f"[#d4aa00]{stream_snoozed} snoozed[/]")
+            if telegram_status:
+                parts.append(f"[bold #00D4AA]{telegram_status}[/]")
+            if heartbeat_status:
+                parts.append(f"[bold #FF6B35]{heartbeat_status}[/]")
+            parts.append("Stream View")
             line2 = " \u2502 ".join(parts)
             self.update(f"{line1}\n{line2}")
             return

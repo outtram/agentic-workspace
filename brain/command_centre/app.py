@@ -477,6 +477,19 @@ class CommandCentreApp(App):
                 )
             except Exception:
                 pass
+        elif self._view_mode == "stream":
+            new_count = sum(1 for t in self.all_tasks if t.get("stream_state") == "new")
+            back_count = sum(1 for t in self.all_tasks if t.get("stream_state") == "back")
+            snoozed_count = sum(1 for t in self.all_tasks if t.get("stream_state") == "snoozed")
+            status.update_counts(
+                total=len(self.all_tasks),
+                view_mode="stream",
+                stream_new=new_count,
+                stream_back=back_count,
+                stream_snoozed=snoozed_count,
+                telegram_status=self.telegram.status_label,
+                heartbeat_status=self.heartbeat.status_label,
+            )
         else:
             overdue = sum(1 for t in self.all_tasks if t.get("_overdue"))
             status.update_counts(
@@ -1996,12 +2009,29 @@ class CommandCentreApp(App):
     # --- Chat ---
 
     def _toggle_chat(self):
-        """Toggle the context panel between info and chat modes."""
+        """Toggle chat mode — in stream view, use split layout."""
         try:
             panel = self.query_one("#context-panel", ContextPanel)
-            panel.toggle_mode()
-
             if panel.is_chat_mode:
+                panel.toggle_mode()
+                if self._view_mode == "stream":
+                    try:
+                        stream = self.query_one("#stream-list", StreamList)
+                        stream.remove_class("chat-active")
+                    except Exception:
+                        pass
+                    panel.remove_class("chat-hero")
+                self.notify("Chat mode OFF")
+                self._refresh_all()
+            else:
+                panel.toggle_mode()
+                if self._view_mode == "stream":
+                    try:
+                        stream = self.query_one("#stream-list", StreamList)
+                        stream.add_class("chat-active")
+                    except Exception:
+                        pass
+                    panel.add_class("chat-hero")
                 # Set task context from selected + focused tasks
                 context_tasks = []
                 context_ids = set()
@@ -2016,9 +2046,6 @@ class CommandCentreApp(App):
                     context_tasks.append(focused)
                 panel.set_task_context(context_tasks)
                 self.notify("Chat mode ON  (c to switch back)")
-            else:
-                self.notify("Chat mode OFF")
-                self._refresh_all()
         except Exception:
             pass
 
