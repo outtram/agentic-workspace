@@ -49,6 +49,13 @@ from .telegram_bridge import TelegramBridge
 from .heartbeat_bridge import HeartbeatBridge
 from .brain_logger import log_action
 from .cc_logger import logger as cc_log
+from .stream_list import StreamList
+from .bump import (
+    bump_top, bump_back, mark_seen, snooze,
+    undo_last, stream_sort_key, check_snoozed,
+)
+from .bump_persist import save_stream_state
+from .task_loader import find_task_file
 
 
 # ---------------------------------------------------------------------------
@@ -229,6 +236,14 @@ class CommandCentreApp(App):
         width: 3fr;
         display: none;
     }
+    #stream-list {
+        width: 3fr;
+        display: none;
+    }
+    #stream-list.chat-active {
+        width: 1fr;
+        opacity: 0.3;
+    }
     #cmd-suggestions {
         height: auto;
         max-height: 14;
@@ -253,9 +268,14 @@ class CommandCentreApp(App):
         self._escape_pending = False
         self._hotkeys: dict = {}
 
-        # View mode: "grid" (tile grid), "focus" (single-task detail), or "diagram"
-        self._view_mode: str = "grid"
+        # View mode: "stream", "grid", "focus", or "diagram"
+        self._view_mode: str = "stream"
         self._diagram_path: Path | None = None
+
+        # Stream bump state
+        self._undo_stack: list[dict] = []
+        self._notification_timer = None
+        self._snooze_pending = False
 
         # Navigation stack — list of parent task IDs we've drilled into
         self._nav_stack: list[str] = []
@@ -325,13 +345,15 @@ class CommandCentreApp(App):
 
     @property
     def _focused_task(self) -> dict | None:
-        """Get the currently focused task (grid or focus view)."""
+        """Get the currently focused task (grid, stream, or focus view)."""
         if self._view_mode == "focus":
             try:
                 fv = self.query_one("#task-focus", TaskFocusView)
                 return fv.task
             except Exception:
                 return None
+        if self._view_mode == "stream":
+            return self._focused_stream_task
         if self.focus_index < len(self.page_tasks):
             return self.page_tasks[self.focus_index]
         return None
@@ -340,6 +362,7 @@ class CommandCentreApp(App):
 
     def compose(self) -> ComposeResult:
         with Horizontal(id="main-area"):
+            yield StreamList(id="stream-list")
             yield TileGrid(id="tile-grid")
             yield TaskFocusView(id="task-focus")
             yield DiagramGrid(id="diagram-grid")
@@ -375,11 +398,25 @@ class CommandCentreApp(App):
         """Update all widgets with current state."""
         # Toggle visibility based on view mode
         try:
+            stream = self.query_one("#stream-list", StreamList)
             grid = self.query_one("#tile-grid", TileGrid)
             focus_view = self.query_one("#task-focus", TaskFocusView)
             diagram_grid = self.query_one("#diagram-grid", DiagramGrid)
 
-            if self._view_mode == "grid":
+            if self._view_mode == "stream":
+                stream.styles.display = "block"
+                grid.styles.display = "none"
+                focus_view.styles.display = "none"
+                diagram_grid.styles.display = "none"
+
+                sorted_tasks = sorted(self.all_tasks, key=stream_sort_key)
+                visible = [
+                    t for t in sorted_tasks
+                    if t.get("stream_state") != "snoozed"
+                ]
+                stream.update_items(visible, self.focus_index)
+            elif self._view_mode == "grid":
+                stream.styles.display = "none"
                 grid.styles.display = "block"
                 focus_view.styles.display = "none"
                 diagram_grid.styles.display = "none"
@@ -391,10 +428,12 @@ class CommandCentreApp(App):
                     breadcrumb=self._build_breadcrumb(),
                 )
             elif self._view_mode == "focus":
+                stream.styles.display = "none"
                 grid.styles.display = "none"
                 focus_view.styles.display = "block"
                 diagram_grid.styles.display = "none"
             elif self._view_mode == "diagram":
+                stream.styles.display = "none"
                 grid.styles.display = "none"
                 focus_view.styles.display = "none"
                 diagram_grid.styles.display = "block"
@@ -550,6 +589,11 @@ class CommandCentreApp(App):
             self._voice_enter()
             return
 
+        # --- Stream view keys ---
+        if self._view_mode == "stream":
+            self._handle_stream_key(key, char, hk)
+            return
+
         # --- Focus view keys ---
         if self._view_mode == "focus":
             self._handle_focus_key(key, char, hk)
@@ -562,6 +606,72 @@ class CommandCentreApp(App):
 
         # --- Grid view keys ---
         self._handle_grid_key(key, char, hk)
+
+    def _handle_stream_key(self, key: str, char: str | None, hk: dict):
+        """Handle keys in stream mode."""
+        # Handle pending snooze choice
+        if self._snooze_pending and char in ("1", "2", "3"):
+            self._stream_handle_snooze_choice(char)
+            return
+
+        if key == "up":
+            if self.focus_index > 0:
+                self.focus_index -= 1
+                self._panel_mode = "detail"
+                self._refresh_all()
+        elif key == "down":
+            try:
+                stream = self.query_one("#stream-list", StreamList)
+                max_idx = len(stream.tasks) - 1
+                if self.focus_index < max_idx:
+                    self.focus_index += 1
+                    self._panel_mode = "detail"
+                    self._refresh_all()
+            except Exception:
+                pass
+        elif key == "pageup":
+            self.focus_index = max(0, self.focus_index - 10)
+            self._refresh_all()
+        elif key == "pagedown":
+            try:
+                stream = self.query_one("#stream-list", StreamList)
+                max_idx = max(0, len(stream.tasks) - 1)
+                self.focus_index = min(max_idx, self.focus_index + 10)
+                self._refresh_all()
+            except Exception:
+                pass
+        elif key == "home":
+            self.focus_index = 0
+            self._refresh_all()
+        elif key == "end":
+            try:
+                stream = self.query_one("#stream-list", StreamList)
+                self.focus_index = max(0, len(stream.tasks) - 1)
+                self._refresh_all()
+            except Exception:
+                pass
+        elif key == "enter":
+            self._stream_open_item()
+        elif char == "t":
+            self._stream_bump_top()
+        elif char == "b":
+            self._stream_bump_back()
+        elif char == "s":
+            self._stream_snooze()
+        elif char == "z":
+            self._stream_undo()
+        elif char == hk.get("mark_done", "d"):
+            self._mark_done()
+        elif char == hk.get("cycle_view", "v"):
+            self._cycle_view()
+        elif char == hk.get("command_bar", "/"):
+            self._open_command_palette()
+        elif char == hk.get("chat_toggle", "c"):
+            self._toggle_chat()
+        elif char == hk.get("filter_mode", ":"):
+            self._open_filter_picker()
+        elif char == hk.get("help", "?"):
+            self.push_screen(HelpOverlay())
 
     def _handle_grid_key(self, key: str, char: str | None, hk: dict):
         """Handle keys in grid mode."""
@@ -587,8 +697,8 @@ class CommandCentreApp(App):
                 self._panel_mode = "detail"
                 self._refresh_all()
         # Configurable hotkeys
-        elif char == hk.get("toggle_voice", "v"):
-            self._toggle_voice()
+        elif char == hk.get("cycle_view", "v"):
+            self._cycle_view()
         elif char == hk.get("add_to_today", "t"):
             self._add_to_today()
         elif char == hk.get("mark_done", "d"):
@@ -657,8 +767,8 @@ class CommandCentreApp(App):
             self._open_filter_picker()
         elif char == hk.get("chat_toggle", "c"):
             self._toggle_chat()
-        elif char == hk.get("toggle_voice", "v"):
-            self._toggle_voice()
+        elif char == hk.get("cycle_view", "v"):
+            self._cycle_view()
 
     def _handle_diagram_key(self, key: str, char: str | None, hk: dict):
         """Handle keys in diagram mode."""
@@ -906,6 +1016,139 @@ class CommandCentreApp(App):
 
         self._refresh_all()
         self.notify("Back to grid")
+
+    # --- View cycling ---
+
+    def _cycle_view(self):
+        """Cycle view: stream -> grid -> diagram -> stream."""
+        if self._view_mode == "stream":
+            self._view_mode = "grid"
+            self.focus_index = 0
+            self.current_page = 0
+        elif self._view_mode == "grid":
+            if list_diagrams():
+                self._view_mode = "diagram"
+                self._enter_diagram()
+            else:
+                self._view_mode = "stream"
+                self.focus_index = 0
+        elif self._view_mode == "diagram":
+            self._view_mode = "stream"
+            self.focus_index = 0
+        self._refresh_all()
+
+    # --- Stream bump actions ---
+
+    def _stream_bump_top(self):
+        """Bump focused stream item to top."""
+        task = self._focused_stream_task
+        if not task:
+            return
+        bump_top(task, self._undo_stack)
+        self._persist_stream_state(task)
+        self.focus_index = 0
+        self._refresh_all()
+
+    def _stream_bump_back(self):
+        """Bump focused stream item to back."""
+        task = self._focused_stream_task
+        if not task:
+            return
+        bump_back(task, self._undo_stack)
+        self._persist_stream_state(task)
+        self._refresh_all()
+
+    def _stream_snooze(self):
+        """Show snooze picker for focused item."""
+        self.notify(
+            "Snooze: [bold]1[/]=1h  [bold]2[/]=tomorrow  [bold]3[/]=next week",
+            timeout=5,
+        )
+        self._snooze_pending = True
+
+    def _stream_handle_snooze_choice(self, choice: str):
+        """Handle snooze duration choice."""
+        task = self._focused_stream_task
+        if not task:
+            return
+        hours_map = {"1": 1, "2": 24, "3": 168}
+        hours = hours_map.get(choice)
+        if hours:
+            snooze(task, hours=hours, undo_stack=self._undo_stack)
+            self._persist_stream_state(task)
+            self._refresh_all()
+        self._snooze_pending = False
+
+    def _stream_undo(self):
+        """Undo last bump action."""
+        if not self._undo_stack:
+            self.notify("Nothing to undo")
+            return
+        entry = self._undo_stack[-1]
+        tid = entry["task_id"]
+        for task in self.all_tasks:
+            if task.get("id") == tid:
+                undo_last(task, self._undo_stack)
+                self._persist_stream_state(task)
+                self._refresh_all()
+                return
+        self.notify(f"Task {tid} not found")
+
+    def _stream_open_item(self):
+        """Open focused stream item in focus view, mark as seen."""
+        task = self._focused_stream_task
+        if not task:
+            return
+        mark_seen(task)
+        self._persist_stream_state(task)
+        self._enter_focus(task)
+
+    @property
+    def _focused_stream_task(self) -> dict | None:
+        """Get the currently focused task in stream view."""
+        try:
+            stream = self.query_one("#stream-list", StreamList)
+            tasks = stream.tasks
+            if self.focus_index < len(tasks):
+                return tasks[self.focus_index]
+        except Exception:
+            pass
+        return None
+
+    def _persist_stream_state(self, task: dict):
+        """Save stream state to task's markdown file."""
+        path = find_task_file(task.get("id", ""))
+        if path:
+            save_stream_state(
+                path,
+                stream_state=task.get("stream_state", "new"),
+                last_touched=task.get("last_touched", ""),
+                snoozed_until=task.get("snoozed_until"),
+            )
+
+    def _show_stream_notification(self, message: str):
+        """Show a notification in the stream widget that auto-hides after 3s."""
+        if self._view_mode != "stream":
+            return
+        try:
+            stream = self.query_one("#stream-list", StreamList)
+            stream.show_notification(message)
+            if self._notification_timer is not None:
+                self._notification_timer.stop()
+            self._notification_timer = self.set_timer(
+                3.0, self._hide_stream_notification
+            )
+        except Exception:
+            pass
+
+    def _hide_stream_notification(self):
+        """Hide the stream notification bar."""
+        try:
+            stream = self.query_one("#stream-list", StreamList)
+            stream.hide_notification()
+        except Exception:
+            pass
+        self._notification_timer = None
 
     # --- Diagram mode switching ---
 

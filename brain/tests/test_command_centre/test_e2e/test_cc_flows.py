@@ -82,6 +82,10 @@ async def test_add_to_today_and_persist(mock_env):
     """Add focused task to today list, verify save_today_list is called."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
+        assert app._view_mode == "grid"
+
         # Focus is on first tile (index 0) by default
         assert app.focus_index == 0
 
@@ -103,6 +107,9 @@ async def test_toggle_today_removes_task(mock_env):
     """Pressing 't' twice should add then remove from today."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
+
         await pilot.press("t")
         assert "OUT-E2E-1" in app.today_ids
 
@@ -183,6 +190,8 @@ async def test_grid_navigation_arrows(mock_env):
     """Arrow keys move focus between tiles."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
         assert app.focus_index == 0
 
         # Move right
@@ -217,6 +226,9 @@ async def test_grid_number_jump(mock_env):
     """Number keys 1-4 jump to corresponding tiles."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
+
         await pilot.press("3")
         assert app.focus_index == 2  # 0-indexed
 
@@ -235,6 +247,8 @@ async def test_selection_toggle(mock_env):
     """Space toggles selection on focused tile."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
         assert len(app.selected_ids) == 0
 
         await pilot.press("space")
@@ -250,6 +264,9 @@ async def test_select_all_and_deselect(mock_env):
     """'a' selects all visible tasks, 'n' deselects all."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
+
         await pilot.press("a")
         assert len(app.selected_ids) >= len(MOCK_TASKS)
 
@@ -268,6 +285,8 @@ async def test_drill_into_leaf_opens_focus_view(mock_env):
     """Enter on a leaf task opens focus view, Escape returns to grid."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
         assert app._view_mode == "grid"
 
         # Press Enter on first task (leaf — no children)
@@ -306,6 +325,9 @@ async def test_escape_clears_selection_before_quit(mock_env):
     """Escape clears selection first, doesn't quit immediately."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
+
         # Select a task
         await pilot.press("space")
         assert len(app.selected_ids) > 0
@@ -327,6 +349,9 @@ async def test_multi_select_add_to_today(mock_env):
     """Select multiple tasks, press 't' to add all to today."""
     app = CommandCentreApp()
     async with app.run_test(size=(120, 40)) as pilot:
+        # Switch from stream (default) to grid view
+        await pilot.press("v")
+
         # Select first two tasks
         await pilot.press("space")  # Select task 1
         await pilot.press("right")
