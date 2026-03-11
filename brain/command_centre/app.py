@@ -1981,7 +1981,8 @@ class CommandCentreApp(App):
     async def _init_heartbeat(self):
         try:
             started = await self.heartbeat.start(
-                on_notification=self._on_heartbeat_notification
+                on_notification=self._on_heartbeat_notification,
+                on_new_items=self._on_new_items_arrived,
             )
             if started:
                 self._refresh_all()
@@ -2004,6 +2005,12 @@ class CommandCentreApp(App):
         # Otherwise show in the response panel
         self._last_response = f"[bold #FF6B35]\u2764 HEARTBEAT[/]\n{message}"
         self._panel_mode = "response"
+        self._refresh_all()
+
+    async def _on_new_items_arrived(self, message: str):
+        """Called by heartbeat when new emails/reminders found."""
+        self.all_tasks = load_tasks()
+        self._show_stream_notification(message)
         self._refresh_all()
 
     # --- Chat ---

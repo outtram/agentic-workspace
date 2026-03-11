@@ -19,11 +19,13 @@ class HeartbeatBridge:
         self._event_bus = None
         self._judge = None
         self._on_notification = None
+        self._on_new_items = None  # Callback: async fn(message: str)
         self._task: asyncio.Task | None = None
 
-    async def start(self, on_notification=None) -> bool:
+    async def start(self, on_notification=None, on_new_items=None) -> bool:
         """Start the heartbeat scheduler in the background. Returns True on success."""
         self._on_notification = on_notification
+        self._on_new_items = on_new_items
         try:
             from brain.core.config import Config
             from brain.core.db import Database
@@ -142,6 +144,9 @@ class HeartbeatBridge:
             if self._scheduler:
                 self._scheduler.task_completed(task_id)
 
+            # Proactive email + reminder polling for stream view
+            await self._poll_for_new_items()
+
             # Notify if important
             if result.should_notify and result.message and self._on_notification:
                 await self._on_notification(result.message)
@@ -150,3 +155,24 @@ class HeartbeatBridge:
             logger.error("Heartbeat processing failed: %s", e)
             if self._scheduler:
                 self._scheduler.task_completed(task_id)
+
+    async def _poll_for_new_items(self):
+        """Check for new emails and reminders, notify if found."""
+        messages = []
+
+        # Email check (with timeout protection)
+        try:
+            from brain.core.config import Config
+            from brain.mail.inbox import Inbox
+
+            config = Config.load()
+            if config.email_address and config.email_app_password:
+                inbox = Inbox(config.email_address, config.email_app_password)
+                emails = await inbox.check(limit=5, unread_only=True)
+                if emails:
+                    messages.append(f"✉ {len(emails)} new email{'s' if len(emails) != 1 else ''}")
+        except Exception as e:
+            logger.warning("Email poll failed: %s", e)
+
+        if messages and self._on_new_items:
+            await self._on_new_items(" · ".join(messages))
