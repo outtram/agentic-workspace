@@ -114,6 +114,17 @@ def load_tasks() -> list[dict]:
                 t["_due_date"] = due_date
 
         t["_weight"] = weight
+
+        # Stream view fields — default for tasks without them
+        if "stream_state" not in t:
+            t["stream_state"] = "new"
+        if "last_touched" not in t:
+            t["last_touched"] = datetime.now().isoformat(timespec="seconds")
+        if "source" not in t:
+            t["source"] = "task"
+        if "snoozed_until" not in t:
+            t["snoozed_until"] = None
+
         tasks.append(t)
 
     tasks.sort(key=lambda t: t["_weight"], reverse=True)
