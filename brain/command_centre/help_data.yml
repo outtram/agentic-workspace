@@ -57,7 +57,7 @@ grid_view_keys:
     - key: "v"
       action: "Toggle voice mode"
     - key: ":"
-      action: "Filter Picker — select from quadrants, overdue, today, or search"
+      action: "Filter Picker — new/seen/back, email/reminder, quadrants, overdue, today, or freetext search"
     - key: "?"
       action: "Show help overlay"
     - key: "Escape"
@@ -92,7 +92,7 @@ stream_view_keys:
     - key: "/"
       action: "Commands"
     - key: ":"
-      action: "Filter"
+      action: "Filter / Search (new, seen, back, email, reminder, or freetext)"
     - key: "?"
       action: "Help"
 

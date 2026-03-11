@@ -11,6 +11,11 @@ from textual.widgets import Input, Static
 
 
 _FILTERS = [
+    ("new", "● NEW items only"),
+    ("seen", "○ SEEN items only"),
+    ("back", "◌ BACK items only"),
+    ("email", "Email imports"),
+    ("reminder", "Reminder imports"),
     ("q1", "Q1 — Urgent & Important"),
     ("q2", "Q2 — Important, Not Urgent"),
     ("q3", "Q3 — Urgent, Not Important"),

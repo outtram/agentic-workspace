@@ -34,7 +34,7 @@
 | d | Mark done (local + iOS) |
 | e | Edit focused task (modal) |
 | v | Toggle voice mode |
-| : | Filter Picker — select from quadrants, overdue, today, or search |
+| : | Filter Picker — new/seen/back, email/reminder, quadrants, overdue, today, or freetext search |
 | ? | Show help overlay |
 | Escape | Back one level → clear filter → clear selection → double-tap to quit |
 
@@ -54,7 +54,7 @@
 | v | Cycle view (Stream → Grid → Diagram) |
 | c | Toggle chat (split layout) |
 | / | Commands |
-| : | Filter |
+| : | Filter / Search (new, seen, back, email, reminder, or freetext) |
 | ? | Help |
 
 ### Task Focus View (when zoomed into a task)

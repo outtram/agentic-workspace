@@ -84,7 +84,7 @@ _HELP_TEXT = """\
   d             Mark done (local + iOS)
   e             Edit focused task (modal)
   v             Toggle voice mode
-  :             Filter Picker — select from quadrants, overdue, today, or search
+  :             Filter Picker — new/seen/back, email/reminder, quadrants, overdue, today, or freetext search
   ?             Show help overlay
   Escape        Back one level → clear filter → clear selection → double-tap to quit
 
@@ -103,7 +103,7 @@ _HELP_TEXT = """\
   v             Cycle view (Stream → Grid → Diagram)
   c             Toggle chat (split layout)
   /             Commands
-  :             Filter
+  :             Filter / Search (new, seen, back, email, reminder, or freetext)
   ?             Help
 
 [bold]Task Focus View[/]  (when zoomed into a task)
@@ -1582,6 +1582,26 @@ class CommandCentreApp(App):
             self._filter_fn = lambda t: t.get("id") in self.today_ids
             self._filter_label = "today"
             self.notify("Showing today tasks")
+        elif query == "new":
+            self._filter_fn = lambda t: t.get("stream_state") == "new"
+            self._filter_label = "new"
+            self.notify("Showing NEW items")
+        elif query == "seen":
+            self._filter_fn = lambda t: t.get("stream_state") == "seen"
+            self._filter_label = "seen"
+            self.notify("Showing SEEN items")
+        elif query == "back":
+            self._filter_fn = lambda t: t.get("stream_state") == "back"
+            self._filter_label = "back"
+            self.notify("Showing BACK items")
+        elif query == "email":
+            self._filter_fn = lambda t: t.get("source") == "email"
+            self._filter_label = "email"
+            self.notify("Showing email items")
+        elif query == "reminder":
+            self._filter_fn = lambda t: t.get("source") == "reminder"
+            self._filter_label = "reminder"
+            self.notify("Showing reminder items")
         else:
             q = query
             self._filter_fn = lambda t, _q=q: (
