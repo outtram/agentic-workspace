@@ -1,0 +1,272 @@
+{
+  "meta": {
+    "title": "Command Centre Architecture",
+    "gridMode": "strict",
+    "gridCols": 4,
+    "gridRows": 4,
+    "theme": {
+      "background": "#0d1117",
+      "nodeDefault": "#21262d",
+      "accent1": "#FF6B35",
+      "accent2": "#00D4AA",
+      "text": "#e6edf3",
+      "textMuted": "#8b949e"
+    }
+  },
+  "nodes": [
+    {
+      "id": "cc-stream",
+      "label": "Stream View",
+      "description": "Default inbox-style view. Recency-sorted, three states (NEW/SEEN/BACK), bump keys (t/b/s/d/z). Source labels for email, reminder, task.",
+      "type": "system",
+      "icon": "list",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": ["cc-bump", "cc-bump-persist", "cc-stream-list"],
+      "meta": {"tech": "Textual", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-grid",
+      "label": "Tile Grid",
+      "description": "3x3 Eisenhower quadrant tile grid. Original CC view. Hierarchical drill-down, multi-select, batch ops.",
+      "type": "system",
+      "icon": "grid",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Textual", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-diagram",
+      "label": "Diagram View",
+      "description": "JSON-defined node grids with drill-down layers. Used for architecture maps and capability diagrams.",
+      "type": "system",
+      "icon": "share-2",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Textual", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-context",
+      "label": "Context Panel",
+      "description": "Right-side panel showing task detail, stream counts, OutBot responses, and chat split mode.",
+      "type": "system",
+      "icon": "sidebar",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 3, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Textual", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-router",
+      "label": "Router",
+      "description": "Routes slash commands to handlers, natural language to OutBot. Injects focused task context for chat.",
+      "type": "system",
+      "icon": "git-branch",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Python", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-task-loader",
+      "label": "Task Loader",
+      "description": "Loads tasks from .claude/work/tasks/ YAML frontmatter. Adds stream fields (stream_state, last_touched, source).",
+      "type": "system",
+      "icon": "download",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 1, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Python", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-status",
+      "label": "Status Bar",
+      "description": "Bottom bar with key hints and counts. Adapts per view (stream/grid/diagram). Shows TG/BEAT status.",
+      "type": "system",
+      "icon": "info",
+      "colour": "#8b949e",
+      "gridPos": {"col": 2, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Textual", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-help",
+      "label": "Help System",
+      "description": "Single source of truth: help_data.yml generates HELP.md + _HELP_TEXT + /help overlay. Pre-commit hook enforces sync.",
+      "type": "system",
+      "icon": "help-circle",
+      "colour": "#8b949e",
+      "gridPos": {"col": 3, "row": 1, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "YAML + Python", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-telegram",
+      "label": "Telegram Bridge",
+      "description": "Background Telegram connection with watchdog. 60s health check, auto-restart on poll loop death. Status: TG ON/OFF.",
+      "type": "system",
+      "icon": "send",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 0, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "httpx + asyncio", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-heartbeat",
+      "label": "Heartbeat Bridge",
+      "description": "60s background scheduler. Checks overdue tasks, polls email (when BEAT: ON), fires notifications. Proactive email/reminder import.",
+      "type": "system",
+      "icon": "heart",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 1, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "asyncio", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-voice",
+      "label": "Voice Handler",
+      "description": "Record audio via sounddevice, transcribe via faster-whisper, TTS via macOS say.",
+      "type": "system",
+      "icon": "mic",
+      "colour": "#8b949e",
+      "gridPos": {"col": 2, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "sounddevice + whisper", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-logger",
+      "label": "Debug Logger",
+      "description": "Rotating file log at .claude/dashboards/cc-debug.log. 1MB max, 2 backups. Logs commands, chat, errors, IMAP steps.",
+      "type": "system",
+      "icon": "file-text",
+      "colour": "#8b949e",
+      "gridPos": {"col": 3, "row": 2, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Python logging", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-outbot",
+      "label": "OutBot (Claude)",
+      "description": "Conversational AI powered by Claude CLI. Personality from SOUL.md. Handles natural language in chat panel.",
+      "type": "external",
+      "icon": "message-circle",
+      "colour": "#FF6B35",
+      "gridPos": {"col": 0, "row": 3, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "Claude CLI", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-gmail",
+      "label": "Gmail",
+      "description": "IMAP inbox check + SMTP outbox. 30s socket timeout, 60s async timeout. Debug logging at every step.",
+      "type": "external",
+      "icon": "mail",
+      "colour": "#8b949e",
+      "gridPos": {"col": 1, "row": 3, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "IMAP/SMTP", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-reminders",
+      "label": "macOS Reminders",
+      "description": "Bi-directional sync with Reminders.app. Quick sync (last 24h). Import creates work items with source: reminder.",
+      "type": "external",
+      "icon": "clock",
+      "colour": "#8b949e",
+      "gridPos": {"col": 2, "row": 3, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "AppleScript", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-files",
+      "label": "Shared Files",
+      "description": ".claude/work/tasks/ (YAML), .claude/memory/ (SOUL.md, USER.md), .claude/dashboards/ (HTML, logs).",
+      "type": "external",
+      "icon": "folder",
+      "colour": "#8b949e",
+      "gridPos": {"col": 3, "row": 3, "colSpan": 1, "rowSpan": 1},
+      "parent": null,
+      "children": [],
+      "meta": {"tech": "YAML + Markdown", "status": "live", "owner": "Troy"}
+    },
+    {
+      "id": "cc-bump",
+      "label": "Bump Logic",
+      "description": "State machine: NEW → SEEN → BACK. bump_top, bump_back, mark_seen, snooze, undo_last, stream_sort_key, check_snoozed.",
+      "type": "sub-capability",
+      "icon": "arrow-up",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 0, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cc-stream",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "cc-bump-persist",
+      "label": "Bump Persist",
+      "description": "Saves stream_state, last_touched, snoozed_until to task YAML frontmatter. Preserves body content.",
+      "type": "sub-capability",
+      "icon": "save",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 1, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cc-stream",
+      "children": [],
+      "meta": {"status": "live"}
+    },
+    {
+      "id": "cc-stream-list",
+      "label": "StreamList Widget",
+      "description": "Textual Container with 100 pre-created Static row slots. Renders state icons, badges, source labels, relative timestamps.",
+      "type": "sub-capability",
+      "icon": "list",
+      "colour": "#00D4AA",
+      "gridPos": {"col": 2, "row": 0, "colSpan": 1, "rowSpan": 1},
+      "parent": "cc-stream",
+      "children": [],
+      "meta": {"status": "live"}
+    }
+  ],
+  "connections": [
+    {"id": "c-stream-loader", "from": "cc-stream", "to": "cc-task-loader", "type": "data", "label": "tasks", "style": "arrow-one-way", "colour": "#8b949e"},
+    {"id": "c-grid-loader", "from": "cc-grid", "to": "cc-task-loader", "type": "data", "label": "tasks", "style": "arrow-one-way", "colour": "#8b949e"},
+    {"id": "c-router-outbot", "from": "cc-router", "to": "cc-outbot", "type": "api", "label": "chat", "style": "arrow-two-way", "colour": "#FF6B35"},
+    {"id": "c-router-context", "from": "cc-router", "to": "cc-context", "type": "data", "label": "responses", "style": "arrow-one-way", "colour": "#8b949e"},
+    {"id": "c-tg-api", "from": "cc-telegram", "to": "cc-outbot", "type": "api", "label": "forward", "style": "arrow-two-way", "colour": "#00D4AA"},
+    {"id": "c-heartbeat-gmail", "from": "cc-heartbeat", "to": "cc-gmail", "type": "integration", "label": "poll", "style": "arrow-one-way", "colour": "#8b949e"},
+    {"id": "c-heartbeat-reminders", "from": "cc-heartbeat", "to": "cc-reminders", "type": "integration", "label": "sync", "style": "arrow-one-way", "colour": "#8b949e"},
+    {"id": "c-loader-files", "from": "cc-task-loader", "to": "cc-files", "type": "data", "label": "read/write", "style": "arrow-two-way", "colour": "#30363d"},
+    {"id": "c-stream-context", "from": "cc-stream", "to": "cc-context", "type": "data", "label": "detail", "style": "arrow-one-way", "colour": "#8b949e"}
+  ],
+  "layers": {
+    "overview": {
+      "title": "Command Centre Architecture",
+      "visible": [
+        "cc-stream", "cc-grid", "cc-diagram", "cc-context",
+        "cc-router", "cc-task-loader", "cc-status", "cc-help",
+        "cc-telegram", "cc-heartbeat", "cc-voice", "cc-logger",
+        "cc-outbot", "cc-gmail", "cc-reminders", "cc-files"
+      ]
+    },
+    "cc-stream": {
+      "title": "Stream View Internals",
+      "visible": ["cc-bump", "cc-bump-persist", "cc-stream-list"]
+    }
+  }
+}

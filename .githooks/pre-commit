@@ -1,58 +1,75 @@
 #!/bin/bash
-# Pre-commit hook: ensure help sources are updated when Command Centre changes.
+# Pre-commit hook: enforce documentation sync when Command Centre changes.
 #
-# If any CC handler/router/modal file is staged, at least one of the 3 help
-# sources must also be staged. This prevents shipping features without docs.
+# Two checks:
+# 1. If any brain/command_centre/ file is staged, docs must be updated too
+# 2. If help_data.yml is staged, generated outputs must be in sync
 
 STAGED=$(git diff --cached --name-only)
 
-# Check if any Command Centre logic files are staged
+# ─── Check 1: CC changes require docs ───────────────────────────────
 CC_CHANGED=false
 for f in $STAGED; do
     case "$f" in
-        brain/command_centre/router.py|\
-        brain/command_centre/handlers/*|\
-        brain/command_centre/command_palette.py|\
-        brain/command_centre/task_focus.py|\
-        brain/command_centre/task_editor.py|\
-        brain/command_centre/note_modal.py)
+        brain/command_centre/*.py|brain/command_centre/handlers/*)
             CC_CHANGED=true
             break
             ;;
     esac
 done
 
-if [ "$CC_CHANGED" = false ]; then
-    exit 0  # No CC changes, nothing to check
+if [ "$CC_CHANGED" = true ]; then
+    # At least one documentation file must also be staged
+    DOCS_UPDATED=false
+    for f in $STAGED; do
+        case "$f" in
+            HELP.md|\
+            brain/command_centre/help_data.yml|\
+            docs/ARCHITECTURE.md)
+                DOCS_UPDATED=true
+                break
+                ;;
+        esac
+    done
+
+    if [ "$DOCS_UPDATED" = false ]; then
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════╗"
+        echo "║  BLOCKED: CC files changed without documentation!       ║"
+        echo "║                                                         ║"
+        echo "║  Stage at least one of:                                 ║"
+        echo "║    • HELP.md (run: python3 -m brain.command_centre.help_gen)"
+        echo "║    • brain/command_centre/help_data.yml                 ║"
+        echo "║    • docs/ARCHITECTURE.md                               ║"
+        echo "║                                                         ║"
+        echo "║  Or skip with: git commit --no-verify (not recommended) ║"
+        echo "╚══════════════════════════════════════════════════════════╝"
+        echo ""
+        exit 1
+    fi
 fi
 
-# At least one help source must also be staged
-HELP_UPDATED=false
+# ─── Check 2: help_data.yml staged → generated outputs must be fresh ─
+HELP_DATA_STAGED=false
 for f in $STAGED; do
-    case "$f" in
-        HELP.md|\
-        brain/command_centre/app.py|\
-        docs/ARCHITECTURE.md)
-            HELP_UPDATED=true
-            break
-            ;;
-    esac
+    if [ "$f" = "brain/command_centre/help_data.yml" ]; then
+        HELP_DATA_STAGED=true
+        break
+    fi
 done
 
-if [ "$HELP_UPDATED" = false ]; then
-    echo ""
-    echo "╔══════════════════════════════════════════════════════════╗"
-    echo "║  BLOCKED: Command Centre files changed without help!    ║"
-    echo "║                                                         ║"
-    echo "║  You MUST update at least one of:                       ║"
-    echo "║    1. HELP.md                                           ║"
-    echo "║    2. brain/command_centre/app.py (_HELP_TEXT)           ║"
-    echo "║    3. docs/ARCHITECTURE.md                              ║"
-    echo "║                                                         ║"
-    echo "║  Stage the help file(s) and try again.                  ║"
-    echo "╚══════════════════════════════════════════════════════════╝"
-    echo ""
-    exit 1
+if [ "$HELP_DATA_STAGED" = true ]; then
+    if ! python3 -m brain.command_centre.help_gen --check 2>/dev/null; then
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════╗"
+        echo "║  BLOCKED: help_data.yml changed but outputs are stale!  ║"
+        echo "║                                                         ║"
+        echo "║  Run: python3 -m brain.command_centre.help_gen          ║"
+        echo "║  Then stage: HELP.md + brain/command_centre/app.py      ║"
+        echo "╚══════════════════════════════════════════════════════════╝"
+        echo ""
+        exit 1
+    fi
 fi
 
 exit 0

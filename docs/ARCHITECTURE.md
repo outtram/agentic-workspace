@@ -1,6 +1,6 @@
 # System Architecture
 
-> Last updated: 2026-03-03 (Phase 5: heartbeat, chat, memory commands, voice upgrades)
+> Last updated: 2026-03-11 (Phase 6: stream view, telegram watchdog, proactive polling)
 > This document describes the full AAGLOBAL system for Troy, Claude Code agents, Cursor, and OutBot.
 
 ## How to Use This System
@@ -18,6 +18,8 @@ cc
 The Command Centre is a keyboard-driven terminal TUI (built with Textual) that unifies task management, OutBot chat, email, Telegram, and daily review into one interface.
 
 **Key features:**
+- **Stream View** (default): inbox-style recency-sorted list. Three item states: NEW (●), SEEN (○), BACK (◌) with visual brightness indicating freshness. Bump keys: `t`=top, `b`=back, `s`=snooze (1h/tomorrow/next week), `d`=done, `z`=undo. Source labels: email (orange), reminder (gold), task (green). Chat split mode: `c` opens 30% stream / 70% chat layout.
+- **View cycling**: `v` key cycles: Stream → Grid → Diagram → Stream
 - 3x3 tile grid showing tasks with Eisenhower quadrant colours
 - **Hierarchical drill-down**: Enter on parent → shows children; Enter on leaf → Task Focus View
 - **Task Focus View**: single-task control centre with field-by-field editing, notes, PRD promotion, and research viewer (Up/Down, Enter to edit, n to add note, p to open/create PRD, Escape to back out)
@@ -32,8 +34,8 @@ The Command Centre is a keyboard-driven terminal TUI (built with Textual) that u
 - Brain predictions on launch (day-of-week patterns, incomplete yesterday)
 - Task editing modal (title, quadrant, priority, due date, description)
 - **Chat panel** — togglable sidebar (c key) with persistent conversation history, task-aware context
-- **Heartbeat bridge** — background scheduler checks for overdue tasks, shows notifications in-app
-- **Telegram bridge** — live connection status, incoming message notifications
+- **Heartbeat bridge** — background scheduler checks for overdue tasks, shows notifications in-app. Proactive email polling during heartbeat cycle (when BEAT: ON) — new items appear as NEW in stream, notification bar flashes 3s.
+- **Telegram bridge** — live connection status, incoming message notifications. Watchdog: 60s health check auto-restarts poll loop if dead. Done-callback logs death reason, publishes ConnectionChanged(connected=False). Status bar reflects actual connection state (TG: ON/OFF).
 - **Memory commands** — /remember and /forget for explicit memory management (shared with OutBot)
 - Email inbox/outbox via Gmail, import unread emails as tasks (syncs to iOS)
 - Add timestamped notes to tasks via command palette
@@ -111,14 +113,17 @@ graph TB
 
     subgraph COMMAND_CENTRE["Command Centre TUI"]
         direction TB
+        StreamList["Stream List<br/><i>inbox-style default view</i>"]
+        BumpLogic["Bump Logic<br/><i>NEW/SEEN/BACK states</i>"]
         TileGrid["Tile Grid<br/><i>3x3 task tiles</i>"]
         ContextPanel["Context Panel<br/><i>detail + responses</i>"]
         CommandBar["Command Bar<br/><i>slash commands + OutBot</i>"]
         VoiceMode["Voice Mode<br/><i>record + transcribe</i>"]
-        TGBridge["Telegram Bridge<br/><i>background connection</i>"]
+        TGBridge["Telegram Bridge<br/><i>connection + watchdog</i>"]
         EmailHandler["Email Handler<br/><i>inbox + outbox</i>"]
         CommandPalette["Command Palette<br/><i>commands + agents + skills</i>"]
         Predictions["Predictions<br/><i>brain-log analysis</i>"]
+        StreamList --> BumpLogic
     end
 
     subgraph CLAUDE_CODE["Claude Code (Agent System)"]
@@ -155,6 +160,7 @@ graph TB
         Voice["Voice Mode<br/><code>voice.py</code>"]
         TGBot["Telegram Bot<br/><code>main.py</code>"]
         Heartbeat["Heartbeat<br/>Scheduler"]
+        ProactivePoll["Proactive Poll<br/><i>email + stream ingest</i>"]
 
         subgraph CAPABILITIES["Capabilities"]
             Remember["Remember"]
@@ -167,6 +173,7 @@ graph TB
         Voice --> CAPABILITIES
         TGBot --> CAPABILITIES
         TGBot --> Heartbeat
+        Heartbeat --> ProactivePoll
     end
 
     subgraph SHARED["Shared File System"]
@@ -229,18 +236,22 @@ The Command Centre lives in `brain/command_centre/` and is a Textual-based TUI l
 | **Tile Grid** | `tile_grid.py` | 3x3 task tile grid with quadrant colours, hierarchy badges |
 | **Context Panel** | `context_panel.py` | Task detail, response display, action suggestions |
 | **Command Bar** | `command_bar.py` | Input for slash commands, filters, natural language |
-| **Status Bar** | `status_bar.py` | Hints + counts (tasks, today, overdue, telegram, voice) |
+| **Status Bar** | `status_bar.py` | Hints + counts (tasks, today, overdue, TG: ON/OFF, BEAT: ON/OFF, voice) |
 | **Router** | `router.py` | Routes input to slash handlers or OutBot (injects focused task context for chat) |
 | **Task Editor** | `task_editor.py` | Modal for editing task fields (title, quadrant, due, etc.) |
 | **Command Palette** | `command_palette.py` | Navigable modal: commands, agents, skills (/ key) |
 | **Filter Picker** | `filter_picker.py` | Navigable modal: q1-q4, overdue, today filters (: key) |
 | **Task Focus** | `task_focus.py` | Single-task view with field editing + research/notes viewer |
 | **Telegram Bridge** | `telegram_bridge.py` | Background Telegram connection + message forwarding |
-| **Heartbeat Bridge** | `heartbeat_bridge.py` | Background 60s scheduler — checks overdue tasks, shows toast notifications |
+| **Heartbeat Bridge** | `heartbeat_bridge.py` | Background 60s scheduler — checks overdue tasks, proactive email polling, shows toast notifications |
 | **Voice Handler** | `handlers/voice.py` | Recording via sounddevice, transcription via faster-whisper, TTS via macOS say |
 | **Predictions** | `predictions.py` | Brain-log analysis for launch-time suggestions |
 | **Skill Matcher** | `skill_matcher.py` | Keyword matching for agent/skill suggestions |
 | **Help Generator** | `help_gen.py` | Generates HELP.md, _HELP_TEXT, /help from `help_data.yml` (single source of truth) |
+| **Stream List** | `stream_list.py` | Inbox-style scrollable list with bump states + visual freshness |
+| **Bump Logic** | `bump.py` | State machine for NEW/SEEN/BACK + undo stack |
+| **Bump Persist** | `bump_persist.py` | Saves stream state to task YAML frontmatter |
+| **CC Logger** | `cc_logger.py` | Rotating debug log for commands, chat, errors |
 | **Handlers** | `handlers/` | Slash command implementations (triage, enrich, research, email, agents, memory, voice) |
 
 ### Claude Code Agents
@@ -283,7 +294,7 @@ Weekly Review:   Daily pipeline + Meta Agent + Navigator Updater + Memory Writer
 | **Outbox** | `brain/mail/outbox.py` | Gmail SMTP email sending |
 | **Daily Review** | `brain/workflows/daily_review.py` | Sync reminders, generate dashboard, check overdue — pure Python |
 | **Claude Client** | `brain/core/claude_client.py` | Calls `claude --print` (Max plan, no API key) |
-| **Telegram Adapter** | `brain/telegram/bot.py` | Telegram Bot API long-polling adapter |
+| **Telegram Adapter** | `brain/telegram/bot.py` | Telegram Bot API long-polling adapter with 60s watchdog auto-restart |
 | **Telegram Formatter** | `brain/telegram/formatter.py` | Converts markdown to Telegram HTML |
 | **Personality** | `brain/personality/loader.py` | Loads SOUL.md, USER.md for OutBot's voice |
 
