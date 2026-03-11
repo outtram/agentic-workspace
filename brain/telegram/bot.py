@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 API_BASE = "https://api.telegram.org/bot{token}"
 POLL_TIMEOUT = 30  # Long-polling timeout in seconds
+WATCHDOG_INTERVAL = 60  # Check poll task health every 60s
 
 
 @dataclass
@@ -52,6 +53,7 @@ class TelegramBot:
         self._running = False
         self._bot_username: str = ""
         self._bot_id: int = 0
+        self._watchdog_task: Optional[asyncio.Task] = None
 
     async def start(self) -> None:
         """Connect to Telegram and start polling for updates."""
@@ -65,21 +67,57 @@ class TelegramBot:
 
         self.event_bus.publish(ConnectionChanged(connected=True))
         self._poll_task = asyncio.create_task(self._poll_loop())
+        self._poll_task.add_done_callback(self._on_poll_done)
+        self._watchdog_task = asyncio.create_task(self._watchdog())
 
     async def stop(self) -> None:
         """Stop polling and disconnect."""
         self._running = False
-        if self._poll_task and not self._poll_task.done():
-            self._poll_task.cancel()
-            try:
-                await self._poll_task
-            except asyncio.CancelledError:
-                pass
+        for task in (self._poll_task, self._watchdog_task):
+            if task and not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
         if self._client:
             await self._client.aclose()
             self._client = None
         self.event_bus.publish(ConnectionChanged(connected=False))
         logger.info("Telegram bot stopped")
+
+    def _on_poll_done(self, task: asyncio.Task) -> None:
+        """Log when poll loop exits unexpectedly."""
+        if not self._running:
+            return
+        exc = task.exception() if not task.cancelled() else None
+        if exc:
+            logger.error("Poll loop died with: %s: %s", type(exc).__name__, exc)
+        else:
+            logger.warning("Poll loop exited unexpectedly (no exception)")
+        self.event_bus.publish(ConnectionChanged(connected=False))
+
+    async def _watchdog(self) -> None:
+        """Periodically check poll task health and restart if dead."""
+        while self._running:
+            await asyncio.sleep(WATCHDOG_INTERVAL)
+            if not self._running:
+                break
+            if self._poll_task and self._poll_task.done():
+                logger.warning("Watchdog: poll loop dead, restarting...")
+                # Recreate httpx client in case it went stale
+                try:
+                    if self._client:
+                        await self._client.aclose()
+                    self._client = httpx.AsyncClient(
+                        timeout=httpx.Timeout(POLL_TIMEOUT + 10)
+                    )
+                    self._poll_task = asyncio.create_task(self._poll_loop())
+                    self._poll_task.add_done_callback(self._on_poll_done)
+                    self.event_bus.publish(ConnectionChanged(connected=True))
+                    logger.info("Watchdog: poll loop restarted")
+                except Exception as e:
+                    logger.error("Watchdog: restart failed: %s", e)
 
     async def send_message(
         self, chat_id: str, text: str, parse_mode: str = "HTML"
