@@ -38,6 +38,25 @@
 | ? | Show help overlay |
 | Escape | Back one level → clear filter → clear selection → double-tap to quit |
 
+### Stream View
+
+| Key | Action |
+|-----|--------|
+| ↑ / ↓ | Navigate items |
+| PgUp / PgDn | Jump 10 items |
+| Home / End | Jump to top / bottom |
+| Enter | Open item (switches to focus view) |
+| t | Bump to top (marks as NEW) |
+| b | Bump to back (sinks to bottom) |
+| s | Snooze (1h / tomorrow / next week) |
+| d | Mark done |
+| z | Undo last bump |
+| v | Cycle view (Stream → Grid → Diagram) |
+| c | Toggle chat (split layout) |
+| / | Commands |
+| : | Filter |
+| ? | Help |
+
 ### Task Focus View (when zoomed into a task)
 
 | Key | Action |

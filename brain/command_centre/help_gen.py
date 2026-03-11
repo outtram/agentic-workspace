@@ -90,6 +90,18 @@ def generate_help_md(data: dict) -> str:
         [[k["key"], k["action"]] for k in all_grid_keys],
     ))
 
+    # Stream view
+    if "stream_view_keys" in data:
+        lines.extend(["", "### Stream View", ""])
+        all_stream_keys = []
+        for section in ["navigation", "actions"]:
+            if section in data["stream_view_keys"]:
+                all_stream_keys.extend(data["stream_view_keys"][section])
+        lines.append(_table(
+            ["Key", "Action"],
+            [[k["key"], k["action"]] for k in all_stream_keys],
+        ))
+
     # Focus view
     lines.extend(["", "### Task Focus View (when zoomed into a task)", ""])
     lines.append(_table(
@@ -218,6 +230,17 @@ def generate_help_text_rich(data: dict) -> str:
         # Escape Rich markup characters
         key_display = key_display.replace("[", "\\[").replace("]", "\\]")
         lines.append(f'  {key_display:<14s}{k["action"]}')
+
+    if "stream_view_keys" in data:
+        lines.append('')
+        lines.append('[bold]Stream View[/]')
+        lines.append('[bold]  Navigation[/]')
+        for k in data["stream_view_keys"].get("navigation", []):
+            lines.append(f'  {k["key"]:<14s}{k["action"]}')
+        lines.append('[bold]  Actions[/]')
+        for k in data["stream_view_keys"].get("actions", []):
+            key_display = k["key"].replace("[", "\\[").replace("]", "\\]")
+            lines.append(f'  {key_display:<14s}{k["action"]}')
 
     lines.append('')
     lines.append('[bold]Task Focus View[/]  (when zoomed into a task)')

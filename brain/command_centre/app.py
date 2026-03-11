@@ -88,6 +88,24 @@ _HELP_TEXT = """\
   ?             Show help overlay
   Escape        Back one level → clear filter → clear selection → double-tap to quit
 
+[bold]Stream View[/]
+[bold]  Navigation[/]
+  ↑ / ↓         Navigate items
+  PgUp / PgDn   Jump 10 items
+  Home / End    Jump to top / bottom
+  Enter         Open item (switches to focus view)
+[bold]  Actions[/]
+  t             Bump to top (marks as NEW)
+  b             Bump to back (sinks to bottom)
+  s             Snooze (1h / tomorrow / next week)
+  d             Mark done
+  z             Undo last bump
+  v             Cycle view (Stream → Grid → Diagram)
+  c             Toggle chat (split layout)
+  /             Commands
+  :             Filter
+  ?             Help
+
 [bold]Task Focus View[/]  (when zoomed into a task)
   ↑ / ↓         Navigate between fields
   Enter         Edit field (text input) or cycle choice (quadrant/priority/status)

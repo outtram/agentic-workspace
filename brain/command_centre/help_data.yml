@@ -63,6 +63,39 @@ grid_view_keys:
     - key: "Escape"
       action: "Back one level → clear filter → clear selection → double-tap to quit"
 
+stream_view_keys:
+  navigation:
+    - key: "↑ / ↓"
+      action: "Navigate items"
+    - key: "PgUp / PgDn"
+      action: "Jump 10 items"
+    - key: "Home / End"
+      action: "Jump to top / bottom"
+    - key: "Enter"
+      action: "Open item (switches to focus view)"
+
+  actions:
+    - key: "t"
+      action: "Bump to top (marks as NEW)"
+    - key: "b"
+      action: "Bump to back (sinks to bottom)"
+    - key: "s"
+      action: "Snooze (1h / tomorrow / next week)"
+    - key: "d"
+      action: "Mark done"
+    - key: "z"
+      action: "Undo last bump"
+    - key: "v"
+      action: "Cycle view (Stream → Grid → Diagram)"
+    - key: "c"
+      action: "Toggle chat (split layout)"
+    - key: "/"
+      action: "Commands"
+    - key: ":"
+      action: "Filter"
+    - key: "?"
+      action: "Help"
+
 focus_view_keys:
   - key: "↑ / ↓"
     action: "Navigate between fields"
