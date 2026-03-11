@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 344
-last_synced: '2026-03-10T20:02:31.526828'
+next_id: 345
+last_synced: '2026-03-11T22:44:49.302160'
 entries:
   OUT-223:
     title: Fire place fix
@@ -546,3 +546,10 @@ entries:
     reminder_id: null
     status: todo
     created: '2026-03-10T20:02:31.526078'
+  OUT-344:
+    title: look into how we can use this new tool
+    file: OUT-344-look-into-how-we-can-use-this-new-tool.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://123353CF-D568-4595-885F-54A93FE3D3AA
+    status: todo
+    created: '2026-03-11T22:44:49.300900'
