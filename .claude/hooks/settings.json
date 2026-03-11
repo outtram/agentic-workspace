@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\ncmd = data.get('tool_input', {}).get('command', '')\nif 'git commit' in cmd and '--amend' not in cmd:\n    import subprocess\n    r = subprocess.run(['python3', '-m', 'brain.command_centre.help_gen', '--check'], capture_output=True, text=True)\n    if r.returncode != 0:\n        print(json.dumps({'decision': 'block', 'reason': 'Help outputs are stale. Run: python3 -m brain.command_centre.help_gen'}))\n        sys.exit(0)\nprint(json.dumps({}))\n\""
+            "command": "python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\ncmd = data.get('tool_input', {}).get('command', '')\nif 'git commit' in cmd and '--amend' not in cmd:\n    import subprocess\n    # Check if CC files are staged\n    r = subprocess.run(['git', 'diff', '--cached', '--name-only'], capture_output=True, text=True)\n    staged = r.stdout.strip()\n    if 'brain/command_centre/' in staged:\n        # Check help sync\n        h = subprocess.run(['python3', '-m', 'brain.command_centre.help_gen', '--check'], capture_output=True, text=True)\n        if h.returncode != 0:\n            print(json.dumps({'decision': 'block', 'reason': 'Help outputs are stale. Run: python3 -m brain.command_centre.help_gen'}))\n            sys.exit(0)\n        # Check ARCHITECTURE.md is staged too\n        if 'docs/ARCHITECTURE.md' not in staged and 'HELP.md' not in staged and 'help_data.yml' not in staged:\n            print(json.dumps({'decision': 'block', 'reason': 'CC files staged without docs. Stage at least one of: docs/ARCHITECTURE.md, HELP.md, or help_data.yml'}))\n            sys.exit(0)\nprint(json.dumps({}))\n\""
           }
         ]
       }
@@ -57,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"hookSpecificOutput\":{\"notification\":\"CC Python file modified. If you added/changed a slash command, update help_data.yml and run: python3 -m brain.command_centre.help_gen. Run tests before committing: python3 -m pytest brain/tests/test_command_centre/ -x -q\"}}'"
+            "command": "echo '{\"hookSpecificOutput\":{\"notification\":\"CC Python file modified. Before committing: (1) If commands/keys changed → update help_data.yml then run: python3 -m brain.command_centre.help_gen (2) If features/architecture changed → update docs/ARCHITECTURE.md (3) Run tests: python3 -m pytest brain/tests/test_command_centre/ -x -q\"}}'"
           }
         ]
       }
