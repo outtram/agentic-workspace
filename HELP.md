@@ -35,6 +35,7 @@
 | e | Edit focused task (modal) |
 | v | Toggle voice mode |
 | : | Filter Picker — new/seen/back, email/reminder, quadrants, overdue, today, or freetext search |
+| m | Enter music mode (TidalCycles) |
 | ? | Show help overlay |
 | Escape | Back one level → clear filter → clear selection → double-tap to quit |
 
@@ -73,6 +74,21 @@
 | Space | Toggle select |
 
 Arrow down past Description to the **Notes & Research** section. Press Enter to view full content.
+
+### Music Mode (m key or /music)
+
+| Key | Action |
+|-----|--------|
+| Enter | Send generated code to TidalCycles (or submit natural language) |
+| e | Edit generated code before sending |
+| x | Cancel generated code |
+| v | Open Chrome audio visualiser |
+| s | Save current session to song folder |
+| h | Hush — silence all patterns |
+| n | New song (generates MUS-XXX with fun name) |
+| +/- | Adjust BPM up/down by 5 |
+| ? | Show help overlay |
+| Escape | Exit music mode (back to previous view) |
 
 ### Diagram View (/diagram)
 
@@ -134,6 +150,7 @@ Arrow down past Description to the **Notes & Research** section. Press Enter to 
 | `/arch` | Open architecture diagram in browser |
 | `/diagram` | Switch to diagram viewer (or /diagram <name>) |
 | `/tasks` | Switch back to task grid |
+| `/music` | Enter music mode (TidalCycles natural language interface) |
 | `/help` | Show available commands |
 
 ### Predictions (on launch)

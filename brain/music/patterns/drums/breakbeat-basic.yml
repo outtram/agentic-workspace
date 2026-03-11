@@ -1,0 +1,7 @@
+name: breakbeat-basic
+description: Basic breakbeat pattern with kick and snare
+category: drums
+genre: breakbeat
+bpm_range: [130, 145]
+code: 'd1 $ s "bd ~ [~ bd] ~" # gain 1.0 |+ s "~ sd ~ sd"'
+tags: [breakbeat, dnb, jungle]

@@ -111,6 +111,14 @@ def generate_help_md(data: dict) -> str:
     lines.append("")
     lines.append("Arrow down past Description to the **Notes & Research** section. Press Enter to view full content.")
 
+    # Music mode
+    if "music_mode_keys" in data:
+        lines.extend(["", "### Music Mode (m key or /music)", ""])
+        lines.append(_table(
+            ["Key", "Action"],
+            [[k["key"], k["action"]] for k in data["music_mode_keys"]],
+        ))
+
     # Diagram view
     if "diagram_view_keys" in data:
         lines.extend(["", "### Diagram View (/diagram)", ""])
@@ -246,6 +254,13 @@ def generate_help_text_rich(data: dict) -> str:
     lines.append('[bold]Task Focus View[/]  (when zoomed into a task)')
     for k in data["focus_view_keys"]:
         lines.append(f'  {k["key"]:<14s}{k["action"]}')
+
+    if "music_mode_keys" in data:
+        lines.append('')
+        lines.append('[bold]Music Mode[/]  (m key or /music)')
+        for k in data["music_mode_keys"]:
+            key_display = k["key"].replace("[", "\\[").replace("]", "\\]")
+            lines.append(f'  {key_display:<14s}{k["action"]}')
 
     if "diagram_view_keys" in data:
         lines.append('')

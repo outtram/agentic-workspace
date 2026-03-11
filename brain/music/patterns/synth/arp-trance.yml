@@ -1,0 +1,7 @@
+name: arp-trance
+description: Rising trance arpeggio
+category: synth
+genre: trance
+bpm_range: [136, 145]
+code: 'd9 $ fast 2 $ note "0 3 7 12 7 3" # s "supersaw" # gain 0.5 # lpf 5000 # delay 0.3 # delaytime 0.125'
+tags: [arp, trance, uplifting, saw]

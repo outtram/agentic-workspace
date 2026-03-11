@@ -1,0 +1,7 @@
+name: acid-line
+description: Classic acid bass line with resonant filter
+category: bass
+genre: acid
+bpm_range: [125, 140]
+code: 'd5 $ note "0 3 5 7" # s "supersaw" # lpf (range 400 4000 $ slow 4 sine) # resonance 0.3 # gain 0.8'
+tags: [acid, bass, 303, squelchy]

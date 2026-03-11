@@ -50,6 +50,7 @@ from .heartbeat_bridge import HeartbeatBridge
 from .brain_logger import log_action
 from .cc_logger import logger as cc_log
 from .stream_list import StreamList
+from .music_view import MusicView
 from .bump import (
     bump_top, bump_back, mark_seen, snooze,
     undo_last, stream_sort_key, check_snoozed,
@@ -85,6 +86,7 @@ _HELP_TEXT = """\
   e             Edit focused task (modal)
   v             Toggle voice mode
   :             Filter Picker — new/seen/back, email/reminder, quadrants, overdue, today, or freetext search
+  m             Enter music mode (TidalCycles)
   ?             Show help overlay
   Escape        Back one level → clear filter → clear selection → double-tap to quit
 
@@ -117,6 +119,18 @@ _HELP_TEXT = """\
   t             Add to today
   d             Mark done
   Space         Toggle select
+
+[bold]Music Mode[/]  (m key or /music)
+  Enter         Send generated code to TidalCycles (or submit natural language)
+  e             Edit generated code before sending
+  x             Cancel generated code
+  v             Open Chrome audio visualiser
+  s             Save current session to song folder
+  h             Hush — silence all patterns
+  n             New song (generates MUS-XXX with fun name)
+  +/-           Adjust BPM up/down by 5
+  ?             Show help overlay
+  Escape        Exit music mode (back to previous view)
 
 [bold]Diagram View[/]  (/diagram)
   Arrow keys    Move focus between nodes
@@ -262,6 +276,10 @@ class CommandCentreApp(App):
         width: 1fr;
         opacity: 0.3;
     }
+    #music-view {
+        width: 3fr;
+        display: none;
+    }
     #cmd-suggestions {
         height: auto;
         max-height: 14;
@@ -286,9 +304,10 @@ class CommandCentreApp(App):
         self._escape_pending = False
         self._hotkeys: dict = {}
 
-        # View mode: "stream", "grid", "focus", or "diagram"
+        # View mode: "stream", "grid", "focus", "diagram", or "music"
         self._view_mode: str = "stream"
         self._diagram_path: Path | None = None
+        self._pre_music_view: str = "stream"  # view to return to on music exit
 
         # Stream bump state
         self._undo_stack: list[dict] = []
@@ -384,6 +403,7 @@ class CommandCentreApp(App):
             yield TileGrid(id="tile-grid")
             yield TaskFocusView(id="task-focus")
             yield DiagramGrid(id="diagram-grid")
+            yield MusicView(id="music-view")
             yield ContextPanel(id="context-panel")
         yield Static(id="cmd-suggestions")
         yield CommandBarWidget(id="command-bar")
@@ -421,11 +441,20 @@ class CommandCentreApp(App):
             focus_view = self.query_one("#task-focus", TaskFocusView)
             diagram_grid = self.query_one("#diagram-grid", DiagramGrid)
 
-            if self._view_mode == "stream":
+            music_view = self.query_one("#music-view", MusicView)
+
+            if self._view_mode == "music":
+                stream.styles.display = "none"
+                grid.styles.display = "none"
+                focus_view.styles.display = "none"
+                diagram_grid.styles.display = "none"
+                music_view.styles.display = "block"
+            elif self._view_mode == "stream":
                 stream.styles.display = "block"
                 grid.styles.display = "none"
                 focus_view.styles.display = "none"
                 diagram_grid.styles.display = "none"
+                music_view.styles.display = "none"
 
                 sorted_tasks = sorted(self.all_tasks, key=stream_sort_key)
                 visible = [
@@ -438,6 +467,7 @@ class CommandCentreApp(App):
                 grid.styles.display = "block"
                 focus_view.styles.display = "none"
                 diagram_grid.styles.display = "none"
+                music_view.styles.display = "none"
                 grid.update_tiles(
                     self.page_tasks,
                     self.focus_index,
@@ -450,11 +480,13 @@ class CommandCentreApp(App):
                 grid.styles.display = "none"
                 focus_view.styles.display = "block"
                 diagram_grid.styles.display = "none"
+                music_view.styles.display = "none"
             elif self._view_mode == "diagram":
                 stream.styles.display = "none"
                 grid.styles.display = "none"
                 focus_view.styles.display = "none"
                 diagram_grid.styles.display = "block"
+                music_view.styles.display = "none"
         except Exception:
             pass
 
@@ -484,7 +516,21 @@ class CommandCentreApp(App):
 
         # Status bar
         status = self.query_one("#status-bar", StatusBarWidget)
-        if self._view_mode == "diagram":
+        if self._view_mode == "music":
+            try:
+                mv = self.query_one("#music-view", MusicView)
+                info = mv.status_info
+                status.update_counts(
+                    view_mode="music",
+                    music_song=info.get("song", ""),
+                    music_bpm=info.get("bpm", 128),
+                    music_key=info.get("key", "C"),
+                    music_playing=info.get("playing", False),
+                    music_patterns=info.get("pattern_count", 0),
+                )
+            except Exception:
+                status.update_counts(view_mode="music")
+        elif self._view_mode == "diagram":
             try:
                 dg = self.query_one("#diagram-grid", DiagramGrid)
                 status.update_counts(
@@ -618,6 +664,16 @@ class CommandCentreApp(App):
         # Voice mode — Enter starts/stops recording
         if self.voice.active and key == "enter":
             self._voice_enter()
+            return
+
+        # --- Music mode keys ---
+        if self._view_mode == "music":
+            self._handle_music_key(key, char, hk)
+            return
+
+        # --- 'm' key enters music mode from any non-music view ---
+        if char == hk.get("music_mode", "m") and self._view_mode != "focus":
+            self._enter_music_mode()
             return
 
         # --- Stream view keys ---
@@ -860,7 +916,30 @@ class CommandCentreApp(App):
                     top.dismiss(None)
                 return
 
-        # 2. Diagram mode: zoom out or exit to grid
+        # 2. Music mode: exit back to previous view
+        if self._view_mode == "music":
+            # If music input is focused, blur it first
+            try:
+                music_input = self.query_one("#music-input", Input)
+                if music_input.has_focus:
+                    music_input.value = ""
+                    music_input.blur()
+                    return
+            except Exception:
+                pass
+            # Cancel pending code if any
+            try:
+                mv = self.query_one("#music-view", MusicView)
+                if mv.get_pending_code():
+                    mv.cancel_code()
+                    self._refresh_all()
+                    return
+            except Exception:
+                pass
+            self._exit_music_mode()
+            return
+
+        # 3. Diagram mode: zoom out or exit to grid
         if self._view_mode == "diagram":
             try:
                 dg = self.query_one("#diagram-grid", DiagramGrid)
@@ -1070,6 +1149,132 @@ class CommandCentreApp(App):
             self.focus_index = 0
         self._refresh_all()
 
+    # --- Music mode ---
+
+    def _enter_music_mode(self):
+        """Switch to music mode."""
+        self._pre_music_view = self._view_mode
+        self._view_mode = "music"
+        self._escape_pending = False
+        try:
+            mv = self.query_one("#music-view", MusicView)
+            mv.activate()
+        except Exception:
+            pass
+        self._refresh_all()
+        self.notify("Music mode ON  (Esc to exit)")
+
+    def _exit_music_mode(self):
+        """Switch back to previous view from music mode."""
+        try:
+            mv = self.query_one("#music-view", MusicView)
+            mv.deactivate()
+        except Exception:
+            pass
+        self._view_mode = self._pre_music_view or "stream"
+        self._escape_pending = False
+        self._refresh_all()
+        self.notify("Music mode OFF")
+
+    def _handle_music_key(self, key: str, char: str | None, hk: dict):
+        """Handle keys in music mode."""
+        # If music input is focused, let it handle keys (except special ones)
+        try:
+            music_input = self.query_one("#music-input", Input)
+            if music_input.has_focus:
+                # Only intercept special keys when input is focused
+                if key == "enter":
+                    mv = self.query_one("#music-view", MusicView)
+                    if mv.get_pending_code():
+                        mv.confirm_code()
+                        self._refresh_all()
+                        self.notify("Pattern sent")
+                    else:
+                        text = music_input.value
+                        music_input.value = ""
+                        asyncio.create_task(self._music_handle_input(text))
+                    return
+                # Let the input widget handle everything else
+                return
+        except Exception:
+            pass
+
+        # Keys when input is NOT focused (pending code review)
+        try:
+            mv = self.query_one("#music-view", MusicView)
+        except Exception:
+            return
+
+        if mv.get_pending_code():
+            # Pending code — enter/e/x
+            if key == "enter":
+                mv.confirm_code()
+                self._refresh_all()
+                self.notify("Pattern sent")
+            elif char == "e":
+                code = mv.get_pending_code()
+                if code:
+                    try:
+                        music_input = self.query_one("#music-input", Input)
+                        music_input.value = code
+                        music_input.focus()
+                    except Exception:
+                        pass
+            elif char == "x":
+                mv.cancel_code()
+                self._refresh_all()
+                self.notify("Cancelled")
+            return
+
+        # General music mode keys
+        if char == hk.get("music_visualiser", "v"):
+            if mv.open_visualiser():
+                self.notify("Visualiser opened in Chrome")
+            else:
+                self.notify("Visualiser HTML not found", severity="warning")
+        elif char == hk.get("music_save", "s"):
+            if mv.save_session():
+                self.notify("Session saved")
+            else:
+                self.notify("Nothing to save", severity="warning")
+        elif char == hk.get("music_hush", "h"):
+            mv._do_hush()
+            self._refresh_all()
+            self.notify("Hushed")
+        elif char == hk.get("music_new", "n"):
+            mv.new_song()
+            self._refresh_all()
+            self.notify(f"New song: {mv.song_name}")
+        elif char == "+":
+            mv.adjust_bpm(5)
+            self._refresh_all()
+        elif char == "-":
+            mv.adjust_bpm(-5)
+            self._refresh_all()
+        elif char == hk.get("help", "?"):
+            self.push_screen(HelpOverlay())
+        else:
+            # Any other character — focus the input
+            try:
+                music_input = self.query_one("#music-input", Input)
+                music_input.focus()
+                if char and char.isprintable():
+                    music_input.value = char
+                    music_input.cursor_position = 1
+            except Exception:
+                pass
+
+    async def _music_handle_input(self, text: str):
+        """Handle music chat input asynchronously."""
+        try:
+            mv = self.query_one("#music-view", MusicView)
+            result = await mv.handle_input(text)
+            if result:
+                self.notify(result)
+            self._refresh_all()
+        except Exception as e:
+            self.notify(f"Error: {e}", severity="error")
+
     # --- Stream bump actions ---
 
     def _stream_bump_top(self):
@@ -1268,6 +1473,9 @@ class CommandCentreApp(App):
             if result.lower() == "/tasks":
                 self._exit_diagram()
                 return
+            if result == "__MUSIC_MODE__" or result.lower() == "/music":
+                self._enter_music_mode()
+                return
             # Route through the command pipeline
             asyncio.create_task(self._run_palette_action(result, task))
 
@@ -1304,6 +1512,11 @@ class CommandCentreApp(App):
             )
         except Exception as e:
             result = f"[red]Error: {e}[/]"
+
+        # Handle music mode signal
+        if result == "__MUSIC_MODE__":
+            self._enter_music_mode()
+            return
 
         # Finish progress tracking
         self._finish_progress(result)

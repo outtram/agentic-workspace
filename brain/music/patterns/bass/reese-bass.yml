@@ -1,0 +1,7 @@
+name: reese-bass
+description: Detuned reese bass for DnB and darker styles
+category: bass
+genre: dnb
+bpm_range: [170, 180]
+code: 'd5 $ note "0 ~ 0 ~" # s "supersaw" # detune 0.3 # lpf 800 # gain 0.85'
+tags: [reese, bass, dnb, dark]

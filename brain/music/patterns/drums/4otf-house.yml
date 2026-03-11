@@ -1,0 +1,7 @@
+name: 4otf-house
+description: Classic four-on-the-floor house kick
+category: drums
+genre: house
+bpm_range: [120, 130]
+code: 'd1 $ s "bd*4" # gain 1.1'
+tags: [house, kick, four-on-the-floor]

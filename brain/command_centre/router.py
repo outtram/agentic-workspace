@@ -140,6 +140,8 @@ class Router:
             arch_path = PROJECT_ROOT / "docs" / "architecture-diagram.html"
             subprocess.Popen(["open", str(arch_path)])
             return "[green]Opened architecture diagram in browser[/]"
+        elif cmd == "/music":
+            return "__MUSIC_MODE__"
         elif cmd == "/help":
             try:
                 from .help_gen import generate_help_router, _load_yaml, HELP_DATA

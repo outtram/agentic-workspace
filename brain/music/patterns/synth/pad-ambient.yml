@@ -1,0 +1,7 @@
+name: pad-ambient
+description: Slow-evolving ambient pad
+category: synth
+genre: ambient
+bpm_range: [80, 120]
+code: 'd9 $ slow 4 $ note "0 3 7 10" # s "superpiano" # gain 0.5 # room 0.8 # sz 0.9 # lpf 2000'
+tags: [pad, ambient, dreamy, chords]

@@ -1,0 +1,7 @@
+name: techno-minimal
+description: Minimal techno kick and hat pattern
+category: drums
+genre: techno
+bpm_range: [128, 140]
+code: 'd1 $ s "bd*4" # gain 1.0 |+ s "~ ~ hh ~" # gain 0.6'
+tags: [techno, minimal, kick, hat]

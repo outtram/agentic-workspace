@@ -79,3 +79,7 @@ dashboard.html
 # Temp Office files
 ~$*
 .superpowers/
+
+# Music mode — audio samples (too large for git)
+brain/music/samples/
+!brain/music/samples/.gitkeep

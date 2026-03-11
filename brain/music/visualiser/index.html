@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TidalCycles Visualiser</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    overflow: hidden;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    cursor: none;
+  }
+  canvas { display: block; }
+  #overlay {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    line-height: 1.6;
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  #overlay.hidden { opacity: 0; }
+  #overlay .song { color: #FF6B35; font-size: 18px; font-weight: bold; }
+  #overlay .meta { color: #00D4AA; }
+  #overlay .mode { color: rgba(255,255,255,0.3); font-size: 12px; }
+  #prompt {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #FF6B35;
+    font-size: 20px;
+    text-align: center;
+    z-index: 20;
+    cursor: pointer;
+  }
+  #prompt span { color: #00D4AA; }
+  #controls {
+    position: fixed;
+    bottom: 20px;
+    right: 24px;
+    color: rgba(255,255,255,0.2);
+    font-size: 11px;
+    text-align: right;
+    line-height: 1.5;
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  #controls.hidden { opacity: 0; }
+</style>
+</head>
+<body>
+<canvas id="viz"></canvas>
+
+<div id="overlay">
+  <div class="song" id="song-name">TIDAL VISUALISER</div>
+  <div class="meta"><span id="bpm-display">128</span> BPM &middot; <span id="key-display">C</span></div>
+  <div class="mode" id="mode-display">FREQUENCY BARS</div>
+</div>
+
+<div id="controls">
+  1-4 modes &middot; f fullscreen &middot; h hide &middot; space pause
+</div>
+
+<div id="prompt" onclick="startAudio()">
+  Click or press any key to <span>start audio capture</span>
+</div>
+
+<script>
+const canvas = document.getElementById('viz');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const controls = document.getElementById('controls');
+const prompt = document.getElementById('prompt');
+
+// URL params
+const params = new URLSearchParams(window.location.search);
+document.getElementById('song-name').textContent = params.get('song') || 'TIDAL VISUALISER';
+document.getElementById('bpm-display').textContent = params.get('bpm') || '128';
+document.getElementById('key-display').textContent = params.get('key') || 'C';
+
+let audioCtx, analyser, dataArray, freqData;
+let mode = 1; // 1=bars, 2=waveform, 3=circular, 4=particles
+let paused = false;
+let started = false;
+const modeNames = ['', 'FREQUENCY BARS', 'WAVEFORM', 'CIRCULAR', 'PARTICLES'];
+
+// Particles array for mode 4
+let particles = [];
+const MAX_PARTICLES = 300;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+async function startAudio() {
+  if (started) return;
+  started = true;
+  prompt.style.display = 'none';
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.8;
+
+  const bufLen = analyser.frequencyBinCount;
+  dataArray = new Uint8Array(bufLen);
+  freqData = new Uint8Array(bufLen);
+
+  try {
+    // Try system audio capture first
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      audio: true,
+      video: { width: 1, height: 1 }  // minimal video
+    });
+    // Stop the video track — we only want audio
+    stream.getVideoTracks().forEach(t => t.stop());
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+  } catch (e) {
+    try {
+      // Fall back to microphone
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+    } catch (e2) {
+      prompt.textContent = 'Audio capture unavailable';
+      prompt.style.display = 'block';
+      return;
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+
+// Colour helpers
+function primaryColour(alpha) { return `rgba(255, 107, 53, ${alpha})`; }  // #FF6B35
+function accentColour(alpha) { return `rgba(0, 212, 170, ${alpha})`; }    // #00D4AA
+
+function getEnergy() {
+  if (!freqData) return { bass: 0, mid: 0, treble: 0, total: 0 };
+  const len = freqData.length;
+  let bass = 0, mid = 0, treble = 0;
+  for (let i = 0; i < len * 0.1; i++) bass += freqData[i];
+  for (let i = Math.floor(len * 0.1); i < len * 0.5; i++) mid += freqData[i];
+  for (let i = Math.floor(len * 0.5); i < len; i++) treble += freqData[i];
+  bass /= (len * 0.1) * 255;
+  mid /= (len * 0.4) * 255;
+  treble /= (len * 0.5) * 255;
+  return { bass, mid, treble, total: (bass + mid + treble) / 3 };
+}
+
+function draw() {
+  if (!paused) {
+    analyser.getByteFrequencyData(freqData);
+    analyser.getByteTimeDomainData(dataArray);
+  }
+
+  ctx.fillStyle = 'rgba(10, 10, 10, 0.15)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  switch (mode) {
+    case 1: drawBars(); break;
+    case 2: drawWaveform(); break;
+    case 3: drawCircular(); break;
+    case 4: drawParticles(); break;
+  }
+
+  requestAnimationFrame(draw);
+}
+
+function drawBars() {
+  const w = canvas.width;
+  const h = canvas.height;
+  const len = freqData.length;
+  const barCount = Math.min(128, len);
+  const barW = w / barCount;
+  const energy = getEnergy();
+
+  for (let i = 0; i < barCount; i++) {
+    const val = freqData[i] / 255;
+    const barH = val * h * 0.85;
+    const x = i * barW;
+    const y = h - barH;
+
+    // Gradient from primary to accent
+    const ratio = i / barCount;
+    const r = Math.round(255 * (1 - ratio) + 0 * ratio);
+    const g = Math.round(107 * (1 - ratio) + 212 * ratio);
+    const b = Math.round(53 * (1 - ratio) + 170 * ratio);
+
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.6 + val * 0.4})`;
+    ctx.fillRect(x, y, barW - 1, barH);
+
+    // Glow on peaks
+    if (val > 0.7) {
+      ctx.shadowColor = `rgb(${r}, ${g}, ${b})`;
+      ctx.shadowBlur = 20;
+      ctx.fillRect(x, y, barW - 1, 2);
+      ctx.shadowBlur = 0;
+    }
+  }
+}
+
+function drawWaveform() {
+  const w = canvas.width;
+  const h = canvas.height;
+  const len = dataArray.length;
+  const energy = getEnergy();
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = primaryColour(0.8);
+  ctx.beginPath();
+
+  const sliceW = w / len;
+  let x = 0;
+  for (let i = 0; i < len; i++) {
+    const v = dataArray[i] / 128.0;
+    const y = v * h / 2;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+    x += sliceW;
+  }
+  ctx.stroke();
+
+  // Mirror with accent colour
+  ctx.strokeStyle = accentColour(0.4);
+  ctx.beginPath();
+  x = 0;
+  for (let i = 0; i < len; i++) {
+    const v = dataArray[i] / 128.0;
+    const y = h - (v * h / 2);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+    x += sliceW;
+  }
+  ctx.stroke();
+}
+
+function drawCircular() {
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const radius = Math.min(w, h) * 0.25;
+  const len = Math.min(128, freqData.length);
+  const energy = getEnergy();
+
+  // Outer ring — frequency
+  ctx.lineWidth = 2;
+  for (let i = 0; i < len; i++) {
+    const angle = (i / len) * Math.PI * 2 - Math.PI / 2;
+    const val = freqData[i] / 255;
+    const r = radius + val * radius * 1.5;
+
+    const x1 = cx + Math.cos(angle) * radius;
+    const y1 = cy + Math.sin(angle) * radius;
+    const x2 = cx + Math.cos(angle) * r;
+    const y2 = cy + Math.sin(angle) * r;
+
+    const ratio = i / len;
+    const cr = Math.round(255 * (1 - ratio) + 0 * ratio);
+    const cg = Math.round(107 * (1 - ratio) + 212 * ratio);
+    const cb = Math.round(53 * (1 - ratio) + 170 * ratio);
+
+    ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.5 + val * 0.5})`;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  // Inner pulse circle
+  const pulseR = radius * (0.3 + energy.bass * 0.7);
+  ctx.beginPath();
+  ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+  ctx.strokeStyle = primaryColour(0.3 + energy.bass * 0.5);
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function drawParticles() {
+  const w = canvas.width;
+  const h = canvas.height;
+  const energy = getEnergy();
+
+  // Spawn new particles based on energy
+  const spawnCount = Math.floor(energy.total * 10);
+  for (let i = 0; i < spawnCount && particles.length < MAX_PARTICLES; i++) {
+    const isBass = Math.random() < energy.bass;
+    particles.push({
+      x: w / 2 + (Math.random() - 0.5) * 100,
+      y: h / 2 + (Math.random() - 0.5) * 100,
+      vx: (Math.random() - 0.5) * (2 + energy.total * 8),
+      vy: (Math.random() - 0.5) * (2 + energy.total * 8),
+      life: 1,
+      decay: 0.005 + Math.random() * 0.015,
+      size: isBass ? 3 + energy.bass * 8 : 1 + Math.random() * 3,
+      colour: isBass ? 'primary' : 'accent',
+    });
+  }
+
+  // Update and draw
+  particles = particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.99;
+    p.vy *= 0.99;
+    p.life -= p.decay;
+
+    if (p.life <= 0) return false;
+
+    const colour = p.colour === 'primary'
+      ? primaryColour(p.life * 0.8)
+      : accentColour(p.life * 0.8);
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fillStyle = colour;
+    ctx.fill();
+
+    if (p.life > 0.7 && p.size > 4) {
+      ctx.shadowColor = p.colour === 'primary' ? '#FF6B35' : '#00D4AA';
+      ctx.shadowBlur = 15;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    return true;
+  });
+}
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+  if (!started) { startAudio(); return; }
+
+  switch (e.key) {
+    case '1': case '2': case '3': case '4':
+      mode = parseInt(e.key);
+      document.getElementById('mode-display').textContent = modeNames[mode];
+      break;
+    case 'f':
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+      break;
+    case 'h':
+      overlay.classList.toggle('hidden');
+      controls.classList.toggle('hidden');
+      break;
+    case ' ':
+      paused = !paused;
+      e.preventDefault();
+      break;
+  }
+});
+
+// Click to start
+document.addEventListener('click', () => { if (!started) startAudio(); });
+</script>
+</body>
+</html>

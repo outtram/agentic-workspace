@@ -51,6 +51,18 @@ _STREAM_HINTS = (
 )
 
 
+_MUSIC_HINTS = (
+    "[bold #FF6B35]Enter[/][dim] Send[/]  "
+    "[bold #FF6B35]v[/][dim] Visualiser[/]  "
+    "[bold #FF6B35]s[/][dim] Save[/]  "
+    "[bold #FF6B35]h[/][dim] Hush[/]  "
+    "[bold #FF6B35]n[/][dim] New Song[/]  "
+    "[bold #FF6B35]+/-[/][dim] BPM[/]  "
+    "[bold #FF6B35]Esc[/][dim] Exit[/]  "
+    "[bold #FF6B35]?[/][dim] Help[/]"
+)
+
+
 class StatusBarWidget(Static):
     """Two-line status bar — shortcut hints + counts."""
 
@@ -84,14 +96,36 @@ class StatusBarWidget(Static):
         stream_new: int = 0,
         stream_back: int = 0,
         stream_snoozed: int = 0,
+        music_song: str = "",
+        music_bpm: int = 128,
+        music_key: str = "C",
+        music_playing: bool = False,
+        music_patterns: int = 0,
     ):
         # Line 1: context-sensitive hints
-        if view_mode == "diagram":
+        if view_mode == "music":
+            line1 = _MUSIC_HINTS
+        elif view_mode == "diagram":
             line1 = _DIAGRAM_HINTS
         elif view_mode == "focus":
             line1 = _FOCUS_HINTS
         else:
             line1 = _GRID_HINTS
+
+        # Music mode — custom line 2
+        if view_mode == "music":
+            play_icon = "\u25b6" if music_playing else "\u25a0"
+            parts = [f"[bold #FF6B35]\u266a MUSIC[/]"]
+            if music_song:
+                parts.append(f"[bold]{music_song}[/]")
+            parts.append(f"[#00D4AA]{music_bpm} BPM[/]")
+            parts.append(f"[#00D4AA]{music_key}[/]")
+            if music_patterns:
+                parts.append(f"{music_patterns} patterns")
+            parts.append(f"{play_icon}")
+            line2 = " \u2502 ".join(parts)
+            self.update(f"{line1}\n{line2}")
+            return
 
         # Diagram mode — custom line 2
         if view_mode == "diagram":

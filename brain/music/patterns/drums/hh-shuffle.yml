@@ -1,0 +1,7 @@
+name: hh-shuffle
+description: Shuffly hi-hat pattern with triplet feel
+category: drums
+genre: house
+bpm_range: [118, 128]
+code: 'd3 $ struct "t(7,16)" $ s "hh" # gain 0.8'
+tags: [hi-hat, shuffle, triplet]

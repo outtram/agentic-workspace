@@ -1,0 +1,7 @@
+name: stab-house
+description: Classic house chord stab
+category: synth
+genre: house
+bpm_range: [120, 130]
+code: 'd9 $ note "~ [0,4,7] ~ [0,4,7]" # s "superpiano" # gain 0.6 # lpf 3000 # room 0.3'
+tags: [stab, house, chords, piano]
