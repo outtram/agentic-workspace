@@ -838,6 +838,8 @@ class CommandCentreApp(App):
             if 0 <= idx < node_count:
                 dg.focus_index = idx
                 self._refresh_all()
+        elif char == hk.get("cycle_view", "v"):
+            self._cycle_view()
         elif char == hk.get("command_bar", "/"):
             self._open_command_palette()
         elif char == hk.get("help", "?"):
