@@ -1,0 +1,10 @@
+name: 808-boom-bap
+description: Classic 808 boom bap beat — heavy kick, snappy snare, tight hats
+category: drums
+genre: hip-hop
+bpm_range: [85, 100]
+code: |
+  d1 $ s "eight0eight ~ ~ ~ eight0eight ~ ~ ~" # gain 1.2 # decay 1.5
+  d2 $ s "~ ~ eightsnare ~ ~ ~ eightsnare ~" # gain 0.9 # snap 0.7
+  d3 $ s "eightch*8" # gain 0.5 # pan (range (-0.3) 0.3 $ slow 4 sine)
+tags: [808, hip-hop, boom-bap, kick, snare, hat]

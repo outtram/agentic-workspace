@@ -1,0 +1,11 @@
+name: 909-house
+description: Classic house beat — 909 four-on-the-floor with offbeat hats and clap on 2+4
+category: drums
+genre: house
+bpm_range: [120, 128]
+code: |
+  d1 $ s "ninekick*4" # gain 1.1
+  d2 $ s "~ nineclap ~ nineclap" # gain 0.8
+  d3 $ s "~ ninech ~ ninech ~ ninech ~ ninech" # gain 0.55
+  d4 $ s "~ ~ ~ ~ ~ ~ ~ nineoh" # gain 0.5
+tags: [909, house, four-on-the-floor, classic]

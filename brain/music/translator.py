@@ -108,6 +108,32 @@ numbers (9)    -- spoken numbers
 padlong (1)    -- long pad
 wobble (1)     -- wobble bass
 
+## SYNTHESISED DRUM MACHINES (PREFER these over samples for better sound)
+
+### TR-808 (use for hip-hop, trap, electro, boom bap)
+eight0eight    -- 808 kick. Params: decay (0.5-2.0), tone (0-1), freq (40-70). \
+THE bass drum. Long boomy decay. Use freq 45 for trap sub-bass kicks
+eightsnare     -- 808 snare. Params: tone (0-1), snap (0-1). Tight or loose
+eightclap      -- 808 clap. Built-in reverb tail. Classic
+eightch        -- 808 closed hat. Metallic, tight
+eightoh        -- 808 open hat. Metallic, longer decay
+eightcow       -- 808 cowbell. Two detuned squares, classic
+eightrim       -- 808 rimshot. Short, sharp click
+eighttom       -- 808 tom. Params: freq (80-200). Use freq to pitch: 80=low, 120=mid, 180=high
+
+### TR-909 (use for house, techno, trance, dance)
+ninekick       -- 909 kick. Params: drive (1-3). Punchier than 808, more click/attack
+ninesnare      -- 909 snare. Params: snap (0-1). Bright, snappy, cuts through mix
+nineclap       -- 909 clap. Tight, cracky. House/techno standard
+ninech         -- 909 closed hat. Bright, cutting, sizzle
+nineoh         -- 909 open hat. Longer sizzle than ninech
+nineride       -- 909 ride cymbal. Long metallic shimmer
+
+### IMPORTANT: For drum machines, use synth names directly:
+-- d1 $ s "eight0eight*4" # gain 1.1 # decay 1.2
+-- d2 $ s "~ ~ ninesnare ~" # gain 0.9 # snap 0.8
+-- These sound MUCH better than the default bd/sn/hh samples
+
 ## AVAILABLE SYNTHS (custom SuperDirt synths)
 
 ### Lead / Melodic
@@ -189,37 +215,61 @@ note "[0,4,7,11]"    major 7th
 ## GENRE TIPS
 
 ### Techno (Berlin/minimal)
-- Kicks: bd (lower numbers), hardkick, 808bd
-- Hats: hh, metallic synth, noise303 with hpf
+- Kicks: ninekick (drive 1.5-2.5), hardkick
+- Snare: ninesnare (snap 0.8-1.0)
+- Hats: ninech, nineoh, metallic synth
 - Bass: reese, subbass, acid
 - Leads: supersaw with crush, techstab, distsaw
 - BPM: 125-138
 
 ### Acid Techno
 - Bass: acid synth with resonance 0.5-0.9
-- Kicks: bd, hardkick
+- Kicks: ninekick (drive 2), hardkick
+- Hats: ninech, eightch
 - Use lots of lpf modulation: lpf (slow 4 $ range 400 4000 sine)
 - BPM: 130-140
 
 ### Industrial / Hard Techno
-- Kicks: hardkick, gabba, bd with crush
+- Kicks: ninekick (drive 3), hardkick, gabba
 - Perc: industrial samples, metallic synth, noise303
 - Bass: distsaw, reese with crush
 - BPM: 140-160
 
 ### Dub Techno
+- Kicks: ninekick (drive 1) with room 0.3
 - Pads: darkpad with room 0.8 and delay 0.5
 - Bass: subbass, very minimal
-- Hats: hh with delay 0.3, delaytime (1/6)
+- Hats: ninech with delay 0.3, delaytime (1/6)
 - Chords: supersaw with lpf 1500, room 0.6, delay 0.4
 - BPM: 118-125
 
 ### House / Deep House
-- Kicks: bd:0 or bd:3 (four on the floor)
-- Hats: hh, oh on offbeats
+- Kicks: ninekick*4 (classic four on the floor)
+- Claps: nineclap on 2 and 4
+- Hats: ninech on offbeats, nineoh for accents
 - Bass: jvbass, subbass
 - Chords: supersaw, arpy
 - BPM: 120-128
+
+### Hip-Hop / Boom Bap
+- Kicks: eight0eight (decay 1.5, heavy and long)
+- Snare: eightsnare (snap 0.7, tight)
+- Hats: eightch*8 (steady 8ths)
+- BPM: 85-100
+
+### Trap
+- Kicks: eight0eight (decay 2, freq 45 for sub-bass)
+- Claps: eightclap on 3
+- Hats: eightch with fast rolling patterns (fast 2, triplets)
+- Open hat: eightoh for accents
+- BPM: 130-150
+
+### Electro
+- Kicks: eight0eight (decay 0.8, punchy)
+- Claps: eightclap
+- Cowbell: eightcow (the essential electro sound)
+- Toms: eighttom with different freq values
+- BPM: 120-130
 
 ## Rules
 1. Return ONLY executable TidalCycles code. No explanation.

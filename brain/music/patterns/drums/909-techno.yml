@@ -1,0 +1,11 @@
+name: 909-techno
+description: Driving techno — punchy 909 kick, tight hats, rimshot groove
+category: drums
+genre: techno
+bpm_range: [128, 140]
+code: |
+  d1 $ s "ninekick*4" # gain 1.2 # drive 2
+  d2 $ s "~ ~ ninesnare ~ ~ ~ ninesnare ~" # gain 0.85 # snap 1
+  d3 $ s "ninech*8" # gain 0.45 # pan (range (-0.2) 0.2 $ fast 2 sine)
+  d4 $ s "~ eightrim ~ ~ ~ eightrim ~ ~" # gain 0.5
+tags: [909, techno, driving, minimal]

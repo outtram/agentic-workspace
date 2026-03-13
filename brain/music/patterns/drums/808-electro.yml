@@ -1,0 +1,12 @@
+name: 808-electro
+description: Electro funk — cowbell, clap, 808 toms, classic Kraftwerk/Egyptian Lover vibe
+category: drums
+genre: electro
+bpm_range: [120, 130]
+code: |
+  d1 $ s "eight0eight ~ ~ ~ eight0eight ~ ~ ~" # gain 1.1 # decay 0.8
+  d2 $ s "~ ~ eightclap ~ ~ ~ eightclap ~" # gain 0.85
+  d3 $ s "eightch*4" # gain 0.5
+  d4 $ s "eightcow ~ ~ eightcow ~ ~ ~ ~" # gain 0.45
+  d5 $ s "~ ~ ~ ~ eighttom:150 ~ eighttom:120 ~" # gain 0.6
+tags: [808, electro, cowbell, toms, funk]
