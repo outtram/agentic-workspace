@@ -56,15 +56,15 @@ class DiagramGrid(Container):
     .dtile {
         border: solid #333333;
         padding: 0 1;
-        height: 100%;
+        max-height: 12;
         overflow: hidden;
+    }
+    .dtile.has-children {
+        border: solid #444444;
     }
     .dtile.focused {
         border: solid #FF6B35;
         background: #2a2a2a;
-    }
-    .dtile.has-children {
-        border: solid #444444;
     }
     .dtile.empty {
         border: solid #1a1a1a;

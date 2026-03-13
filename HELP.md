@@ -53,6 +53,7 @@
 | d | Mark done |
 | z | Undo last bump |
 | v | Cycle view (Stream → Grid → Diagram) |
+| m | Enter music mode (TidalCycles) |
 | c | Toggle chat (split layout) |
 | / | Commands |
 | : | Filter / Search (new, seen, back, email, reminder, or freetext) |
@@ -97,6 +98,8 @@ Arrow down past Description to the **Notes & Research** section. Press Enter to 
 | Arrow keys | Move focus between nodes |
 | Enter | Drill into node's children (if any) |
 | 1-9 | Jump to node by position |
+| v | Cycle view (Diagram → Stream → Grid) |
+| m | Enter music mode (TidalCycles) |
 | / | Command Palette |
 | c | Toggle chat panel |
 | ? | Show help overlay |

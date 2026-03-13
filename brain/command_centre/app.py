@@ -103,6 +103,7 @@ _HELP_TEXT = """\
   d             Mark done
   z             Undo last bump
   v             Cycle view (Stream → Grid → Diagram)
+  m             Enter music mode (TidalCycles)
   c             Toggle chat (split layout)
   /             Commands
   :             Filter / Search (new, seen, back, email, reminder, or freetext)
@@ -136,6 +137,8 @@ _HELP_TEXT = """\
   Arrow keys    Move focus between nodes
   Enter         Drill into node's children (if any)
   1-9           Jump to node by position
+  v             Cycle view (Diagram → Stream → Grid)
+  m             Enter music mode (TidalCycles)
   /             Command Palette
   c             Toggle chat panel
   ?             Show help overlay
@@ -215,7 +218,10 @@ class DiagramPicker(ModalScreen):
         self._refresh_list()
 
     def on_key(self, event: events.Key):
-        if event.key == "up" and self._cursor > 0:
+        if event.key == "escape":
+            self.dismiss(None)
+            event.stop()
+        elif event.key == "up" and self._cursor > 0:
             self._cursor -= 1
             self._refresh_list()
             event.stop()
@@ -496,6 +502,7 @@ class CommandCentreApp(App):
         if self._view_mode == "diagram":
             try:
                 dg = self.query_one("#diagram-grid", DiagramGrid)
+                dg.update_focus()
                 panel.update_diagram_node(dg.focused_node, self.all_tasks)
             except Exception:
                 pass
@@ -668,12 +675,12 @@ class CommandCentreApp(App):
 
         # --- Music mode keys ---
         if self._view_mode == "music":
-            self._handle_music_key(key, char, hk)
+            asyncio.create_task(self._handle_music_key(key, char, hk))
             return
 
         # --- 'm' key enters music mode from any non-music view ---
         if char == hk.get("music_mode", "m") and self._view_mode != "focus":
-            self._enter_music_mode()
+            asyncio.create_task(self._enter_music_mode())
             return
 
         # --- Stream view keys ---
@@ -1151,14 +1158,14 @@ class CommandCentreApp(App):
 
     # --- Music mode ---
 
-    def _enter_music_mode(self):
+    async def _enter_music_mode(self):
         """Switch to music mode."""
         self._pre_music_view = self._view_mode
         self._view_mode = "music"
         self._escape_pending = False
         try:
             mv = self.query_one("#music-view", MusicView)
-            mv.activate()
+            await mv.activate()
         except Exception:
             pass
         self._refresh_all()
@@ -1176,7 +1183,7 @@ class CommandCentreApp(App):
         self._refresh_all()
         self.notify("Music mode OFF")
 
-    def _handle_music_key(self, key: str, char: str | None, hk: dict):
+    async def _handle_music_key(self, key: str, char: str | None, hk: dict):
         """Handle keys in music mode."""
         # If music input is focused, let it handle keys (except special ones)
         try:
@@ -1186,7 +1193,7 @@ class CommandCentreApp(App):
                 if key == "enter":
                     mv = self.query_one("#music-view", MusicView)
                     if mv.get_pending_code():
-                        mv.confirm_code()
+                        await mv.confirm_code()
                         self._refresh_all()
                         self.notify("Pattern sent")
                     else:
@@ -1208,7 +1215,7 @@ class CommandCentreApp(App):
         if mv.get_pending_code():
             # Pending code — enter/e/x
             if key == "enter":
-                mv.confirm_code()
+                await mv.confirm_code()
                 self._refresh_all()
                 self.notify("Pattern sent")
             elif char == "e":
@@ -1238,7 +1245,7 @@ class CommandCentreApp(App):
             else:
                 self.notify("Nothing to save", severity="warning")
         elif char == hk.get("music_hush", "h"):
-            mv._do_hush()
+            await mv._do_hush()
             self._refresh_all()
             self.notify("Hushed")
         elif char == hk.get("music_new", "n"):
@@ -1246,10 +1253,10 @@ class CommandCentreApp(App):
             self._refresh_all()
             self.notify(f"New song: {mv.song_name}")
         elif char == "+":
-            mv.adjust_bpm(5)
+            await mv.adjust_bpm(5)
             self._refresh_all()
         elif char == "-":
-            mv.adjust_bpm(-5)
+            await mv.adjust_bpm(-5)
             self._refresh_all()
         elif char == hk.get("help", "?"):
             self.push_screen(HelpOverlay())
@@ -1474,7 +1481,7 @@ class CommandCentreApp(App):
                 self._exit_diagram()
                 return
             if result == "__MUSIC_MODE__" or result.lower() == "/music":
-                self._enter_music_mode()
+                asyncio.create_task(self._enter_music_mode())
                 return
             # Route through the command pipeline
             asyncio.create_task(self._run_palette_action(result, task))
@@ -1515,7 +1522,7 @@ class CommandCentreApp(App):
 
         # Handle music mode signal
         if result == "__MUSIC_MODE__":
-            self._enter_music_mode()
+            await self._enter_music_mode()
             return
 
         # Finish progress tracking
