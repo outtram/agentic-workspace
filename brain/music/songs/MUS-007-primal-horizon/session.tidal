@@ -1,0 +1,40 @@
+-- MUS-007-primal-horizon
+-- Created 2026-03-13
+
+setcps (128/60/4)
+
+-- Kick: heavy 4-on-the-floor
+d1 $ s "bd*4" # gain 1.2
+
+-- Snare + clap on 2 and 4
+d2 $ s "~ cp ~ cp" # gain 0.9 # room 0.1
+
+-- Hi-hats: driving 8ths with groove
+d3 $ s "hh*8" # gain "[0.6 0.8]*4" # pan (slow 4 sine)
+
+-- Distorted supersaw stab (Justice signature)
+d9 $ every 2 (jux rev) $
+  s "supersaw*4" #
+  note "<[0 0 7 5] [0 0 10 7]>" #
+  gain 0.85 #
+  lpf (slow 2 $ range 400 3200 sine) #
+  resonance 0.4 #
+  crush 6 #
+  room 0.15
+
+-- Pumping electro bassline
+d5 $ s "jvbass*8" #
+  note "[0 ~ 0 ~] [5 ~ 3 ~]" #
+  gain 1.1 #
+  lpf 800 #
+  speed 0.5
+
+-- Cross-filtered chord stabs (every 4 cycles)
+d10 $ every 4 (fast 2) $
+  s "supersaw" #
+  note "<[0,7,12] [5,10,15] [3,8,12] [7,12,17]>" #
+  gain 0.7 #
+  lpf (slow 8 $ range 200 4000 sine) #
+  resonance 0.6 #
+  crush 8 #
+  room 0.2 # sz 0.6

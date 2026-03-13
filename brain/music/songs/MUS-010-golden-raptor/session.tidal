@@ -1,0 +1,58 @@
+-- MUS-010-golden-raptor
+-- Created 2026-03-13
+
+setcps (128/60/4)
+
+-- KICK: four on the floor with extra hits
+d1 $ s "bd*4" # gain 1.1 # room 0.1
+
+-- SNARE + CLAP: punchy backbeat
+d2 $ s "~ cp ~ cp" # gain 1.0 # room 0.15 # sz 0.4
+
+-- HATS: tight driving 16ths with groove
+d3 $ s "hh*16" # gain "[0.7 0.5 0.8 0.5]*4" # pan (slow 4 sine) # hpf 8000
+
+-- OPEN HAT: offbeat sizzle
+d4 $ s "~ oh ~ ~" # gain 0.65 # speed 1.2
+
+-- BASS: heavy Justice-style riff
+d5 $ note "0 0 7 ~ 5 3 0 ~" # s "jvbass" # gain 1.2 # lpf 600 # resonance 0.4 # speed 0.5
+
+-- SYNTH STABS: chopped distorted chords
+d9 $ every 2 (fast 2) $ s "supersaw*8"
+  # note "[0,4,7] ~ [0,3,7] ~"
+  # gain 0.85
+  # lpf (slow 8 $ range 600 4000)
+  # resonance 0.5
+  # crush 6
+  # room 0.2
+
+-- LEAD: French electro stab
+d10 $ s "arpy*4"
+  # note "<0 3 5 7>"
+  # gain 0.8
+  # speed 2
+  # lpf 3000
+  # crush 8
+  # delay 0.4
+  # delaytime 0.125
+  # room 0.3
+-- Hard-hitting drums
+d1 $ s "bd*4" # gain 1.2 # attack 0.001 # release 0.3
+
+d2 $ s "~ sd ~ sd" # gain 1.1 # room 0.1
+
+d3 $ s "hh*8" # gain 0.7 # speed 1.2 # pan (slow 4 sine)
+
+d4 $ s "cp ~ ~ cp ~ ~ cp ~" # gain 1.0 # room 0.2 # sz 0.4
+
+-- Phat synth lines
+d9 $ note "c2 ~ eb2 ~ f2 ~ g2 ~" # s "supersaw" 
+  # gain 0.9 # lpf 800 # resonance 0.4 # detune 0.3 # room 0.2
+
+d10 $ note "<[c3,g3] [eb3,bb3] [f3,c4] [g3,d4]>" # s "supersaw"
+  # gain 0.75 # lpf (slow 8 $ range 400 2000) # resonance 0.5 
+  # detune 0.5 # room 0.3 # sz 0.6 # pan 0.4
+
+d11 $ note "c2 ~ ~ eb2 ~ f2 ~ ~" # s "jvbass"
+  # gain 1.0 # lpf 500 # resonance 0.3 # legato 1.2

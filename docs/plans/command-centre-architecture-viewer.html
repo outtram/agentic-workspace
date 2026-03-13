@@ -452,7 +452,7 @@ graph TB
         Voice["Voice Mode<br/>Whisper + macOS say"]
         HeartbeatBridge["Heartbeat Bridge<br/>proactive nudges"]
         ChatPanel["Chat Panel<br/>persistent conversation"]
-        MusicMode["Music Mode<br/>NL → TidalCycles"]
+        MusicMode["Music Mode<br/>13 synths · async Tidal bridge · 218 samples"]
     end
 
     subgraph DATA["Shared Files"]
@@ -822,6 +822,7 @@ graph TB
 │   ├── <span class="new">heartbeat_bridge.py</span> <span class="comment"># Proactive nudge scheduler</span>
 │   ├── <span class="new">help_data.yml</span>       <span class="comment"># Single source of truth for help</span>
 │   ├── <span class="new">help_gen.py</span>         <span class="comment"># Generates HELP.md + app.py help text</span>
+│   ├── <span class="new">music_view.py</span>       <span class="comment"># Music mode TUI (13 synths, async bridge, 218 sample folders)</span>
 │   └── <span class="folder">handlers/</span>
 │       ├── <span class="new">__init__.py</span>
 │       ├── <span class="new">triage.py</span>       <span class="comment"># Select, today, done, quadrant moves</span>

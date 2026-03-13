@@ -1,6 +1,6 @@
 # System Architecture
 
-> Last updated: 2026-03-12 (Phase 7: TidalCycles music mode)
+> Last updated: 2026-03-13 (Phase 7: TidalCycles music mode — async bridge, 13 custom synths)
 > This document describes the full AAGLOBAL system for Troy, Claude Code agents, Cursor, and OutBot.
 
 ## How to Use This System
@@ -307,15 +307,18 @@ The music module lives in `brain/music/` and is **lazy-loaded** — only importe
 
 | Component | File | Purpose |
 |---|---|---|
-| **Tidal Bridge** | `brain/music/tidal_bridge.py` | Manages GHCi subprocess, sends Tidal code, tracks active patterns (d1-d16) |
-| **Translator** | `brain/music/translator.py` | Claude API: natural language → TidalCycles code (with comprehensive syntax reference) |
+| **Tidal Bridge** | `brain/music/tidal_bridge.py` | Async GHCi subprocess, statement splitting, `:{`/`:}` multi-line wrapping, pattern tracking (d1-d16) |
+| **Translator** | `brain/music/translator.py` | Claude API: natural language → TidalCycles code. Full sample inventory (218 folders) + 13 custom synths + genre tips |
 | **Song Manager** | `brain/music/song_manager.py` | Creates songs with sequential MUS-XXX IDs, fun auto-generated names, YAML metadata |
 | **Visualiser** | `brain/music/visualiser/index.html` | Chrome audio visualiser (Web Audio API, 4 modes: bars, waveform, circular, particles) |
 | **Patterns** | `brain/music/patterns/{drums,bass,synth}/` | Reusable YAML pattern library (10 starters) |
 | **Songs** | `brain/music/songs/MUS-XXX-name/` | Song folders with `song.yml` metadata + `session.tidal` code |
+| **SC Startup** | `brain/music/setup/superdirt-startup.scd` | Auto-copied to `~/Library/Application Support/SuperCollider/startup.scd`. Boots SuperDirt + 13 custom synths |
 | **Installer** | `brain/music/setup/install.sh` | One-shot macOS install: SuperCollider, Haskell, TidalCycles, SuperDirt |
 
-**Tech stack:** SuperCollider (audio engine) → SuperDirt (samples/synths) → TidalCycles (Haskell DSL) → GHCi (interpreter) ← tidal_bridge.py ← translator.py ← CC music view
+**Custom synths:** supersaw, acid, reese, subbass, darkpad, hooversynth, superchip, superfm, noise303, techstab, drone, metallic, distsaw
+
+**Tech stack:** SuperCollider (audio engine) → SuperDirt (samples/synths + custom SynthDefs) → TidalCycles (Haskell DSL) → GHCi (interpreter) ← tidal_bridge.py ← translator.py ← CC music view
 
 ### Shared File System
 

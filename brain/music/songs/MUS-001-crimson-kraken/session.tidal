@@ -1,0 +1,18 @@
+-- MUS-001-crimson-kraken
+-- Created 2026-03-12
+
+setcps (128/60/4)
+
+d1 $ s "bd bd bd bd" # gain 1.1
+
+d2 $ s "~ cp ~ cp" # gain 0.9 # room 0.2
+
+d3 $ s "hh*8" # gain 0.7 # pan (slow 4 $ sine)
+
+d4 $ s "oh(3,8)" # gain 0.6 # speed 1.2
+
+d5 $ note "0 ~ 0 ~ 7 ~ 5 ~" # s "jvbass" # gain 1.0 # lpf 800 # resonance 0.3
+
+d9 $ note "<[0,4,7] [0,3,7] [5,9,12] [3,7,10]>" # s "supersaw" # gain 0.5 # lpf (slow 8 $ range 400 3000 sine) # room 0.4 # sz 0.7 # legato 1.2
+
+d10 $ every 4 (jux rev) $ note "0 ~ ~ 7 ~ ~ 5 ~" # s "arpy" # gain 0.45 # speed 2 # room 0.3 # delay 0.3 # delaytime 0.25

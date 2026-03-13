@@ -1,0 +1,52 @@
+-- MUS-008-astral-labyrinth
+-- Created 2026-03-13
+
+d1 $ s "bd*4"
+-- Justice-style drum kit @ 123 BPM
+d1 $ s "bd*4" # gain 1.2 # crush 5 # lpf 800
+
+d2 $ s "~ cp ~ cp" # gain 1.1 # room 0.1 # crush 6
+
+d3 $ s "hh*8" # gain 0.7 # speed 1.2 # crush 8 # pan (slow 4 $ sine)
+
+d4 $ every 4 (fast 2) $ s "~ ~ ~ oh" # gain 0.85 # lpf 3000 # room 0.05
+
+d5 $ s "[bd ~ bd ~] [~ bd ~ bd]" # gain 0.9 # crush 4 # hpf 60
+setcps (128/60/4)
+
+-- DRUMS
+d1 $ s "bd bd bd bd" # gain 1.1 # crush 6
+
+d2 $ s "~ sd ~ sd" # gain 0.95 # room 0.1
+
+d3 $ s "hh*8" # gain "[0.6 0.9]*4" # pan (slow 4 $ sine)
+
+d4 $ s "~ ~ cp ~" # gain 0.85 # speed 0.9 # room 0.2
+
+-- BASS
+d5 $ note "<[c2 c2 c2 eb2] [c2 c2 bb1 c2]>" # s "jvbass"
+  # gain 1.0 # lpf (slow 8 $ range 400 2000 sine) # resonance 0.3
+  # crush 5
+
+-- CHORD STABS
+d9 $ every 2 (fast 2) $ note "<[c4,eb4,g4,bb4]!3 [f3,ab3,c4,eb4]>"
+  # s "supersaw" # gain 0.8
+  # lpf (slow 4 $ range 800 4000 sine) # resonance 0.4
+  # room 0.15 # detune 0.08
+
+-- LEAD
+d10 $ note "c5 ~ eb5 ~ g5 ~ bb5 ~" # s "arpy"
+  # gain 0.75 # speed 1 # crush 4
+  # delay 0.4 # delaytime 0.25 # room 0.2
+
+-- DIRTY SYNTH STAB
+d11 $ s "~ ~ ~ [supersaw supersaw]"
+  # note "[c4,g4]" # gain 0.85
+  # lpf 2500 # resonance 0.5 # crush 3
+  # pan 0.3
+
+-- SWEEP / TENSION
+d12 $ s "supersaw*2" # note "c3"
+  # gain (slow 16 $ range 0 0.7 sine)
+  # lpf (slow 16 $ range 200 8000 sine) # resonance 0.6
+  # room 0.4 # sz 0.9 # pan 0.7

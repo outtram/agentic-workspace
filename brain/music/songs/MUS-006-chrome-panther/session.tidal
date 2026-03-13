@@ -1,0 +1,33 @@
+-- MUS-006-chrome-panther
+-- Created 2026-03-13
+
+-- Justice - heavy French electro/disco style
+setcps (128/60/4)
+
+-- Punchy kick with sidechain feel
+d1 $ s "bd*4" # gain 1.2 # shape 0.4
+
+-- Snare + clap layered
+d2 $ s "~ cp ~ cp" # gain 0.9 # room 0.1
+
+-- Tight closed hats
+d3 $ s "hh*8" # gain 0.7 # speed 1.2 # hpf 8000
+
+-- Open hat accent
+d4 $ s "~ ~ oh ~" # gain 0.8 # speed 0.8
+
+-- Driving distorted bass
+d5 $ note "c2 c2 eb2 c2 bb1 c2 f2 c2" # s "jvbass"
+  # gain 1.1 # lpf 900 # resonance 0.4 # shape 0.5
+
+-- Gated supersaw chords (the Justice stab)
+d9 $ every 2 (fast 2) $ note "[c4,eb4,g4] ~ [f4,ab4,c5] ~"
+  # s "supersaw" # gain 0.85
+  # lpf (slow 4 $ range 800 4000 sine)
+  # resonance 0.3 # room 0.15 # detune 0.15
+
+-- Stabby lead - cross-filtered
+d10 $ note "<c5 ~ eb5 ~ bb4 ~ f5 ~>"
+  # s "supersaw" # gain 0.75
+  # lpf 2200 # resonance 0.5 # shape 0.3
+  # delay 0.3 # delaytime 0.25 # room 0.1

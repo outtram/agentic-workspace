@@ -26,11 +26,118 @@ d1 $ s "bd sd" # gain 0.8     -- with effect
 ?      50% chance              "hh?"
 x@n    stretch over n steps    "bd@3 sd"
 
-### Samples (common)
-bd = bass drum, sd = snare, hh = hi-hat, cp = clap, sn = snare
-oh = open hat, lt = low tom, mt = mid tom, ht = high tom
-arpy = arpeggio synth, superpiano = piano, supersaw = saw synth
-jvbass = bass synth, bass1 = bass, pluck = plucked string
+## AVAILABLE SAMPLES (ONLY use these names)
+
+### Drums — Kicks
+bd (24)        -- acoustic/electronic kicks (bd:0 to bd:23)
+808bd (25)     -- 808 kick variants
+hardkick (6)   -- hard techno kicks
+clubkick (1)   -- club kick
+kicklinn (1)   -- LinnDrum kick
+popkick (1)    -- pop kick
+
+### Drums — Snares & Claps
+sn (52)        -- snare variants (sn:0 to sn:51)
+sd (2)         -- snare drum
+808sd (25)     -- 808 snare variants
+cp (2)         -- clap
+realclaps (1)  -- real clap sample
+
+### Drums — Hi-hats & Cymbals
+hh (13)        -- hi-hats (closed)
+hh27 (13)      -- alt hi-hats
+oh (5)         -- open hat (808 open hats)
+808oh (5)      -- 808 open hat
+808hc (5)      -- 808 closed hat
+cr (6)         -- crash cymbal
+808cy (25)     -- 808 cymbal
+
+### Drums — Toms
+ht (1)         -- high tom
+mt (1)         -- mid tom
+lt (1)         -- low tom
+808ht (5)      -- 808 high tom
+808mt (5)      -- 808 mid tom
+808lt (5)      -- 808 low tom
+
+### Drums — Percussion
+rm (1)         -- rimshot
+rs (1)         -- rim
+cb (1)         -- cowbell
+perc (6)       -- misc percussion
+hand (17)      -- hand drums
+tabla (26)     -- tabla hits
+tabla2 (46)    -- more tabla
+
+### Electronic & Techno
+techno (7)     -- techno percussion loops
+tech (13)      -- tech house percussion
+stab (23)      -- stab hits
+industrial (32) -- industrial noise/hits
+rave (8)       -- rave stabs/hits
+rave2 (8)      -- more rave hits
+gabba (4)      -- gabba kicks
+hardcore (12)  -- hardcore hits
+noise (1)      -- noise hit
+glitch (8)     -- glitch sounds
+glitch2 (8)    -- more glitch
+
+### Bass & Synth Samples
+jvbass (13)    -- Juno bass (great for techno)
+bass (4)       -- basic bass
+bass0-bass3    -- bass variants
+moog (7)       -- Moog synth
+arpy (11)      -- arpeggio synth
+pluck (17)     -- plucked string
+space (18)     -- space sounds
+
+### 808 Kit (full set)
+808 (7)        -- 808 misc
+
+### Breaks & Loops
+breaks125 (2)  -- breakbeat 125bpm
+breaks152 (1)  -- breakbeat 152bpm
+breaks157 (1)  -- breakbeat 157bpm
+breaks165 (1)  -- breakbeat 165bpm
+
+### Misc Useful
+click (4)      -- click/metronome
+sine (1)       -- sine wave
+co (4)         -- conga
+numbers (9)    -- spoken numbers
+padlong (1)    -- long pad
+wobble (1)     -- wobble bass
+
+## AVAILABLE SYNTHS (custom SuperDirt synths)
+
+### Lead / Melodic
+supersaw       -- detuned 5-voice saw stack. Params: detune (0.1-1.0). Great for \
+leads, stabs, trance/Justice-style riffs
+acid           -- 303-style acid bass with resonant filter. Params: resonance \
+(0-1). Classic acid techno
+superchip      -- 8-bit chiptune square waves. Retro game sounds
+superfm        -- FM synthesis, metallic bells. Params: fmamt (0.5-5). \
+Industrial/IDM textures
+techstab       -- short sharp techno stab (Ben Klock style). Punchy, minimal
+
+### Bass
+subbass        -- pure sine sub bass. Deep, clean low end. Use with note "0"
+reese          -- detuned saw pair, deep and menacing. Params: detune (0.1-1.0). \
+DnB/techno
+jvbass         -- (sample) Juno bass, 13 variants
+
+### Pads & Atmosphere
+darkpad        -- evolving dark pad. Params: detune (0.1-0.5). Dub techno, \
+ambient. Use with slow patterns
+drone          -- long evolving drone with harmonics. Ambient, ritual techno
+hooversynth    -- classic mentasm/hoover. Rave, hard techno
+
+### Percussion / FX
+metallic       -- metallic percussion (FM hi-hats, industrial). Use for synth hats
+noise303       -- filtered noise. Params: resonance (0-1). Risers, sweeps, \
+percussion
+distsaw        -- hard-clipped distorted saw. Params: drive (1-10). Industrial \
+techno leads
 
 ### Effects
 # gain 0.8           volume (0-1.5)
@@ -47,6 +154,7 @@ jvbass = bass synth, bass1 = bass, pluck = plucked string
 # vowel "a"          vowel filter (a e i o u)
 # legato 1           note length
 # detune 0.1         detune amount
+# coarse 8           downsample
 
 ### Pattern Transformations
 rev           reverse
@@ -78,6 +186,41 @@ note "[0,4,7]"       major chord
 note "[0,3,7]"       minor chord
 note "[0,4,7,11]"    major 7th
 
+## GENRE TIPS
+
+### Techno (Berlin/minimal)
+- Kicks: bd (lower numbers), hardkick, 808bd
+- Hats: hh, metallic synth, noise303 with hpf
+- Bass: reese, subbass, acid
+- Leads: supersaw with crush, techstab, distsaw
+- BPM: 125-138
+
+### Acid Techno
+- Bass: acid synth with resonance 0.5-0.9
+- Kicks: bd, hardkick
+- Use lots of lpf modulation: lpf (slow 4 $ range 400 4000 sine)
+- BPM: 130-140
+
+### Industrial / Hard Techno
+- Kicks: hardkick, gabba, bd with crush
+- Perc: industrial samples, metallic synth, noise303
+- Bass: distsaw, reese with crush
+- BPM: 140-160
+
+### Dub Techno
+- Pads: darkpad with room 0.8 and delay 0.5
+- Bass: subbass, very minimal
+- Hats: hh with delay 0.3, delaytime (1/6)
+- Chords: supersaw with lpf 1500, room 0.6, delay 0.4
+- BPM: 118-125
+
+### House / Deep House
+- Kicks: bd:0 or bd:3 (four on the floor)
+- Hats: hh, oh on offbeats
+- Bass: jvbass, subbass
+- Chords: supersaw, arpy
+- BPM: 120-128
+
 ## Rules
 1. Return ONLY executable TidalCycles code. No explanation.
 2. Use pattern slots d1-d16. d1-d4 for drums, d5-d8 for bass, d9-d16 for synths.
@@ -85,6 +228,9 @@ note "[0,4,7,11]"    major 7th
 4. For "hush" or "stop everything", return: hush
 5. Keep patterns musical and genre-appropriate.
 6. Use effects tastefully — don't over-process.
+7. ONLY use sample names and synth names listed above. NEVER invent names.
+8. When using synths, always include a note pattern for pitch.
+9. Always start with setcps if the user mentions BPM.
 """
 
 

@@ -1064,7 +1064,7 @@ graph TB
         Email["Email Handler<br/><i>Gmail IMAP/SMTP</i>"]
         HeartbeatBridge["Heartbeat Bridge<br/><i>proactive nudges</i>"]
         ChatPanel["Chat Panel<br/><i>persistent conversation</i>"]
-        MusicMode["Music Mode<br/><i>NL → TidalCycles</i>"]
+        MusicMode["Music Mode<br/><i>13 custom synths · async Tidal bridge</i>"]
     end
 
     subgraph HANDLERS["Slash Handlers"]
@@ -1364,7 +1364,7 @@ graph TB
 ├── <span class="new">heartbeat_bridge.py</span> <span class="comment"># Proactive nudge scheduler</span>
 ├── <span class="new">help_data.yml</span>       <span class="comment"># Single source of truth for help</span>
 ├── <span class="new">help_gen.py</span>         <span class="comment"># Generates HELP.md + app.py help text</span>
-├── <span class="new">music_view.py</span>       <span class="comment"># Music mode TUI (lazy-loaded from brain/music/)</span>
+├── <span class="new">music_view.py</span>       <span class="comment"># Music mode TUI (13 synths, async bridge, 218 sample folders)</span>
 └── <span class="folder">handlers/</span>
     ├── <span class="new">triage.py</span>       <span class="comment"># Select, today, done, quadrant moves</span>
     ├── <span class="new">enrich.py</span>       <span class="comment"># Claude enrichment of tasks</span>

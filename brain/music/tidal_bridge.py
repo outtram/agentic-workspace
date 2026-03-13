@@ -12,14 +12,16 @@ from pathlib import Path
 
 def _find_boot_tidal() -> str | None:
     """Locate BootTidal.hs on the system."""
-    common_paths = [
-        Path.home() / ".cabal" / "share" / "tidal-*" / "BootTidal.hs",
-        Path("/usr/local/share/tidal/BootTidal.hs"),
-        Path("/opt/homebrew/share/tidal/BootTidal.hs"),
-    ]
     import glob
-    for pattern in common_paths:
-        matches = glob.glob(str(pattern))
+    common_patterns = [
+        str(Path.home() / ".cabal" / "share" / "tidal-*" / "BootTidal.hs"),
+        str(Path.home() / ".local" / "state" / "cabal" / "store" / "*" / "tdl-*" / "share" / "BootTidal.hs"),
+        str(Path.home() / ".local" / "state" / "cabal" / "store" / "*" / "*tidal*" / "share" / "BootTidal.hs"),
+        "/usr/local/share/tidal/BootTidal.hs",
+        "/opt/homebrew/share/tidal/BootTidal.hs",
+    ]
+    for pattern in common_patterns:
+        matches = glob.glob(pattern)
         if matches:
             return sorted(matches)[-1]  # Latest version
     return None
@@ -54,33 +56,78 @@ class TidalBridge:
                 stderr=asyncio.subprocess.PIPE,
             )
             # Boot TidalCycles
-            self._send_raw(f":script {boot}")
-            # Wait a moment for boot
-            await asyncio.sleep(2)
+            await self._send_raw(f":script {boot}")
+            # Wait for boot to complete
+            await asyncio.sleep(3)
             # Set initial BPM
-            self._send_raw(f"setcps ({self._bpm}/60/4)")
+            await self._send_raw(f"setcps ({self._bpm}/60/4)")
             return True
         except Exception:
             self._process = None
             return False
 
-    def send(self, code: str):
-        """Send a line of Tidal code to GHCi."""
+    async def send(self, code: str):
+        """Send Tidal code to GHCi. Splits into individual statements."""
         if not self.is_running():
             return
-        # Track pattern assignment
-        self._track_pattern(code)
-        self._send_raw(code)
+        # Split code into individual statements (dX blocks, setcps, hush, etc.)
+        statements = self._split_statements(code)
+        for stmt in statements:
+            lines = [ln for ln in stmt.splitlines() if ln.strip()]
+            if not lines:
+                continue
+            for line in lines:
+                self._track_pattern(line)
+            if len(lines) > 1:
+                await self._send_raw(":{")
+                for line in lines:
+                    await self._send_raw(line)
+                await self._send_raw(":}")
+            else:
+                await self._send_raw(lines[0])
 
-    def hush(self):
+    @staticmethod
+    def _split_statements(code: str) -> list[str]:
+        """Split a code block into individual Tidal statements.
+
+        Each dX $, setcps, hush etc. is a separate statement.
+        Multi-line dX blocks (with continuation via # or $) stay grouped.
+        Comment-only lines are stripped.
+        """
+        statements: list[str] = []
+        current: list[str] = []
+
+        for line in code.splitlines():
+            stripped = line.strip()
+            # Skip empty lines and comments
+            if not stripped or stripped.startswith("--"):
+                continue
+            # New statement starts with dX $, setcps, hush, once, etc.
+            if re.match(r"(d\d{1,2}\s*\$|setcps|hush|once|xfade)", stripped):
+                if current:
+                    statements.append("\n".join(current))
+                current = [stripped]
+            elif current:
+                # Continuation line (indented or starts with #, $, etc.)
+                current.append(stripped)
+            else:
+                # Standalone line
+                statements.append(stripped)
+
+        if current:
+            statements.append("\n".join(current))
+
+        return statements
+
+    async def hush(self):
         """Silence all patterns."""
         self._active_patterns.clear()
-        self._send_raw("hush")
+        await self._send_raw("hush")
 
-    def set_bpm(self, bpm: int):
+    async def set_bpm(self, bpm: int):
         """Set the tempo in BPM."""
         self._bpm = bpm
-        self._send_raw(f"setcps ({bpm}/60/4)")
+        await self._send_raw(f"setcps ({bpm}/60/4)")
 
     def get_active_patterns(self) -> dict[str, str]:
         """Return dict of active pattern slots (d1-d16) to their code."""
@@ -93,7 +140,7 @@ class TidalBridge:
     async def stop(self):
         """Kill the GHCi subprocess."""
         if self._process and self._process.returncode is None:
-            self._send_raw(":quit")
+            await self._send_raw(":quit")
             try:
                 await asyncio.wait_for(self._process.wait(), timeout=3)
             except asyncio.TimeoutError:
@@ -101,11 +148,12 @@ class TidalBridge:
         self._process = None
         self._active_patterns.clear()
 
-    def _send_raw(self, text: str):
-        """Write raw text to GHCi stdin."""
+    async def _send_raw(self, text: str):
+        """Write raw text to GHCi stdin and flush."""
         if self._process and self._process.stdin:
             try:
                 self._process.stdin.write(f"{text}\n".encode())
+                await self._process.stdin.drain()
             except Exception:
                 pass
 

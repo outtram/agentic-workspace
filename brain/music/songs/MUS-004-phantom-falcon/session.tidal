@@ -1,0 +1,22 @@
+-- MUS-004-phantom-falcon
+-- Created 2026-03-13
+
+setcps (128/60/4)
+
+-- Drums: punchy four-on-the-floor with snappy snare
+d1 $ s "bd bd bd bd" # gain 1.1 # room 0.1
+
+d2 $ s "~ sd ~ sd" # gain 1.0 # speed 1.1
+
+d3 $ s "hh*8" # gain 0.6 # pan (slow 4 $ sine) # speed 1.2
+
+d4 $ s "cp?" # gain 0.9 # speed 0.9 # room 0.2
+
+-- Bass: crunchy distorted Justice-style
+d5 $ note "<c2 c2 g1 as1>" # s "supersaw" # gain 1.1 # lpf 800 # resonance 0.4 # crush 6 # detune 0.15
+
+-- Chord stabs: heavy filtered synth stabs
+d6 $ every 2 (fast 2) $ note "<[c4,e4,g4]! ~ [as3,d4,f4] ~>" # s "supersaw" # gain 0.9 # lpf (slow 8 $ range 400 3000 sine) # resonance 0.5 # crush 5 # room 0.15 # detune 0.2
+
+-- Lead: stabby synth riff
+d9 $ every 4 (jux rev) $ note "c5 ~ [e5 g5] ~ as4 ~ c5 [g4 as4]" # s "supersaw" # gain 0.85 # lpf 2000 # crush 4 # room 0.2 # detune 0.1 # speed 1
