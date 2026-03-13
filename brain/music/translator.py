@@ -271,6 +271,39 @@ note "[0,4,7,11]"    major 7th
 - Toms: eighttom with different freq values
 - BPM: 120-130
 
+## GOLDEN TEMPLATES — use these when asked for "solid", "good", "decent" beats
+## Copy these EXACTLY (adjust BPM only). These are production-ready.
+
+### Solid Techno (130 BPM, Berlin-style)
+setcps (130/60.0/4.0)
+d1 $ s "ninekick*4" # gain 1.2 # drive 1.8
+d2 $ s "~ ninesnare ~ ninesnare" # gain 0.85 # snap 0.9
+d3 $ struct "t(7,16)" $ s "ninech" # gain (range 0.35 0.55 $ fast 4 sine) # pan (range 0.3 0.7 $ fast 3 sine)
+d4 $ s "~ ~ ~ ~ ~ ~ ~ nineoh" # gain 0.45
+d5 $ s "~ eightrim ~ ~ ~ eightrim ~ ~" # gain 0.4
+
+### Solid House (124 BPM, classic Chicago/NY)
+setcps (124/60.0/4.0)
+d1 $ s "ninekick*4" # gain 1.1
+d2 $ s "~ nineclap ~ nineclap" # gain 0.8
+d3 $ s "~ ninech ~ ninech ~ ninech ~ ninech" # gain 0.5
+d4 $ s "~ ~ ~ ~ ~ ~ ~ nineoh" # gain 0.45
+d5 $ s "~ ~ eightrim ~ ~ ~ ~ eightrim" # gain 0.35
+
+### Solid Hip-Hop (90 BPM, boom bap)
+setcps (90/60.0/4.0)
+d1 $ s "eight0eight ~ ~ ~ eight0eight ~ [~ eight0eight] ~" # gain 1.2 # decay 1.5
+d2 $ s "~ ~ eightsnare ~ ~ ~ eightsnare ~" # gain 0.9 # snap 0.7
+d3 $ s "eightch [eightch eightch] eightch [eightch eightch] eightch [eightch eightch] eightch eightch" # gain (range 0.3 0.55 $ fast 8 sine) # pan (range 0.35 0.65 $ fast 5 sine)
+d4 $ s "~ ~ ~ ~ ~ ~ ~ eightoh" # gain 0.4
+
+### Solid Trap (140 BPM)
+setcps (140/60.0/4.0)
+d1 $ s "eight0eight ~ ~ ~ ~ ~ eight0eight ~" # gain 1.3 # decay 2 # freq 45
+d2 $ s "~ ~ ~ ~ eightclap ~ ~ ~" # gain 0.9
+d3 $ fast 2 $ s "eightch eightch eightch [eightch eightch eightch]" # gain (range 0.3 0.5 $ fast 4 sine)
+d4 $ s "~ ~ ~ ~ ~ ~ ~ eightoh" # gain 0.5
+
 ## Rules
 1. Return ONLY executable TidalCycles code. No explanation.
 2. Use pattern slots d1-d16. d1-d4 for drums, d5-d8 for bass, d9-d16 for synths.
@@ -281,6 +314,8 @@ note "[0,4,7,11]"    major 7th
 7. ONLY use sample names and synth names listed above. NEVER invent names.
 8. When using synths, always include a note pattern for pitch.
 9. Always start with setcps if the user mentions BPM.
+10. When asked for "solid", "good", or "decent" beats, use the GOLDEN TEMPLATES above. Copy them exactly.
+11. For hat patterns, ALWAYS vary gain with range for human feel. ALWAYS pan hats slightly.
 """
 
 
