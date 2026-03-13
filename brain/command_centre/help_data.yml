@@ -155,6 +155,8 @@ music_mode_keys:
     action: "Save current session to song folder"
   - key: "h"
     action: "Hush — silence all patterns"
+  - key: "r"
+    action: "Resume — re-send patterns from before last hush"
   - key: "n"
     action: "New song (generates MUS-XXX with fun name)"
   - key: "+/-"

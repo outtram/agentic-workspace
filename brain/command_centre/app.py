@@ -128,6 +128,7 @@ _HELP_TEXT = """\
   v             Open Chrome audio visualiser
   s             Save current session to song folder
   h             Hush — silence all patterns
+  r             Resume — re-send patterns from before last hush
   n             New song (generates MUS-XXX with fun name)
   +/-           Adjust BPM up/down by 5
   ?             Show help overlay
@@ -1248,6 +1249,10 @@ class CommandCentreApp(App):
             await mv._do_hush()
             self._refresh_all()
             self.notify("Hushed")
+        elif char == hk.get("music_resume", "r"):
+            result = await mv.resume()
+            self._refresh_all()
+            self.notify("Resumed" if "Resumed" in result else "Nothing to resume")
         elif char == hk.get("music_new", "n"):
             mv.new_song()
             self._refresh_all()

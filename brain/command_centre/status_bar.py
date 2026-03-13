@@ -61,6 +61,7 @@ _MUSIC_HINTS = (
     "[bold #FF6B35]v[/][dim] Visualiser[/]  "
     "[bold #FF6B35]s[/][dim] Save[/]  "
     "[bold #FF6B35]h[/][dim] Hush[/]  "
+    "[bold #FF6B35]r[/][dim] Resume[/]  "
     "[bold #FF6B35]n[/][dim] New Song[/]  "
     "[bold #FF6B35]+/-[/][dim] BPM[/]  "
     "[bold #FF6B35]Esc[/][dim] Exit[/]  "

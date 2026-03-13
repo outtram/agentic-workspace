@@ -210,6 +210,7 @@ class MusicView(Container):
         self._history: list[dict] = []
         self._pending_code: str | None = None
         self._active_patterns: dict[str, str] = {}
+        self._pre_hush_patterns: dict[str, str] = {}
         self._bpm: int = 128
         self._key: str = "C"
         self._genre: str = ""
@@ -233,9 +234,20 @@ class MusicView(Container):
             from brain.music.tidal_bridge import TidalBridge
             self._bridge = TidalBridge()
 
-    def activate(self):
+    async def activate(self):
         """Called when entering music mode."""
         self._ensure_modules()
+        # Start the TidalCycles bridge (launches GHCi)
+        if self._bridge and not self._bridge.is_running():
+            started = await self._bridge.start()
+            if not started:
+                try:
+                    chat_input = self.query_one(MusicChatInput)
+                    chat_input.set_status(
+                        "[red]Failed to start TidalCycles — check ghci + BootTidal.hs[/]"
+                    )
+                except Exception:
+                    pass
         if self._current_song is None and self._song_manager:
             self._current_song = self._song_manager.create_song(
                 bpm=self._bpm, key=self._key, genre=self._genre
@@ -295,7 +307,7 @@ class MusicView(Container):
 
         # Special commands
         if text.lower() == "hush":
-            return self._do_hush()
+            return await self._do_hush()
 
         self._ensure_modules()
 
@@ -338,7 +350,7 @@ class MusicView(Container):
 
         return None  # Waiting for confirm/edit/cancel
 
-    def confirm_code(self):
+    async def confirm_code(self):
         """Send pending code to TidalCycles."""
         if not self._pending_code:
             return
@@ -351,7 +363,7 @@ class MusicView(Container):
 
         # Send to bridge if available
         if self._bridge and self._bridge.is_running():
-            self._bridge.send(code)
+            await self._bridge.send(code)
 
         # Update history
         if self._history:
@@ -399,18 +411,42 @@ class MusicView(Container):
         self._refresh_display()
 
     def _track_pattern(self, code: str):
-        """Parse a Tidal code line and track which pattern slot it uses."""
+        """Parse Tidal code and track which pattern slots are used."""
         import re
-        match = re.match(r"(d\d{1,2})\s*\$", code.strip())
-        if match:
-            slot = match.group(1)
-            self._active_patterns[slot] = code.strip()
+        for line in code.splitlines():
+            stripped = line.strip()
+            match = re.match(r"(d\d{1,2})\s*\$", stripped)
+            if match:
+                slot = match.group(1)
+                self._active_patterns[slot] = stripped
 
-    def _do_hush(self) -> str:
+    async def resume(self) -> str:
+        """Re-send patterns from before the last hush."""
+        if not self._pre_hush_patterns:
+            return "[dim]Nothing to resume — no patterns before last hush[/]"
+
+        self._active_patterns = dict(self._pre_hush_patterns)
+
+        # Re-send each pattern to the bridge
+        if self._bridge and self._bridge.is_running():
+            for code in self._pre_hush_patterns.values():
+                await self._bridge.send(code)
+
+        self._history.append({
+            "request": "resume",
+            "code": " | ".join(self._pre_hush_patterns.keys()),
+            "status": "sent",
+        })
+        self._refresh_display()
+        slots = ", ".join(sorted(self._pre_hush_patterns.keys()))
+        return f"[#00D4AA]Resumed {len(self._pre_hush_patterns)} patterns: {slots}[/]"
+
+    async def _do_hush(self) -> str:
         """Silence all patterns."""
+        self._pre_hush_patterns = dict(self._active_patterns)
         self._active_patterns.clear()
         if self._bridge and self._bridge.is_running():
-            self._bridge.hush()
+            await self._bridge.hush()
         self._history.append({
             "request": "hush",
             "code": "hush",
@@ -431,11 +467,11 @@ class MusicView(Container):
             self._pending_code = None
             self._refresh_display()
 
-    def adjust_bpm(self, delta: int):
+    async def adjust_bpm(self, delta: int):
         """Adjust BPM by delta."""
         self._bpm = max(40, min(300, self._bpm + delta))
         if self._bridge and self._bridge.is_running():
-            self._bridge.set_bpm(self._bpm)
+            await self._bridge.set_bpm(self._bpm)
         if self._current_song:
             self._current_song["bpm"] = self._bpm
         self._refresh_display()

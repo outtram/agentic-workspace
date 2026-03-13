@@ -86,6 +86,7 @@ Arrow down past Description to the **Notes & Research** section. Press Enter to 
 | v | Open Chrome audio visualiser |
 | s | Save current session to song folder |
 | h | Hush — silence all patterns |
+| r | Resume — re-send patterns from before last hush |
 | n | New song (generates MUS-XXX with fun name) |
 | +/- | Adjust BPM up/down by 5 |
 | ? | Show help overlay |
