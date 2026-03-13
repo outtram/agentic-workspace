@@ -67,6 +67,18 @@ agents:
     schedule: weekly
     trigger: "weekly review, manual"
     depends_on: []
+
+  - name: architect-reviewer
+    file: .claude/agents/architect-reviewer.md
+    schedule: on_demand
+    trigger: "manual, pre-merge review"
+    depends_on: []
+
+  - name: qa-reviewer
+    file: .claude/agents/qa-reviewer.md
+    schedule: on_demand
+    trigger: "manual, pre-merge review"
+    depends_on: []
 ```
 
 ## Pipelines
