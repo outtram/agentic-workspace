@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 347
-last_synced: '2026-03-13T16:38:55.432589'
+next_id: 348
+last_synced: '2026-03-13T16:38:57.159927'
 entries:
   OUT-223:
     title: Fire place fix
@@ -568,3 +568,10 @@ entries:
     reminder_id: x-apple-reminder://747F2CFF-43E9-42B0-8858-683AC77F769B
     status: todo
     created: '2026-03-13T16:38:55.431548'
+  OUT-347:
+    title: Whisper flow
+    file: OUT-347-whisper-flow.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://20EF6091-276F-4798-91D3-84F2A3D2AFCF
+    status: todo
+    created: '2026-03-13T16:38:57.158834'
