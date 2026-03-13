@@ -60,7 +60,7 @@ class TidalBridge:
             # Wait for boot to complete
             await asyncio.sleep(3)
             # Set initial BPM
-            await self._send_raw(f"setcps ({self._bpm}/60/4)")
+            await self._send_raw(f"setcps ({self._bpm}/60.0/4.0)")
             return True
         except Exception:
             self._process = None
@@ -127,7 +127,7 @@ class TidalBridge:
     async def set_bpm(self, bpm: int):
         """Set the tempo in BPM."""
         self._bpm = bpm
-        await self._send_raw(f"setcps ({bpm}/60/4)")
+        await self._send_raw(f"setcps ({bpm}/60.0/4.0)")
 
     def get_active_patterns(self) -> dict[str, str]:
         """Return dict of active pattern slots (d1-d16) to their code."""

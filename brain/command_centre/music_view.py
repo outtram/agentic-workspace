@@ -411,14 +411,41 @@ class MusicView(Container):
         self._refresh_display()
 
     def _track_pattern(self, code: str):
-        """Parse Tidal code and track which pattern slots are used."""
+        """Parse Tidal code and track which pattern slots are used.
+
+        Stores the full code block per slot (including continuation lines)
+        so that resume can re-send complete multi-line patterns.
+        """
         import re
+        # Split into statements so multi-line dX blocks stay together
+        current_slot = None
+        current_lines: list[str] = []
         for line in code.splitlines():
             stripped = line.strip()
+            if not stripped or stripped.startswith("--"):
+                continue
             match = re.match(r"(d\d{1,2})\s*\$", stripped)
+            silence = re.match(r"(d\d{1,2})\s+silence", stripped)
             if match:
-                slot = match.group(1)
-                self._active_patterns[slot] = stripped
+                # Save previous block
+                if current_slot and current_lines:
+                    self._active_patterns[current_slot] = "\n".join(current_lines)
+                current_slot = match.group(1)
+                current_lines = [stripped]
+            elif silence:
+                if current_slot and current_lines:
+                    self._active_patterns[current_slot] = "\n".join(current_lines)
+                self._active_patterns.pop(silence.group(1), None)
+                current_slot = None
+                current_lines = []
+            elif current_slot:
+                current_lines.append(stripped)
+            else:
+                # Standalone line (setcps, hush, etc.) — don't track as pattern
+                pass
+        # Save last block
+        if current_slot and current_lines:
+            self._active_patterns[current_slot] = "\n".join(current_lines)
 
     async def resume(self) -> str:
         """Re-send patterns from before the last hush."""
@@ -442,8 +469,10 @@ class MusicView(Container):
         return f"[#00D4AA]Resumed {len(self._pre_hush_patterns)} patterns: {slots}[/]"
 
     async def _do_hush(self) -> str:
-        """Silence all patterns."""
-        self._pre_hush_patterns = dict(self._active_patterns)
+        """Silence all patterns. Saves active patterns for resume (r key)."""
+        # Only overwrite saved patterns if there's something to save
+        if self._active_patterns:
+            self._pre_hush_patterns = dict(self._active_patterns)
         self._active_patterns.clear()
         if self._bridge and self._bridge.is_running():
             await self._bridge.hush()

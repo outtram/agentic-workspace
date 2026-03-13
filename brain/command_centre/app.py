@@ -127,8 +127,8 @@ _HELP_TEXT = """\
   x             Cancel generated code
   v             Open Chrome audio visualiser
   s             Save current session to song folder
-  h             Hush — silence all patterns
-  r             Resume — re-send patterns from before last hush
+  h             Hush — silence all patterns (safe to press twice)
+  r             Resume — re-send all patterns from before last hush
   n             New song (generates MUS-XXX with fun name)
   +/-           Adjust BPM up/down by 5
   ?             Show help overlay
