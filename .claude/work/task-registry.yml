@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 345
-last_synced: '2026-03-11T22:44:49.302160'
+next_id: 346
+last_synced: '2026-03-13T16:38:53.749926'
 entries:
   OUT-223:
     title: Fire place fix
@@ -553,3 +553,10 @@ entries:
     reminder_id: x-apple-reminder://123353CF-D568-4595-885F-54A93FE3D3AA
     status: todo
     created: '2026-03-11T22:44:49.300900'
+  OUT-345:
+    title: Ai memory nithin
+    file: OUT-345-ai-memory-nithin.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://D9BE20C1-6986-456E-93EF-164DF61B6359
+    status: todo
+    created: '2026-03-13T16:38:53.748870'
