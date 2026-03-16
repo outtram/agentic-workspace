@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 348
-last_synced: '2026-03-13T16:38:57.159927'
+next_id: 349
+last_synced: '2026-03-16T18:07:34.492156'
 entries:
   OUT-223:
     title: Fire place fix
@@ -575,3 +575,10 @@ entries:
     reminder_id: x-apple-reminder://20EF6091-276F-4798-91D3-84F2A3D2AFCF
     status: todo
     created: '2026-03-13T16:38:57.158834'
+  OUT-348:
+    title: interview agent idea
+    file: OUT-348-interview-agent-idea.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://47B28BAC-2312-4C2B-8376-F1EC2F36C0E1
+    status: todo
+    created: '2026-03-16T18:07:34.490804'
