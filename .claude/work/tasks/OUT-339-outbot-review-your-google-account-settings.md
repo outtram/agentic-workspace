@@ -5,12 +5,13 @@ type: task
 status: todo
 priority: medium
 created: '2026-03-10T20:01:25.680825'
-updated: '2026-03-10T20:01:25.680825'
+updated: '2026-03-10T20:01:31.610757'
 branch: task/OUT-339-outbot,-review-your-google-acc
 source: email
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+reminder_id: x-apple-reminder://1751CB33-B333-4747-A532-6B70FFC3B165
 reminder_list: Reminders
 ---
 

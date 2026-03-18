@@ -1,0 +1,14 @@
+-- MUS-016-shadow-minotaur
+-- Created 2026-03-13
+
+setcps (128/60/4)
+
+d1 $ s "ninekick*4" # gain 1.1 # drive 1.8
+
+d2 $ s "~ nineclap ~ nineclap" # gain 0.95
+
+d3 $ s "ninech*8" # gain 0.7 # pan (slow 4 $ range 0.4 0.6 sine)
+
+d4 $ s "~ ~ ~ nineoh" # gain 0.8
+
+d5 $ note "0 ~ 0 ~ 3 ~ 5 ~" # s "subbass" # gain 1.0 # lpf 180

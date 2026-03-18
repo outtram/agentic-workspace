@@ -1,0 +1,9 @@
+-- MUS-018-cryptic-colossus
+-- Created 2026-03-13
+
+setcps (130/60.0/4.0)
+d1 $ s "ninekick*4" # gain 1.2 # drive 1.8
+d2 $ s "~ ninesnare ~ ninesnare" # gain 0.85 # snap 0.9
+d3 $ struct "t(7,16)" $ s "ninech" # gain (range 0.35 0.55 $ fast 4 sine) # pan (range 0.3 0.7 $ fast 3 sine)
+d4 $ s "~ ~ ~ ~ ~ ~ ~ nineoh" # gain 0.45
+d5 $ s "~ eightrim ~ ~ ~ eightrim ~ ~" # gain 0.4

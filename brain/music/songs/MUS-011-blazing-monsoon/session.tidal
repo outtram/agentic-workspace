@@ -1,0 +1,21 @@
+-- MUS-011-blazing-monsoon
+-- Created 2026-03-13
+
+setcps (128/60/4)
+
+d1 $ s "bd:3*4" # gain 1.1 # crush 3
+
+d2 $ s "~ cp ~ cp" # gain 0.9
+
+d3 $ s "hh*16" # gain "[0.5 0.4 0.7 0.4]*4" # hpf 7000
+
+d4 $ s "~ oh:2 ~ oh:2" # gain 0.65 # speed 0.9
+
+d5 $ note "0 ~ 0 3 ~ 0 5 3" # s "reese" # gain 1.0 # lpf 900 # crush 5 # detune 0.3
+
+d6 $ every 2 (jux rev) $ note "<[0,4,7] ~ [3,7,10] ~>" # s "supersaw" # gain 0.85 # detune 0.5 # lpf (slow 4 $ range 1200 3500 sine) # crush 4 # room 0.15
+
+d7 $ note "0 ~ ~ 7 5 ~ 3 ~" # s "distsaw" # gain 0.8 # drive 4 # lpf 2500 # room 0.1
+
+d8 $ s "stab:3 ~ stab:5 ~" # gain 0.75 # speed 0.8 # crush 3 # lpf 2000
+d1 $ s "bd:3*4" # gain 1.1 # crush 2 # speed 0.95

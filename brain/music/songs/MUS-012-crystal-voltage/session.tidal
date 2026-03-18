@@ -1,0 +1,62 @@
+-- MUS-012-crystal-voltage
+-- Created 2026-03-13
+
+Good news and bad news. Most real-world TidalCycles techno uses **custom sample packs** (ghostchamb3r uses `BMDrums`, Tyler McLaughlin uses custom `drumz` functions) — nothing I found runs cleanly on a standard SuperDirt install.
+
+**Best actual find:** [Tyler McLaughlin's live code repo](https://github.com/TylerMclaughlin/tidalcycles_code) — 300+ sessions, includes `2022_05_11_techno_likatsstlelakatsstle` and `2023_06_05_four_part_techno_edo19`. Worth browsing for inspiration, but needs his custom tooling.
+
+**What I'd suggest:** I can write you a proper Berlin techno piece right now using only the standard samples listed in the quick ref — it'll actually run. Based on the patterns I found researching, something with:
+
+- 4/4 kick with groove modulation
+- 16th-note hat pattern with panning
+- Acid bassline with resonance LFO
+- Dark pad chords
+- Techstab lead with `every 4`
+
+Want me to generate that? Just say **"write me a berlin techno track"** and I'll output the code.
+
+---
+
+**Sources:**
+- [Prepared Code with ghostchamb3r — TidalCycles Blog](https://tidalcycles.org/blog/blog_topic_ghostchamb3r/)
+- [Tyler McLaughlin's TidalCycles live code repo](https://github.com/TylerMclaughlin/tidalcycles_code)
+- [TidalCycles Workshop](https://tidalcycles.org/docs/patternlib/tutorials/workshop/)
+- [Live Coding Techno With Strudel — Hackaday](https://hackaday.com/2025/10/16/live-coding-techno-with-strudel/)
+setcps (133/60/4)
+
+-- d1: kick (four on the floor, hardkick variant)
+d1 $ s "bd:2*4" # gain 1.1 # lpf 200
+
+-- d2: clap/snare on 2 and 4
+d2 $ s "~ cp ~ cp" # gain 0.7 # room 0.2 # sz 0.6
+
+-- d3: closed hats, driving 16ths with groove
+d3 $ every 4 (jux rev) $ s "hh*16" # gain (slow 4 $ range 0.4 0.75 sine) # hpf 8000
+
+-- d4: open hat on offbeats + industrial perc
+d4 $ s "~ oh:2 ~ oh:2" # gain 0.6 # room 0.15
+   |+ s "industrial:3? industrial:7? ~ ~" # gain 0.45
+
+-- d5: reese bass, dark and minimal
+d5 $ note (slow 2 $ "0 ~ ~ 0 ~ ~ 0 ~") $ s "reese"
+   # detune 0.2 # lpf 400 # gain 0.9 # room 0.1
+
+-- d6: subbass locking with kick
+d6 $ note "0 ~ ~ ~ 0 ~ ~ ~" $ s "subbass"
+   # gain 1.0 # lpf 120
+
+-- d9: acid line, slow filter sweep
+d9 $ every 8 (fast 2) $ note "0 ~ 3 ~ 5 ~ 3 ~" $ s "acid"
+   # resonance 0.6
+   # lpf (slow 8 $ range 300 3500 sine)
+   # gain 0.75
+
+-- d10: dark pad, wide and sparse
+d10 $ slow 4 $ note "<[0,7] [0,5] [3,7] [2,5]>" $ s "darkpad"
+    # detune 0.3 # room 0.8 # sz 0.9
+    # lpf 1800 # gain 0.45 # delay 0.3 # delaytime 0.25
+
+-- d11: metallic hi-hat texture (synth)
+d11 $ every 3 degrade $ s "metallic*8"
+    # gain (slow 2 $ range 0.2 0.55 sine)
+    # hpf 9000 # pan (slow 7 $ range 0.2 0.8 sine)

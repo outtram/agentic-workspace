@@ -10,11 +10,14 @@ s.options.maxNodes = 2048;
 s.options.numOutputBusChannels = 2;
 s.options.numInputBusChannels = 2;
 
-s.waitForBoot {
-    ~dirt = SuperDirt(2, s);
-    ~dirt.loadSoundFiles;
-    s.sync;
-    ~dirt.start(57120, 0 ! 12);
+s.boot;
+
+s.doWhenBooted({
+    Routine({
+        ~dirt = SuperDirt(2, s);
+        ~dirt.loadSoundFiles;
+        s.sync;
+        ~dirt.start(57120, 0 ! 12);
 
     // =========================================================
     // GLOBAL EFFECTS — master bus processing
@@ -358,5 +361,6 @@ s.waitForBoot {
     "*** Synths: supersaw acid reese subbass darkpad hooversynth superchip ***".postln;
     "*** Synths: superfm noise303 techstab drone metallic distsaw ***".postln;
     "*** Master FX: compressor + saturation + limiter ***".postln;
-};
+    }).play;
+});
 )

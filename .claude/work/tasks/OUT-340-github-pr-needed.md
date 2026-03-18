@@ -5,12 +5,13 @@ type: task
 status: todo
 priority: medium
 created: '2026-03-10T20:01:31.677155'
-updated: '2026-03-10T20:01:31.677155'
+updated: '2026-03-10T20:01:48.512160'
 branch: task/OUT-340-github-pr-needed
 source: email
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+reminder_id: x-apple-reminder://1FC96319-E4E7-4E7F-ABB7-48ABD02A9275
 reminder_list: Reminders
 ---
 
@@ -28,9 +29,6 @@ gh pr create \
 - 7 overdue items wrangled (3 escalated, 2 reclassified, 2 clarified)
 - 5 done OutBot tasks moved to done/ folder
 - NAVIGATOR.md updated with agent registry and pipelines
-
-## Review focus
-- Ch
 
 ## Steps
 - [ ] Review task details

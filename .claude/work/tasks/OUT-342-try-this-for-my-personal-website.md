@@ -5,12 +5,13 @@ type: task
 status: todo
 priority: medium
 created: '2026-03-10T20:02:08.351619'
-updated: '2026-03-10T20:02:08.351619'
+updated: '2026-03-10T20:02:31.466705'
 branch: task/OUT-342-try-this-for-my-personal-websi
 source: email
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+reminder_id: x-apple-reminder://6087770A-E490-41B8-99AE-F8F3DD58C70B
 reminder_list: Reminders
 ---
 

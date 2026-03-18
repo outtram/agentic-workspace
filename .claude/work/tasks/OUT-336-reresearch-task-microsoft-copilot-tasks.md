@@ -5,12 +5,13 @@ type: task
 status: todo
 priority: medium
 created: '2026-03-10T20:00:42.025313'
-updated: '2026-03-10T20:00:42.025313'
+updated: '2026-03-10T20:01:02.064708'
 branch: task/OUT-336-re:research-task-microsoft-cop
 source: email
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+reminder_id: x-apple-reminder://11C8D8B9-D2EF-4C97-8806-9033117EF404
 reminder_list: Reminders
 ---
 

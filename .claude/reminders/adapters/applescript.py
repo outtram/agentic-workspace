@@ -1,5 +1,5 @@
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 
@@ -8,6 +8,7 @@ class AppleScriptAdapter:
 
     def __init__(self, timeout: int = 120):
         self.timeout = timeout
+        self._per_list_timeout = 60  # per-list query timeout
 
     def create_reminder(
         self,
@@ -80,97 +81,109 @@ end tell
 '''
         self._execute(script)
 
-    def fetch_recent_reminders(self, since_days: int = 1) -> list[dict]:
-        """Fetch only reminders created or modified in the last N days.
+    def _get_list_names(self) -> list[str]:
+        """Get all reminder list names (fast — no iteration)."""
+        script = 'tell application "Reminders" to return name of every list'
+        result = self._execute(script)
+        return [n.strip() for n in result.strip().split(", ") if n.strip()]
 
-        Uses AppleScript's `whose` clause for native filtering — Reminders.app
-        filters internally without iterating every reminder in our script.
-        Much faster than fetch_all_reminders().
+    def fetch_recent_reminders(self, since_days: int = 1) -> list[dict]:
+        """Fetch only reminders created in the last N days.
+
+        Queries each list individually to avoid timeouts on large
+        Reminders databases. Skips lists that time out and continues.
+        Filters by creation date in Python (bulk fetch is faster).
         """
+        cutoff = datetime.now() - timedelta(days=since_days)
+        all_reminders: list[dict] = []
+        for list_name in self._get_list_names():
+            try:
+                result = self._fetch_from_list(list_name)
+                parsed = self._parse_reminders(result)
+                # Filter by creation date in Python
+                for r in parsed:
+                    created = r.get("created")
+                    if created and created >= cutoff:
+                        all_reminders.append(r)
+                    elif not created:
+                        # If no creation date, include it (can't filter)
+                        all_reminders.append(r)
+            except (TimeoutError, RuntimeError):
+                continue
+        return all_reminders
+
+    def _fetch_from_list(self, list_name: str) -> str:
+        """Fetch all active reminders from a single list using fast bulk access.
+
+        Uses `properties of` which is dramatically faster than iterating
+        individual reminders (~8s vs 85s+ for 45 items).
+        """
+        escaped_name = self._escape(list_name)
         script = f'''
 tell application "Reminders"
-    set output to ""
-    set fieldSep to (ASCII character 30) -- record separator
-    set recSep to (ASCII character 29) -- group separator
-    set cutoffDate to (current date) - ({since_days} * days)
-    repeat with aList in lists
-        set listName to name of aList
-        try
-            set recentOnes to (reminders of aList whose completed is false and modification date > cutoffDate)
-        on error
-            set recentOnes to {{}}
-        end try
-        repeat with aReminder in recentOnes
-            set rId to id of aReminder
-            set rName to name of aReminder
+    set fieldSep to (ASCII character 30)
+    set recSep to (ASCII character 29)
+    tell list "{escaped_name}"
+        set allProps to properties of (every reminder whose completed is false)
+        set output to ""
+        repeat with p in allProps
+            set rId to id of p
+            set rName to name of p
+            set rBody to body of p
+            if rBody is missing value then set rBody to ""
+            -- Escape newlines in body
+            set {{oldDelims, AppleScript's text item delimiters}} to {{AppleScript's text item delimiters, return}}
+            set bodyParts to text items of rBody
+            set AppleScript's text item delimiters to "\\\\n"
+            set rBody to bodyParts as string
+            set AppleScript's text item delimiters to oldDelims
+            set rPri to priority of p
             try
-                set rBody to body of aReminder
-                set {{oldDelims, AppleScript's text item delimiters}} to {{AppleScript's text item delimiters, return}}
-                set bodyParts to text items of rBody
-                set AppleScript's text item delimiters to "\\\\n"
-                set rBody to bodyParts as string
-                set AppleScript's text item delimiters to oldDelims
-            on error
-                set rBody to ""
-            end try
-            try
-                set rDueDate to due date of aReminder as string
+                set rDueDate to due date of p as string
             on error
                 set rDueDate to ""
             end try
-            set rPriority to priority of aReminder
-            set output to output & listName & fieldSep & rId & fieldSep & rName & fieldSep & rBody & fieldSep & rDueDate & fieldSep & rPriority & recSep
+            try
+                set cDate to creation date of p as string
+            on error
+                set cDate to ""
+            end try
+            set output to output & "{escaped_name}" & fieldSep & rId & fieldSep & rName & fieldSep & rBody & fieldSep & rDueDate & fieldSep & rPri & fieldSep & cDate & recSep
         end repeat
-    end repeat
+    end tell
     return output
 end tell
 '''
-        result = self._execute(script)
-        return self._parse_reminders(result)
+        return self._execute_with_timeout(script, self._per_list_timeout)
 
     def fetch_all_reminders(self) -> list[dict]:
-        """Fetch all active (non-completed) reminders"""
-        # Use ␞ (ASCII record separator) as field delimiter and ␟ (unit separator)
-        # to replace newlines in body text — pipe + newline breaks parsing when
-        # reminder bodies contain URLs or multi-line notes.
-        script = '''
-tell application "Reminders"
-    set output to ""
-    set fieldSep to (ASCII character 30) -- record separator ␞
-    set recSep to (ASCII character 29) -- group separator ␝
-    repeat with aList in lists
-        set listName to name of aList
-        repeat with aReminder in reminders of aList
-            if completed of aReminder is false then
-                set rId to id of aReminder
-                set rName to name of aReminder
-                try
-                    set rBody to body of aReminder
-                    -- Replace newlines in body so they don't break line parsing
-                    set {oldDelims, AppleScript's text item delimiters} to {AppleScript's text item delimiters, return}
-                    set bodyParts to text items of rBody
-                    set AppleScript's text item delimiters to "\\\\n"
-                    set rBody to bodyParts as string
-                    set AppleScript's text item delimiters to oldDelims
-                on error
-                    set rBody to ""
-                end try
-                try
-                    set rDueDate to due date of aReminder as string
-                on error
-                    set rDueDate to ""
-                end try
-                set rPriority to priority of aReminder
-                set output to output & listName & fieldSep & rId & fieldSep & rName & fieldSep & rBody & fieldSep & rDueDate & fieldSep & rPriority & recSep
-            end if
-        end repeat
-    end repeat
-    return output
-end tell
-'''
+        """Fetch all active (non-completed) reminders.
 
-        result = self._execute(script)
-        return self._parse_reminders(result)
+        Queries each list individually to avoid timeouts.
+        """
+        all_reminders: list[dict] = []
+        for list_name in self._get_list_names():
+            try:
+                result = self._fetch_from_list(list_name)
+                all_reminders.extend(self._parse_reminders(result))
+            except (TimeoutError, RuntimeError):
+                continue
+        return all_reminders
+
+    def _execute_with_timeout(self, script: str, timeout: int) -> str:
+        """Execute AppleScript with a specific timeout."""
+        try:
+            result = subprocess.run(
+                ['osascript', '-e', script],
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+            if result.returncode != 0:
+                raise RuntimeError(f"AppleScript error: {result.stderr}")
+            return result.stdout
+        except subprocess.TimeoutExpired:
+            raise TimeoutError(f"AppleScript timed out after {timeout}s")
 
     def _execute(self, script: str) -> str:
         """Execute AppleScript and return output"""
@@ -197,13 +210,13 @@ end tell
         """Parse reminder data using ASCII control character delimiters.
 
         Fields separated by ␞ (ASCII 30), records separated by ␝ (ASCII 29).
-        Newlines in body text are escaped as literal \\n.
+        Supports 6-field (legacy) and 7-field (with creation date) formats.
         """
         import re
 
         reminders = []
-        field_sep = chr(30)  # Record separator
-        record_sep = chr(29)  # Group separator
+        field_sep = chr(30)
+        record_sep = chr(29)
 
         for record in output.strip().split(record_sep):
             record = record.strip()
@@ -211,21 +224,23 @@ end tell
                 continue
 
             parts = record.split(field_sep)
-            if len(parts) != 6:
+            if len(parts) == 7:
+                list_name, rid, name, body, due_date, priority, created_str = parts
+            elif len(parts) == 6:
+                list_name, rid, name, body, due_date, priority = parts
+                created_str = ""
+            else:
                 continue
 
-            list_name, rid, name, body, due_date, priority = parts
-
-            # Restore newlines in body
             body = body.replace("\\n", "\n")
-
-            # Extract hashtags from body as tags
             tags = re.findall(r'#(\w+)', body)
 
             try:
                 pri = int(priority)
             except ValueError:
                 pri = 0
+
+            created_dt = self._parse_datetime(created_str)
 
             reminders.append({
                 "id": rid,
@@ -236,10 +251,24 @@ end tell
                 "priority": pri,
                 "list": list_name,
                 "completed": False,
-                "modified": datetime.now()
+                "modified": datetime.now(),
+                "created": created_dt,
             })
 
         return reminders
+
+    def _parse_datetime(self, date_str: str) -> Optional[datetime]:
+        """Parse AppleScript datetime string to datetime object."""
+        if not date_str or date_str == "missing value":
+            return None
+        try:
+            parts = date_str.split(" at ")
+            date_part = parts[0]
+            time_part = parts[1] if len(parts) > 1 else "12:00:00 am"
+            dt_str = f"{date_part} {time_part}"
+            return datetime.strptime(dt_str, "%A, %d %B %Y %I:%M:%S %p")
+        except (ValueError, IndexError):
+            return None
 
     def _parse_date(self, date_str: str) -> Optional[str]:
         """Parse AppleScript date string to YYYY-MM-DD"""

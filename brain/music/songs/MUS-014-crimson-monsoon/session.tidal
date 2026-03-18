@@ -1,0 +1,34 @@
+-- MUS-014-crimson-monsoon
+-- Created 2026-03-13
+
+setcps (133/60/4)
+
+-- d1: kick - four on the floor with variation
+d1 $ s "bd:2*4" # gain 1.1 # lpf 3000
+
+-- d2: clap/snare on 2 and 4
+d2 $ s "~ cp ~ cp" # gain 0.7 # room 0.2 # sz 0.6
+
+-- d3: closed hats - driving 16ths with groove
+d3 $ s "hh*16" # gain (slow 4 $ range 0.4 0.75 sine) # pan (slow 8 $ range 0.3 0.7 sine) # hpf 8000
+
+-- d4: open hat accent + industrial perc
+d4 $ stack [
+  s "~ ~ ~ oh:2 ~ ~ ~ oh:2" # gain 0.6 # room 0.15,
+  s "industrial:4 ~ ~ ~ industrial:7 ~ ~ ~" # gain 0.5 # crush 6 # hpf 3000
+  ]
+
+-- d5: acid bass line - classic 303 style
+d5 $ n "0 0 3 ~ 0 5 3 ~  0 0 7 ~ 5 3 0 ~" # s "acid" # resonance 0.7 # lpf (slow 8 $ range 600 3200 sine) # gain 0.9 # room 0.1
+
+-- d6: sub bass pulse
+d6 $ n "0*4" # s "subbass" # gain 0.95 # lpf 120
+
+-- d9: dark pad - evolving atmosphere
+d9 $ slow 4 $ n "<0 -5 -7 -2>" # s "darkpad" # gain 0.45 # room 0.85 # sz 0.9 # lpf 1800 # detune 0.2 # delay 0.4 # delaytime 0.375
+
+-- d10: metallic synth hi-hats - off-grid tension
+d10 $ every 3 (fast 2) $ s "~ metallic:3 ~ ~ ~ metallic:5 ~ ~" # gain 0.55 # hpf 6000 # crush 8 # pan (rand)
+
+-- d11: reese bass stab - comes in dark and low
+d11 $ every 4 (const $ n "[0 ~] ~ [0 ~] ~" # s "reese" # gain 0.8 # lpf 500 # detune 0.4 # room 0.2) $ silence

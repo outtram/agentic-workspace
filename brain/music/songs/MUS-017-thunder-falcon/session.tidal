@@ -1,0 +1,34 @@
+-- MUS-017-thunder-falcon
+-- Created 2026-03-13
+
+setcps (130/60.0/4.0)
+d1 $ s "ninekick*4" # gain 1.2 # drive 1.8
+d2 $ s "~ ninesnare ~ ninesnare" # gain 0.85 # snap 0.9
+d3 $ struct "t(7,16)" $ s "ninech" # gain (range 0.35 0.55 $ fast 4 sine) # pan (range 0.3 0.7 $ fast 3 sine)
+d4 $ s "~ ~ ~ ~ ~ ~ ~ nineoh" # gain 0.45
+d5 $ s "~ eightrim ~ ~ ~ eightrim ~ ~" # gain 0.4
+That "tick tick" sound usually means **SuperDirt is running but samples/synths aren't loading properly**. A few things to check:
+
+**1. Try a dead-simple pattern to test:**
+```
+d1 $ s "bd*4" # gain 1.5
+```
+If you hear nothing or ticking — SuperDirt isn't booted properly.
+
+**2. In SuperCollider, run this to reboot SuperDirt:**
+```supercollider
+SuperDirt.start
+```
+
+**3. Check your SC Post Window** for errors — look for:
+- `SynthDef not found` → synths didn't load
+- `Could not find sample` → samples path wrong
+- `Server not running` → boot SC first
+
+**4. The custom synths** (ninekick, eightsnare, etc.) need to be loaded via your SuperDirt startup file. If you haven't run `install.sh` yet (noted in your setup), those won't exist — you'd only hear the tick of the pattern clock.
+
+**Quick diagnosis — what do you see in the SC Post Window?**
+
+If SuperDirt isn't installed yet, run:
+```bash
+bash brain/music/setup/install.sh

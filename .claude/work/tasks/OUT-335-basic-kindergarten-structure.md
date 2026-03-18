@@ -5,12 +5,13 @@ type: task
 status: todo
 priority: medium
 created: '2026-03-10T20:00:20.212130'
-updated: '2026-03-10T20:00:20.212130'
+updated: '2026-03-10T20:00:41.938191'
 branch: task/OUT-335-basic-kindergarten-structure
 source: email
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+reminder_id: x-apple-reminder://DC15F662-7287-4AF7-8D1B-F65319063E01
 reminder_list: Reminders
 ---
 

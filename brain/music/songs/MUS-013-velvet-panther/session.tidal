@@ -1,0 +1,31 @@
+-- MUS-013-velvet-panther
+-- Created 2026-03-13
+
+setcps (133/60/4)
+
+-- Kick: four on the floor
+d1 $ s "bd*4" # gain 1.1 # lpf 3000
+
+-- Hi-hats: steady 16ths with variation
+d2 $ s "hh*16" # gain "[0.6 0.4]*4" # hpf 8000 # pan (slow 8 $ sine)
+
+-- Open hat on offbeats
+d3 $ s "~ oh ~ oh" # gain 0.7 # room 0.2 # sz 0.6
+
+-- Sparse clap / rimshot
+d4 $ every 4 (fast 2) $ s "~ ~ sn ~" # gain 0.75 # room 0.15
+
+-- Reese bass: dark and driving
+d5 $ note (slow 2 $ "<[0 0 0 3] [0 0 -2 0]>") # s "reese" # gain 0.9 # lpf (slow 4 $ range 200 900 sine) # resonance 0.3 # legato 0.9
+
+-- Sub bass: underpins the kick
+d6 $ note "0 ~ ~ ~" # s "subbass" # gain 1.0 # lpf 120
+
+-- Metallic hi-hat texture
+d7 $ s "metallic*8" # gain (slow 2 $ range 0.3 0.55 sine) # hpf 6000 # crush 6
+
+-- Dark pad: slow evolving atmosphere
+d9 $ note "<[0,7] [0,5] [-2,5] [0,4]>" # s "darkpad" # gain 0.5 # room 0.8 # sz 0.9 # lpf 1800 # delay 0.4 # delaytime (1/6) # legato 4
+
+-- Techno stab: sparse and punchy
+d10 $ every 3 (jux rev) $ note "<~ [0 ~] ~ [0 3 ~]>" # s "techstab" # gain 0.65 # hpf 400 # room 0.2 # crush 5

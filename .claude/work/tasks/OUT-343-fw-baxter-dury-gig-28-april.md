@@ -5,34 +5,21 @@ type: task
 status: todo
 priority: medium
 created: '2026-03-10T20:02:31.526078'
-updated: '2026-03-10T20:02:31.526078'
+updated: '2026-03-10T20:02:53.455364'
 branch: task/OUT-343-fw:-baxter-dury-gig-28-april
 source: email
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+reminder_id: x-apple-reminder://AF517788-CEC6-4E40-9FD4-2911743DD06E
 reminder_list: Reminders
 ---
 
 # Fw: Baxter dury gig 28 April
 
 ## Description
-From: Outtram, Troy
-Look at getting this before Friday this week
 
-Cheers Troy
-
-Deloitte - Partner
-0409978707
-________________________________
-From: Outtram, Troy <touttram@deloitte.com.au>
-Sent: Sunday, February 22, 2026 9:37:53 AM
-To: Outtram, Troy <touttram@deloitte.com.au>
-Subject: Baxter dury gig 28 April
-
-
-
-https://premier.ticketek.com.au/events/BAXTDURY26/venues/FRM/performances/EFMC2026724BD?clickref=1011lC8twXCF&app_clickref=1011lC8twXCF&utm_source=spotify&utm_medium=referral&utm_campaign=spot
+Purchase tickets to the Baxter Dury gig on 28 April via Ticketek before this Friday. Visit the Ticketek link in the original email to check availability and complete the purchase. Done when tickets are confirmed and saved/forwarded to personal email.
 
 ## Steps
 - [ ] Review task details

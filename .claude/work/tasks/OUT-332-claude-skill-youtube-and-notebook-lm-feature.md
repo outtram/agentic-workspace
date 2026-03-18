@@ -5,12 +5,13 @@ type: task
 status: todo
 priority: medium
 created: '2026-03-10T19:59:21.868618'
-updated: '2026-03-10T19:59:21.868618'
+updated: '2026-03-10T19:59:43.875756'
 branch: task/OUT-332-claude-skill-youtube-and-noteb
 source: email
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+reminder_id: x-apple-reminder://A3094879-AFAE-4682-B3DB-A8E2DD546E05
 reminder_list: Reminders
 ---
 

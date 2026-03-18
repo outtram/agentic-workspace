@@ -1,0 +1,22 @@
+-- MUS-015-cryptic-obsidian
+-- Created 2026-03-13
+
+setcps (128/60/4)
+
+-- Kick: four on the floor
+d1 $ s "bd:3*4" # gain 1.1
+
+-- Snare/clap on 2 and 4
+d2 $ s "~ cp ~ cp" # gain 0.9
+
+-- Hi-hats: closed on every beat, open on offbeats
+d3 $ s "hh hh hh hh" # gain 0.7
+
+-- Open hat on offbeats
+d4 $ s "~ oh ~ oh" # gain 0.6 # speed 1.2
+
+-- Deep sub bass (root note, following kick)
+d5 $ note "0 0 3 5" # s "subbass" # gain 1.0 # legato 0.8
+
+-- Juno-style chord stab
+d9 $ every 2 (fast 2) $ s "arpy:3 ~ arpy:5 ~" # gain 0.7 # lpf 3000 # room 0.3

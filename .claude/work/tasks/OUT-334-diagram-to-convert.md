@@ -5,12 +5,13 @@ type: task
 status: todo
 priority: medium
 created: '2026-03-10T19:59:58.160179'
-updated: '2026-03-10T19:59:58.160179'
+updated: '2026-03-10T20:00:20.137093'
 branch: task/OUT-334-diagram-to-convert
 source: email
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+reminder_id: x-apple-reminder://5CF02B2C-B9B2-41E4-9E68-F4B968E94DBC
 reminder_list: Reminders
 ---
 
