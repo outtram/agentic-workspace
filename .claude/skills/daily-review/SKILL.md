@@ -1,3 +1,8 @@
+---
+name: daily-review
+description: Import reminders, generate Eisenhower dashboard, and show Q1 priorities. Use when Troy says "/daily-review", "daily review", "morning review", "what are my priorities", or asks for task overview.
+---
+
 # Daily Review Skill
 
 > Import reminders, generate Eisenhower dashboard, and show Q1 priorities
