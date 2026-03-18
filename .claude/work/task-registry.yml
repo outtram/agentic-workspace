@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 349
-last_synced: '2026-03-16T18:07:34.492156'
+next_id: 350
+last_synced: '2026-03-18T21:37:15.769510'
 entries:
   OUT-223:
     title: Fire place fix
@@ -582,3 +582,10 @@ entries:
     reminder_id: x-apple-reminder://47B28BAC-2312-4C2B-8376-F1EC2F36C0E1
     status: todo
     created: '2026-03-16T18:07:34.490804'
+  OUT-349:
+    title: Exec Meeting Rose, Mike, Berin, Darran, Kate
+    file: OUT-349-exec-meeting-rose-mike-berin-darran-kate.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://1D4A3503-D4BA-4656-815C-BF1F378820C7
+    status: todo
+    created: '2026-03-18T21:37:15.768285'
