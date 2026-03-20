@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 353
-last_synced: '2026-03-19T16:23:53.095791'
+next_id: 354
+last_synced: '2026-03-20T12:53:10.674469'
 entries:
   OUT-223:
     title: Fire place fix
@@ -610,3 +610,10 @@ entries:
     reminder_id: x-apple-reminder://42B10271-81AB-4A34-99C9-FB49006BEC62
     status: todo
     created: '2026-03-19T16:23:53.094929'
+  OUT-353:
+    title: Chat history review across Claude, cursor, anything
+    file: OUT-353-chat-history-review-across-claude-cursor-anythin.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://860CA3FC-40D7-4538-8652-3D06EC0D3B9E
+    status: todo
+    created: '2026-03-20T12:53:10.673672'
