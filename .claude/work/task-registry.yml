@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 361
-last_synced: '2026-03-20T12:53:22.919883'
+next_id: 362
+last_synced: '2026-03-20T12:53:24.611614'
 entries:
   OUT-223:
     title: Fire place fix
@@ -666,3 +666,10 @@ entries:
     reminder_id: x-apple-reminder://BFCD0301-50D4-43CB-9ADF-A8359F8F7A74
     status: todo
     created: '2026-03-20T12:53:22.918521'
+  OUT-361:
+    title: Paperclip ai
+    file: OUT-361-paperclip-ai.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://F690E301-88C1-4AEC-94C6-45CD9A2A3D57
+    status: todo
+    created: '2026-03-20T12:53:24.610804'
