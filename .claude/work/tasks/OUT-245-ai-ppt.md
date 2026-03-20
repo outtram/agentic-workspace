@@ -2,7 +2,7 @@
 id: OUT-245
 title: AI Presentation (PowerPoint)
 type: task
-status: done
+status: archived
 priority: medium
 created: '2026-02-12T00:00:00'
 updated: '2026-03-01T09:40:07.009397'

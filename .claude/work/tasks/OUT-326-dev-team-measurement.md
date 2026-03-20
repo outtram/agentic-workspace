@@ -2,7 +2,7 @@
 id: OUT-326
 title: Dev team measurement
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-03-01T21:06:46.163215'
 updated: '2026-03-01T22:22:55.170774'

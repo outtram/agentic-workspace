@@ -2,7 +2,7 @@
 id: OUT-305
 title: 1 Image
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-23T21:03:47.293519'
 updated: '2026-02-25T21:07:53.817619'

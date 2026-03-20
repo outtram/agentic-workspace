@@ -2,7 +2,7 @@
 id: OUT-325
 title: More system improvements
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-03-01T10:33:22.491766'
 updated: '2026-03-01T13:03:57.386005'

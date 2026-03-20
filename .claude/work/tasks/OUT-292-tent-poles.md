@@ -2,7 +2,7 @@
 id: OUT-292
 title: Tent poles
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-22T00:00:00'
 updated: '2026-03-06T23:18:50.291842'

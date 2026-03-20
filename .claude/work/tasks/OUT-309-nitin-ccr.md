@@ -2,7 +2,7 @@
 id: OUT-309
 title: Nitin ccr
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-28T21:15:59.648644'
 updated: '2026-03-05T22:24:44.962520'

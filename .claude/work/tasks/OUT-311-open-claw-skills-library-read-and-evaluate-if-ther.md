@@ -2,7 +2,7 @@
 id: OUT-311
 title: Open claw skills library read and evaluate if there are some to consider
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-28T21:16:03.139244'
 updated: '2026-03-01T22:23:27.814626'

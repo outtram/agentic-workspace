@@ -2,7 +2,7 @@
 id: OUT-323
 title: Interesting concept for Claude and open claw
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-03-01T10:33:19.021793'
 updated: '2026-03-01T22:23:38.339740'

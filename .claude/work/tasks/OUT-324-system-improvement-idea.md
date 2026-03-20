@@ -2,7 +2,7 @@
 id: OUT-324
 title: System improvement idea
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-03-01T10:33:20.929982'
 updated: '2026-03-01T22:23:32.968119'

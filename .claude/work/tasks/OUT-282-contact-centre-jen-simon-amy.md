@@ -2,7 +2,7 @@
 id: OUT-282
 title: Contact Centre - Jen, Simon, AMy
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-22T00:00:00'
 updated: '2026-03-01T22:23:12.487654'

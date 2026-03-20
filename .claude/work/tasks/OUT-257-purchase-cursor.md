@@ -2,7 +2,7 @@
 id: OUT-257
 title: Purchase Cursor
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-12T00:00:00'
 updated: '2026-02-27T08:49:21.066811'

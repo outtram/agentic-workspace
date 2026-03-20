@@ -2,7 +2,7 @@
 id: OUT-256
 title: "Morgan LinkedIn Post \u2014 copy Morgan's and tweak"
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-12T00:00:00'
 updated: '2026-03-06T22:41:49.509347'

@@ -2,7 +2,7 @@
 id: OUT-291
 title: Kev website
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-22T00:00:00'
 updated: '2026-02-25T21:07:41.293528'

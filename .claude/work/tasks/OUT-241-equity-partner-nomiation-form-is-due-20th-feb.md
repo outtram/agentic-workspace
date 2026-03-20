@@ -2,7 +2,7 @@
 id: OUT-241
 title: "Equity Partner Nomination Form \u2014 due 20th Feb"
 type: task
-status: done
+status: archived
 priority: high
 created: '2026-02-12T00:00:00'
 updated: '2026-02-23T06:49:30.138671'

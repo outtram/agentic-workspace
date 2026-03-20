@@ -2,7 +2,7 @@
 id: OUT-269
 title: "Buy 30mm Conduit \u2014 electrical, van, need at least 20 metres"
 type: task
-status: done
+status: archived
 priority: low
 created: '2026-02-15T20:13:22.597559'
 updated: '2026-02-23T07:01:13.223222'

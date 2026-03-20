@@ -2,7 +2,7 @@
 id: OUT-242
 title: "Kate \u2014 Continuous Delivery Meeting"
 type: task
-status: done
+status: archived
 priority: medium
 created: '2026-02-12T00:00:00'
 updated: '2026-03-06T22:58:05.612110'
