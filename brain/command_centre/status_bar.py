@@ -121,7 +121,7 @@ class StatusBarWidget(Static):
         # Music mode — custom line 2
         if view_mode == "music":
             play_icon = "\u25b6" if music_playing else "\u25a0"
-            parts = [f"[bold #FF6B35]\u266a MUSIC[/]"]
+            parts = ["[bold #FF6B35]\u266a MUSIC[/]"]
             if music_song:
                 parts.append(f"[bold]{music_song}[/]")
             parts.append(f"[#00D4AA]{music_bpm} BPM[/]")
@@ -135,7 +135,7 @@ class StatusBarWidget(Static):
 
         # Diagram mode — custom line 2
         if view_mode == "diagram":
-            parts = [f"[bold #FF6B35]DIAGRAM[/]"]
+            parts = ["[bold #FF6B35]DIAGRAM[/]"]
             if diagram_title:
                 parts.append(diagram_title)
             parts.append(f"{diagram_node_count} nodes")

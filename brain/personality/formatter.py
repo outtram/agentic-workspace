@@ -77,7 +77,7 @@ def format_for_terminal(text: str) -> str:
     text = re.sub(r"^-\s+", f"  {GREEN}•{RESET} ", text, flags=re.MULTILINE)
 
     # Numbered lists: keep as-is but indent
-    text = re.sub(r"^(\d+\.)\s+", rf"  \1 ", text, flags=re.MULTILINE)
+    text = re.sub(r"^(\d+\.)\s+", r"  \1 ", text, flags=re.MULTILINE)
 
     # Clean up excessive whitespace
     text = re.sub(r"\n{3,}", "\n\n", text)

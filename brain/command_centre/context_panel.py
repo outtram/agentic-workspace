@@ -140,7 +140,7 @@ class ContextPanel(VerticalScroll):
             if len(title) > 40:
                 title = title[:37] + "..."
             tid = task.get("id", "")
-            lines += f"[bold #FF6B35]CHATTING ABOUT[/]\n"
+            lines += "[bold #FF6B35]CHATTING ABOUT[/]\n"
             lines += f"[bold]{title}[/] [dim]· {tid}[/]\n"
             if len(self._task_context) > 1:
                 extra = len(self._task_context) - 1

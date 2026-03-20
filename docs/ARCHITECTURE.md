@@ -1,6 +1,6 @@
 # System Architecture
 
-> Last updated: 2026-03-13 (Phase 7: TidalCycles music mode — async bridge, 13 custom synths)
+> Last updated: 2026-03-20 (Phase 8: ruff linting added to CI/CD pipeline; pyproject.toml [tool.ruff] config established)
 > This document describes the full AAGLOBAL system for Troy, Claude Code agents, Cursor, and OutBot.
 
 ## How to Use This System

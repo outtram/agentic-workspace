@@ -273,11 +273,11 @@ class TaskFocusView(Widget):
         # Header
         prd_badge = ""
         if task.get("prd"):
-            prd_badge = f"  [bold blue]PRD[/]"
+            prd_badge = "  [bold blue]PRD[/]"
         lines.append(
             f"[bold #FF6B35]{tid}[/]  [{colour}]{label}[/]{prd_badge}"
         )
-        lines.append(f"[dim]← Esc back to grid[/]")
+        lines.append("[dim]← Esc back to grid[/]")
         lines.append("[#333333]" + "\u2501" * 48 + "[/]")
         lines.append("")
 

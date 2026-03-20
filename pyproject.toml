@@ -1,3 +1,17 @@
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# E4/E7/E9: critical syntax/import/runtime errors; F: pyflakes (undefined names, unused imports)
+select = ["E4", "E7", "E9", "F"]
+ignore = [
+    "F401",  # imported but unused — common in __init__.py re-exports
+    "F841",  # local variable assigned but never used — acceptable in existing code
+    "E402",  # module import not at top — intentional in some modules (path setup)
+    "E731",  # lambda assignment — stylistic, not an error
+    "E741",  # ambiguous variable name — case-by-case acceptable
+]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = [
