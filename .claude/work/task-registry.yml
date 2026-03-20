@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 359
-last_synced: '2026-03-20T12:53:19.540228'
+next_id: 360
+last_synced: '2026-03-20T12:53:21.184853'
 entries:
   OUT-223:
     title: Fire place fix
@@ -652,3 +652,10 @@ entries:
     reminder_id: x-apple-reminder://1F664DAD-85CC-4299-B208-45EC9FB8DCAA
     status: todo
     created: '2026-03-20T12:53:19.539441'
+  OUT-359:
+    title: How to build an agent
+    file: OUT-359-how-to-build-an-agent.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://6B7CA3B4-F449-4259-97E0-914C2C115842
+    status: todo
+    created: '2026-03-20T12:53:21.183737'
