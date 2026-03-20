@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 362
-last_synced: '2026-03-20T12:53:24.611614'
+next_id: 363
+last_synced: '2026-03-20T12:53:26.194649'
 entries:
   OUT-223:
     title: Fire place fix
@@ -673,3 +673,10 @@ entries:
     reminder_id: x-apple-reminder://F690E301-88C1-4AEC-94C6-45CD9A2A3D57
     status: todo
     created: '2026-03-20T12:53:24.610804'
+  OUT-362:
+    title: Tmux - ssh -
+    file: OUT-362-tmux-ssh.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://CF0EDBBA-E2CF-4E25-B079-80B2616FACE7
+    status: todo
+    created: '2026-03-20T12:53:26.193698'
