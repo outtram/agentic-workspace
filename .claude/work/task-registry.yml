@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 355
-last_synced: '2026-03-20T12:53:12.743421'
+next_id: 356
+last_synced: '2026-03-20T12:53:14.443944'
 entries:
   OUT-223:
     title: Fire place fix
@@ -624,3 +624,10 @@ entries:
     reminder_id: x-apple-reminder://041D6942-4F87-4958-A206-07AC168D892B
     status: todo
     created: '2026-03-20T12:53:12.741728'
+  OUT-355:
+    title: Music app ideas
+    file: OUT-355-music-app-ideas.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://89AF80D6-69B2-400F-8A61-BC2487B7099D
+    status: todo
+    created: '2026-03-20T12:53:14.443045'
