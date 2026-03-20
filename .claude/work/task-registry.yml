@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 356
-last_synced: '2026-03-20T12:53:14.443944'
+next_id: 357
+last_synced: '2026-03-20T12:53:16.063403'
 entries:
   OUT-223:
     title: Fire place fix
@@ -631,3 +631,10 @@ entries:
     reminder_id: x-apple-reminder://89AF80D6-69B2-400F-8A61-BC2487B7099D
     status: todo
     created: '2026-03-20T12:53:14.443045'
+  OUT-356:
+    title: Camera
+    file: OUT-356-camera.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://0EEE52E4-CF6E-47B6-BC8E-EBFB5C9258C3
+    status: todo
+    created: '2026-03-20T12:53:16.062625'
