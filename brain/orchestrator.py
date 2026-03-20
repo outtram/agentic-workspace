@@ -507,17 +507,25 @@ class Orchestrator:
 
     async def _gather_heartbeat_findings(self) -> str:
         """Gather data from all integrations for heartbeat judgement."""
-        sections = []
+        from brain.heartbeat.integrations.calendar_bridge import get_upcoming_events
+        from brain.heartbeat.integrations.reminders_bridge import get_due_reminders
+        from brain.heartbeat.nudge_engine import NudgeContext, NudgeEngine
 
+        reminders: list[dict] = []
         try:
-            from brain.heartbeat.integrations.reminders_bridge import (
-                format_reminders_for_judge,
-                get_due_reminders,
-            )
-
             reminders = get_due_reminders()
-            sections.append(format_reminders_for_judge(reminders))
         except Exception as e:
-            sections.append(f"Reminders: error - {e}")
+            logger.warning("Reminders bridge error: %s", e)
 
-        return "\n\n".join(sections) if sections else "No data gathered."
+        events = []
+        try:
+            events = get_upcoming_events(lookahead_hours=4)
+        except Exception as e:
+            logger.warning("Calendar bridge error: %s", e)
+
+        ctx = NudgeContext(
+            upcoming_events=events,
+            overdue_reminders=reminders,
+        )
+        engine = NudgeEngine()
+        return engine.build_findings_summary(ctx)
