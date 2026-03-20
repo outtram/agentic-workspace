@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 358
-last_synced: '2026-03-20T12:53:17.851253'
+next_id: 359
+last_synced: '2026-03-20T12:53:19.540228'
 entries:
   OUT-223:
     title: Fire place fix
@@ -645,3 +645,10 @@ entries:
     reminder_id: x-apple-reminder://215A70AA-7611-4184-A89D-2FCB57115A3B
     status: todo
     created: '2026-03-20T12:53:17.850332'
+  OUT-358:
+    title: Y combinator ceo
+    file: OUT-358-y-combinator-ceo.md
+    source: reminders_import
+    reminder_id: x-apple-reminder://1F664DAD-85CC-4299-B208-45EC9FB8DCAA
+    status: todo
+    created: '2026-03-20T12:53:19.539441'
