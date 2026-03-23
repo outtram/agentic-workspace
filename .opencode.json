@@ -1,0 +1,21 @@
+{
+  "providers": {
+    "copilot": {
+      "disabled": false
+    }
+  },
+  "agents": {
+    "coder": {
+      "model": "claude-sonnet-4",
+      "maxTokens": 16000
+    },
+    "task": {
+      "model": "claude-sonnet-4",
+      "maxTokens": 8000
+    },
+    "title": {
+      "model": "gpt-4o-mini",
+      "maxTokens": 80
+    }
+  }
+}

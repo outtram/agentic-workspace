@@ -2,7 +2,7 @@
 id: OUT-277
 title: GLM-5 — research and understand what it is
 type: task
-status: todo
+status: archived
 priority: low
 category: research
 created: '2026-02-19T13:18:05.732061'

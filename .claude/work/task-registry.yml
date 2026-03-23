@@ -1,5 +1,5 @@
 schema_version: 1
-next_id: 363
+next_id: 365
 last_synced: '2026-03-20T12:53:26.194649'
 entries:
   OUT-223:
@@ -680,3 +680,15 @@ entries:
     reminder_id: x-apple-reminder://CF0EDBBA-E2CF-4E25-B079-80B2616FACE7
     status: todo
     created: '2026-03-20T12:53:26.193698'
+  OUT-363:
+    title: Story Point Estimator — ML Model from Historical Data
+    file: OUT-363-story-point-estimator.md
+    source: manual
+    status: todo
+    created: '2026-03-23'
+  OUT-364:
+    title: Hotdog or Not Hotdog — Meme Classifier
+    file: OUT-364-hotdog-not-hotdog-classifier.md
+    source: manual
+    status: todo
+    created: '2026-03-23'
