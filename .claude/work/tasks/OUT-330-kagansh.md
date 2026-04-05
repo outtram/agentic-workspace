@@ -4,8 +4,9 @@ title: kagan.sh
 type: task
 status: todo
 priority: low
+category: personal
 created: '2026-03-10T15:47:41.108996'
-updated: '2026-03-10T15:47:41.108996'
+updated: '2026-03-23'
 branch: task/OUT-330-kagan.sh
 source: reminders_import
 eisenhower_quadrant: q2
@@ -15,6 +16,7 @@ reminder_id: x-apple-reminder://4D3EE0E8-1262-405B-8E62-13612F9A7090
 reminder_list: Reminders
 stream_state: seen
 last_touched: '2026-03-11T16:20:26'
+enriched: true
 ---
 
 # kagan.sh
@@ -24,9 +26,11 @@ look into this interesting dev ops ai tool. see if it can help with cc.
 
 
 ## Steps
-- [ ] Review task details
-- [ ] Complete task
-- [ ] Mark as done
+- [ ] Clarify what done looks like for this task
+- [ ] Gather the missing context, person, or link needed
+- [ ] Complete the smallest useful next action
+- [ ] Capture the outcome in the task notes
+- [ ] Update the task status to done
 
 ## Research
 
@@ -67,3 +71,6 @@ Mix both on the same board simultaneously.
 | Evaluate against your Command Centre TUI for overlap | Low |
 
 **Potential concern:** Your Command Centre TUI is custom-built for AAGLOBAL. Kagan overlaps significantly — worth deciding if you want to run both or integrate selectively via MCP.
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

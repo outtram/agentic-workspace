@@ -4,8 +4,9 @@ title: How to build an agent
 type: task
 status: todo
 priority: low
+category: tech
 created: '2026-03-20T12:53:21.183737'
-updated: '2026-03-20T12:53:21.183737'
+updated: '2026-03-23'
 branch: task/OUT-359-how-to-build-an-agent
 source: reminders_import
 eisenhower_quadrant: q2
@@ -20,6 +21,7 @@ tags:
 - LLM
 reminder_id: x-apple-reminder://6B7CA3B4-F449-4259-97E0-914C2C115842
 reminder_list: Reminders
+enriched: true
 ---
 
 # How to build an agent
@@ -66,6 +68,11 @@ Have you fallen into the "wishful delegation" trap yet? Let me know your preferr
 #AgenticAI #AIEngineering #GenerativeAI #AIAgents #TechLeadership #LLM
 
 ## Steps
-- [ ] Review task details
-- [ ] Complete task
-- [ ] Mark as done
+- [ ] Clarify the intended outcome and success criteria
+- [ ] Review the relevant code, notes, or related tasks
+- [ ] Draft the smallest implementation or investigation step
+- [ ] Capture findings and the next concrete action
+- [ ] Update the task status when the next step is locked in
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

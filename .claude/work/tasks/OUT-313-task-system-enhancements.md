@@ -4,8 +4,9 @@ title: Task System Enhancements
 type: task
 status: todo
 priority: medium
+category: tech
 created: '2026-02-28T21:48:50.748996'
-updated: '2026-02-28T21:49:48.814306'
+updated: '2026-03-23'
 branch: task/OUT-313-task-system-enhancements
 source: manual
 eisenhower_quadrant: q4
@@ -22,6 +23,7 @@ children:
 - OUT-320
 - OUT-321
 - OUT-322
+enriched: true
 ---
 
 # Task System Enhancements
@@ -30,6 +32,11 @@ children:
 Epic for all planned improvements to the task/picker/delegation system discussed in planning session.
 
 ## Steps
-- [ ] Review task details
-- [ ] Complete task
-- [ ] Mark as done
+- [ ] Clarify the intended outcome and success criteria
+- [ ] Review the relevant code, notes, or related tasks
+- [ ] Draft the smallest implementation or investigation step
+- [ ] Capture findings and the next concrete action
+- [ ] Update the task status when the next step is locked in
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

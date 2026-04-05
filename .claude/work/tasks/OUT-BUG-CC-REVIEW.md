@@ -4,14 +4,20 @@ title: Command Centre bug fixes from fresh review
 type: task
 status: todo
 priority: high
+category: tech
 eisenhower_quadrant: q1
 eisenhower_urgent: true
 eisenhower_important: true
 created: 2026-02-28
 assignee: Claude Code
+updated: '2026-03-23'
+enriched: true
 ---
 
 # Command Centre Bug Fixes — Fresh Review (28 Feb 2026)
+
+## Description
+Address the six Command Centre issues identified in the fresh review, prioritising the today-list data loss risk and the missing configurable chat toggle first.
 
 6 issues found across the 30-file Command Centre codebase. All files pass syntax checks. No import errors. Issues are ordered by severity.
 
@@ -121,3 +127,6 @@ Then launch `cc` and test:
 2. Check `c` key toggles chat in both grid and focus views (Bug 2)
 3. Type `/help` in the command bar (Bug 3)
 4. Open command palette with `/` and confirm no duplicate import entries (Bug 4)
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

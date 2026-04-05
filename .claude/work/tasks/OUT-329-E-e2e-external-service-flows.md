@@ -4,12 +4,14 @@ title: "CC E2E tests: external-service flows (sync, email, Eisenhower, session)"
 type: task
 status: todo
 priority: low
+category: tech
 created: '2026-03-10'
-updated: '2026-03-10'
+updated: '2026-03-23'
 parent: OUT-329
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+enriched: true
 ---
 
 # CC E2E Tests — External Service Flows
@@ -32,3 +34,6 @@ Follows from OUT-329 — foundation is in place, these are the remaining coverag
 - Test patterns: `brain/tests/test_command_centre/test_e2e/test_cc_flows.py`
 - Mock fixture pattern: `mock_env` in same file
 - Docs: `docs/TESTING.md`
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

@@ -4,8 +4,9 @@ title: Get shit done
 type: task
 status: todo
 priority: low
+category: tech
 created: '2026-02-28T21:16:01.531208'
-updated: '2026-03-02T23:29:12.525092'
+updated: '2026-03-23'
 branch: task/OUT-310-get-shit-done
 source: reminders_import
 eisenhower_quadrant: q2
@@ -17,6 +18,7 @@ due_date: null
 prd: OUT-310
 stream_state: seen
 last_touched: '2026-03-12T14:59:13'
+enriched: true
 ---
 
 # Get shit done
@@ -54,9 +56,11 @@ npx get-shit-done-cc@latest
 Link in the first comment 👇
 
 ## Steps
-- [ ] Review task details
-- [ ] Complete task
-- [ ] Mark as done
+- [ ] Clarify the intended outcome and success criteria
+- [ ] Review the relevant code, notes, or related tasks
+- [ ] Draft the smallest implementation or investigation step
+- [ ] Capture findings and the next concrete action
+- [ ] Update the task status when the next step is locked in
 
 ## Research
 
@@ -124,3 +128,6 @@ Sources:
 ## Note — 2026-03-02 14:14
 
 New note from Troy. My question is should we apply this to this current system or not?
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

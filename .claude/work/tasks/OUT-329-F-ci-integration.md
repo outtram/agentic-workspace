@@ -4,12 +4,14 @@ title: "CC tests: CI integration — Makefile targets for selective test runs"
 type: task
 status: todo
 priority: low
+category: tech
 created: '2026-03-10'
-updated: '2026-03-10'
+updated: '2026-03-23'
 parent: OUT-329
 eisenhower_quadrant: q2
 eisenhower_urgent: false
 eisenhower_important: true
+enriched: true
 ---
 
 # CC Tests — CI Integration
@@ -31,3 +33,6 @@ Wire CC test suite into a repeatable CI-friendly runner. Add Makefile targets or
 - All tests currently runnable via: `python3 -m pytest brain/tests/test_command_centre/ -x -q`
 - Markers defined in `brain/pyproject.toml`
 - Docs: `docs/TESTING.md`
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

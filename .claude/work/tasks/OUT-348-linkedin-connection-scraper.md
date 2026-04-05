@@ -4,12 +4,17 @@ title: LinkedIn Connection Scraper — Partner Network Database
 type: task
 status: todo
 priority: medium
+category: tech
 created: '2026-03-14'
-updated: '2026-03-14'
+updated: '2026-03-23'
 tags: [side-quest, scraping, data, linkedin]
+enriched: true
 ---
 
 # LinkedIn Connection Scraper
+
+## Description
+Build an agentic tool to scrape first-degree LinkedIn connections for roughly 30 partners, store them in a structured database, export them to a spreadsheet, and run fuzzy matching against a target stakeholder list.
 
 ## Summary
 Build an agentic tool to scrape first-degree LinkedIn connections for ~30 partners, store in a structured database, export to spreadsheet, and run fuzzy matching against a target stakeholder list.
@@ -61,3 +66,6 @@ Build an agentic tool to scrape first-degree LinkedIn connections for ~30 partne
 - What format will the target stakeholder list come in?
 - What "session" means in the partners table — event name?
 - Data retention/deletion — how long after the session?
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

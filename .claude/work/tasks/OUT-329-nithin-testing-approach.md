@@ -4,8 +4,9 @@ title: CC E2E regression testing — Textual Pilot + visual snapshots
 type: task
 status: in-progress
 priority: low
+category: tech
 created: '2026-03-09T21:49:23.380106'
-updated: '2026-03-10T00:00:00'
+updated: '2026-03-23'
 branch: task/OUT-329-nithin-testing-approach
 source: reminders_import
 eisenhower_quadrant: q2
@@ -18,6 +19,7 @@ prd: OUT-329
 children:
   - OUT-329-E
   - OUT-329-F
+enriched: true
 ---
 
 # CC E2E Regression Testing
@@ -74,3 +76,6 @@ Original inspiration: https://dev.to/hybridtechie/ai-regression-tests-written-in
 - **Textual Pilot** — `App.run_test()` + `pilot` object. Simulates keypresses, clicks, queries widget state. Already working in `test_tui_smoke.py`. Fast, headless, CI-friendly.
 - **pytest-textual-snapshot** — SVG visual regression. Captures screenshots, diffs between runs, produces HTML diff reports. Catches layout/styling breaks automatically.
 - **Microsoft tui-test** — True PTY-based E2E. TypeScript, pre-release (v0.0.1-rc.5). Not recommended yet.
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.

@@ -4,8 +4,9 @@ title: create a diagrm of this
 type: task
 status: todo
 priority: low
+category: health
 created: '2026-03-06T23:23:12.475868'
-updated: '2026-03-06T23:23:12.475868'
+updated: '2026-03-23'
 branch: task/OUT-328-create-a-diagrm-of-this
 source: reminders_import
 eisenhower_quadrant: q2
@@ -13,6 +14,7 @@ eisenhower_urgent: false
 eisenhower_important: true
 reminder_id: x-apple-reminder://1EB21BF9-1B02-4299-BF91-5BDCEEA65089
 reminder_list: Reminders
+enriched: true
 ---
 
 # create a diagrm of this
@@ -43,6 +45,11 @@ Got it. Let me read the PPTX skill first, then I'll build both decks.Good. Now I
 > *Three sequential isometric scenes showing progressively fewer human figures at desks, but identical stacks of completed items in each scene. Remaining figures glow brighter. Clean corporate style, navy blue.*
 
 ## Steps
-- [ ] Review task details
-- [ ] Complete task
-- [ ] Mark as done
+- [ ] Check what needs to be booked, ordered, or completed
+- [ ] Find the contact details, form, or booking link needed
+- [ ] Complete the health admin action
+- [ ] Save any booking confirmation or follow-up date
+- [ ] Update the task status to done
+
+## Progress Log
+- 2026-03-23: Enriched in batch review. Preserved existing detail and replaced placeholders where needed.
