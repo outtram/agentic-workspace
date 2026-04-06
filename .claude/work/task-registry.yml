@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-06T21:49:16.668125'
+last_synced: '2026-04-06T21:56:43.106926'
 entries:
   OUT-223:
     title: Fire place fix
@@ -251,7 +251,7 @@ entries:
     title: Sujatha
     file: OUT-304-sujatha.md
     source: reminders_import
-    status: todo
+    status: done
     created: '2026-02-23T21:03:47.293080'
     reminder_id: x-apple-reminder://FEBD6715-CBBB-437F-ABB6-1087216A4138
   OUT-305:
