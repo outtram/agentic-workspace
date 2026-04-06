@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-06T20:57:36.589885'
+last_synced: '2026-04-06T21:47:33.930756'
 entries:
   OUT-223:
     title: Fire place fix
@@ -118,7 +118,7 @@ entries:
     title: Memory Upgrade Idea
     file: OUT-280-memory-upgrade-idea.md
     source: reminders_import
-    status: todo
+    status: done
     created: '2026-02-19T21:31:12.383301'
     reminder_id: x-apple-reminder://564B5F6B-3BB7-4BD7-8005-DC85A6769755
   OUT-282:
