@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 366
-last_synced: '2026-04-06T17:36:34.892488'
+next_id: 367
+last_synced: '2026-04-06T17:36:36.402618'
 entries:
   OUT-223:
     title: Fire place fix
@@ -699,3 +699,10 @@ entries:
     reminder_id: x-apple-reminder://993DE7CB-53BE-4017-8BD1-9445870C30B4
     status: todo
     created: '2026-04-06T17:36:34.891340'
+  OUT-366:
+    title: Claude
+    file: OUT-366-claude.md
+    source: reminder
+    reminder_id: x-apple-reminder://362A2D5F-AB3B-40BC-9905-436F68729582
+    status: todo
+    created: '2026-04-06T17:36:36.401704'
