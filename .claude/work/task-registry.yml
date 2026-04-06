@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-06T20:57:15.968103'
+last_synced: '2026-04-06T20:57:36.589885'
 entries:
   OUT-223:
     title: Fire place fix
@@ -601,7 +601,7 @@ entries:
     file: OUT-351-kate-jif-troy-needs-to-call.md
     source: reminders_import
     reminder_id: x-apple-reminder://42E049AB-3F4E-41B4-ACC8-260D141D52A8
-    status: todo
+    status: done
     created: '2026-03-18T21:37:21.254131'
   OUT-352:
     title: Figma flow
