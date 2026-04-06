@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-06T21:47:33.930756'
+last_synced: '2026-04-06T21:49:16.668125'
 entries:
   OUT-223:
     title: Fire place fix
@@ -467,7 +467,7 @@ entries:
     file: OUT-332-claude-skill-youtube-and-notebook-lm-feature.md
     source: email
     reminder_id: null
-    status: todo
+    status: done
     created: '2026-03-10T19:59:21.868618'
   OUT-333:
     title: '[outtram/agentic-workspace] Run failed: CI - main (c52ba2f)'
