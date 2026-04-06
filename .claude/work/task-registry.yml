@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 367
-last_synced: '2026-04-06T17:36:36.402618'
+next_id: 368
+last_synced: '2026-04-06T17:36:37.977394'
 entries:
   OUT-223:
     title: Fire place fix
@@ -706,3 +706,10 @@ entries:
     reminder_id: x-apple-reminder://362A2D5F-AB3B-40BC-9905-436F68729582
     status: todo
     created: '2026-04-06T17:36:36.401704'
+  OUT-367:
+    title: Oh my claw
+    file: OUT-367-oh-my-claw.md
+    source: reminder
+    reminder_id: x-apple-reminder://80474D4F-7B45-4D8D-94A0-374028CEB5DC
+    status: todo
+    created: '2026-04-06T17:36:37.976647'
