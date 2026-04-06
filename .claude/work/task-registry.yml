@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 371
-last_synced: '2026-04-06T17:36:43.104334'
+next_id: 372
+last_synced: '2026-04-06T17:36:44.499364'
 entries:
   OUT-223:
     title: Fire place fix
@@ -734,3 +734,10 @@ entries:
     reminder_id: x-apple-reminder://95BCFBCD-7C2A-4E87-A9A8-144A8FC4AA64
     status: todo
     created: '2026-04-06T17:36:43.103310'
+  OUT-371:
+    title: adam sandler ask about mel shaw and angelo
+    file: OUT-371-adam-sandler-ask-about-mel-shaw-and-angelo.md
+    source: reminder
+    reminder_id: x-apple-reminder://D7FF9591-E3F7-43D4-B16A-641A7AF3D4D3
+    status: todo
+    created: '2026-04-06T17:36:44.498202'
