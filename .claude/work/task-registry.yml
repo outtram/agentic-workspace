@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 374
-last_synced: '2026-04-06T17:36:47.343087'
+next_id: 375
+last_synced: '2026-04-06T17:36:48.792019'
 entries:
   OUT-223:
     title: Fire place fix
@@ -755,3 +755,10 @@ entries:
     reminder_id: x-apple-reminder://521EC0A2-BF5E-4720-8663-49C8311540CF
     status: todo
     created: '2026-04-06T17:36:47.341953'
+  OUT-374:
+    title: Kate - reserve info
+    file: OUT-374-kate-reserve-info.md
+    source: reminder
+    reminder_id: x-apple-reminder://322A4401-9C93-4889-8CC7-4565F6E47F5F
+    status: todo
+    created: '2026-04-06T17:36:48.791021'
