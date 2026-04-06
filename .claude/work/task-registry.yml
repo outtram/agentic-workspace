@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 365
-last_synced: '2026-03-20T12:53:26.194649'
+next_id: 366
+last_synced: '2026-04-06T17:36:34.892488'
 entries:
   OUT-223:
     title: Fire place fix
@@ -681,14 +681,21 @@ entries:
     status: todo
     created: '2026-03-20T12:53:26.193698'
   OUT-363:
-    title: Story Point Estimator — ML Model from Historical Data
+    title: "Story Point Estimator \u2014 ML Model from Historical Data"
     file: OUT-363-story-point-estimator.md
     source: manual
     status: todo
     created: '2026-03-23'
   OUT-364:
-    title: Hotdog or Not Hotdog — Meme Classifier
+    title: "Hotdog or Not Hotdog \u2014 Meme Classifier"
     file: OUT-364-hotdog-not-hotdog-classifier.md
     source: manual
     status: todo
     created: '2026-03-23'
+  OUT-365:
+    title: Notebook lm connect idea
+    file: OUT-365-notebook-lm-connect-idea.md
+    source: reminder
+    reminder_id: x-apple-reminder://993DE7CB-53BE-4017-8BD1-9445870C30B4
+    status: todo
+    created: '2026-04-06T17:36:34.891340'
