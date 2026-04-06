@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 372
-last_synced: '2026-04-06T17:36:44.499364'
+next_id: 373
+last_synced: '2026-04-06T17:36:45.954409'
 entries:
   OUT-223:
     title: Fire place fix
@@ -741,3 +741,10 @@ entries:
     reminder_id: x-apple-reminder://D7FF9591-E3F7-43D4-B16A-641A7AF3D4D3
     status: todo
     created: '2026-04-06T17:36:44.498202'
+  OUT-372:
+    title: kate agile ways of working workshop?
+    file: OUT-372-kate-agile-ways-of-working-workshop.md
+    source: reminder
+    reminder_id: x-apple-reminder://0EFF002F-46E5-4918-B44E-8C42D9EEBDB8
+    status: todo
+    created: '2026-04-06T17:36:45.953492'
