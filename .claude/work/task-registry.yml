@@ -1,6 +1,6 @@
 schema_version: 1
-next_id: 369
-last_synced: '2026-04-06T17:36:40.065431'
+next_id: 370
+last_synced: '2026-04-06T17:36:41.662116'
 entries:
   OUT-223:
     title: Fire place fix
@@ -720,3 +720,10 @@ entries:
     reminder_id: x-apple-reminder://74CFF9D7-357C-4858-B111-9AAADC6E68A0
     status: todo
     created: '2026-04-06T17:36:40.064459'
+  OUT-369:
+    title: Chantel - kpmg
+    file: OUT-369-chantel-kpmg.md
+    source: reminder
+    reminder_id: x-apple-reminder://311560CD-C74B-4A47-A86A-6E09335A53E1
+    status: todo
+    created: '2026-04-06T17:36:41.661042'
