@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-07T17:28:55.052275'
+last_synced: '2026-04-07T18:16:32.849949'
 entries:
   OUT-223:
     title: Fire place fix
@@ -372,7 +372,7 @@ entries:
     file: OUT-319-web-companion-picker.md
     source: manual
     reminder_id: null
-    status: todo
+    status: done
     created: '2026-02-28T21:48:50.824524'
     parent: OUT-313
   OUT-320:
