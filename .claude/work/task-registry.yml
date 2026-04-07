@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-07T16:43:34.829047'
+last_synced: '2026-04-07T16:43:51.567157'
 entries:
   OUT-223:
     title: Fire place fix
@@ -523,7 +523,7 @@ entries:
     file: OUT-340-github-pr-needed.md
     source: email
     reminder_id: null
-    status: todo
+    status: done
     created: '2026-03-10T20:01:31.677155'
   OUT-341:
     title: Make these into separate reminders
