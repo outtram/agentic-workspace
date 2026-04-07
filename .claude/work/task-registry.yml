@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-07T17:28:33.215086'
+last_synced: '2026-04-07T17:28:55.052275'
 entries:
   OUT-223:
     title: Fire place fix
@@ -439,7 +439,7 @@ entries:
     file: OUT-328-create-a-diagrm-of-this.md
     source: reminders_import
     reminder_id: x-apple-reminder://1EB21BF9-1B02-4299-BF91-5BDCEEA65089
-    status: todo
+    status: done
     created: '2026-03-06T23:23:12.475868'
   OUT-329:
     title: Nithin testing approach
