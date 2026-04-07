@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-07T16:43:51.567157'
+last_synced: '2026-04-07T16:44:09.137049'
 entries:
   OUT-223:
     title: Fire place fix
@@ -530,7 +530,7 @@ entries:
     file: OUT-341-make-these-into-separate-reminders.md
     source: email
     reminder_id: null
-    status: todo
+    status: done
     created: '2026-03-10T20:01:48.596063'
   OUT-342:
     title: Try this for my personal website
