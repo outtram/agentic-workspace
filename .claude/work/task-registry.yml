@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-07T16:44:09.137049'
+last_synced: '2026-04-07T17:21:26.760894'
 entries:
   OUT-223:
     title: Fire place fix
@@ -488,7 +488,7 @@ entries:
     file: OUT-335-basic-kindergarten-structure.md
     source: email
     reminder_id: null
-    status: todo
+    status: done
     created: '2026-03-10T20:00:20.212130'
   OUT-336:
     title: RE:Research task Microsoft copilot tasks
