@@ -1,6 +1,6 @@
 schema_version: 1
 next_id: 375
-last_synced: '2026-04-07T18:16:32.849949'
+last_synced: '2026-04-09T18:05:26.418752'
 entries:
   OUT-223:
     title: Fire place fix
@@ -580,7 +580,7 @@ entries:
     file: OUT-348-interview-agent-idea.md
     source: reminders_import
     reminder_id: x-apple-reminder://47B28BAC-2312-4C2B-8376-F1EC2F36C0E1
-    status: todo
+    status: done
     created: '2026-03-16T18:07:34.490804'
   OUT-349:
     title: Exec Meeting Rose, Mike, Berin, Darran, Kate
